@@ -82,15 +82,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "PayCrivo — Buy & Swap Crypto with Transparent Fees" },
-      { name: "description", content: "PayCrivo is the simple, secure way to buy and swap crypto. Fast checkout, fair fees, and full control of your own wallet." },
+      { title: "PayCrivo — Buy & Swap Cryptocurrency Securely" },
+      { name: "description", content: "Buy Bitcoin, Ethereum, USDT and hundreds of cryptocurrencies securely with PayCrivo. Fast crypto purchases, instant swaps, simple verification, competitive rates and secure checkout." },
+      { name: "keywords", content: "PayCrivo, buy crypto, swap crypto, bitcoin, ethereum, USDT, crypto exchange, crypto purchase, crypto wallet, instant crypto, secure crypto, simple verification, buy bitcoin with card" },
       { name: "author", content: "PayCrivo" },
-      { property: "og:title", content: "PayCrivo — Buy & Swap Crypto with Transparent Fees" },
-      { property: "og:description", content: "Buy and swap crypto in minutes with transparent fees and your own wallet." },
+      { property: "og:title", content: "PayCrivo — Buy & Swap Cryptocurrency Securely" },
+      { property: "og:description", content: "Buy Bitcoin, Ethereum, USDT and hundreds of cryptocurrencies securely with PayCrivo. Fast purchases, instant swaps, and secure checkout." },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "PayCrivo" },
+      { property: "og:image", content: "https://paycrivo.com/paycrivo-email-logo.png" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "PayCrivo — Buy & Swap Crypto" },
-      { name: "twitter:description", content: "Buy and swap crypto in minutes with transparent fees and your own wallet." },
+      { name: "twitter:title", content: "PayCrivo — Buy & Swap Cryptocurrency Securely" },
+      { name: "twitter:description", content: "Buy Bitcoin, Ethereum, USDT and hundreds of cryptocurrencies securely with PayCrivo." },
+      { name: "twitter:image", content: "https://paycrivo.com/paycrivo-email-logo.png" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -104,6 +108,34 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "stylesheet",
         href: appCss,
+      },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "PayCrivo",
+          url: "https://paycrivo.com",
+          logo: "https://paycrivo.com/paycrivo-email-logo.png",
+          description:
+            "Buy and swap Bitcoin, Ethereum, USDT and hundreds of cryptocurrencies securely with PayCrivo.",
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "PayCrivo",
+          url: "https://paycrivo.com",
+          potentialAction: {
+            "@type": "SearchAction",
+            target: "https://paycrivo.com/prices?q={search_term_string}",
+            "query-input": "required name=search_term_string",
+          },
+        }),
       },
     ],
   }),
