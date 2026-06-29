@@ -15,8 +15,8 @@ import {
 const navLinks: { label: string; to?: string; href?: string }[] = [
   { label: "Buy Crypto", to: "/buy-crypto" },
   { label: "Swap Crypto", to: "/exchange" },
-  { label: "Prices", href: "#" },
-  { label: "Learn", href: "#" },
+  { label: "Prices", to: "/prices" },
+  { label: "Learn", to: "/learn" },
 ];
 
 export function Header({ theme, onToggleTheme }: { theme: string; onToggleTheme: () => void }) {
