@@ -27,6 +27,7 @@ import { Route as OrderOrderIdRouteImport } from './routes/order.$orderId'
 import { Route as ExchangeCheckoutRouteImport } from './routes/exchange.checkout'
 import { Route as AccountWalletsRouteImport } from './routes/account.wallets'
 import { Route as AccountSecurityRouteImport } from './routes/account.security'
+import { Route as AccountRewardRouteImport } from './routes/account.reward'
 import { Route as AccountOrdersRouteImport } from './routes/account.orders'
 import { Route as ExchangeOrderOrderIdRouteImport } from './routes/exchange.order.$orderId'
 import { Route as ApiEmailVerifyCodeRouteImport } from './routes/api/email/verify-code'
@@ -123,6 +124,11 @@ const AccountSecurityRoute = AccountSecurityRouteImport.update({
   path: '/security',
   getParentRoute: () => AccountRoute,
 } as any)
+const AccountRewardRoute = AccountRewardRouteImport.update({
+  id: '/reward',
+  path: '/reward',
+  getParentRoute: () => AccountRoute,
+} as any)
 const AccountOrdersRoute = AccountOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
@@ -163,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/swap': typeof SwapRoute
   '/verify-email': typeof VerifyEmailRoute
   '/account/orders': typeof AccountOrdersRoute
+  '/account/reward': typeof AccountRewardRoute
   '/account/security': typeof AccountSecurityRoute
   '/account/wallets': typeof AccountWalletsRoute
   '/exchange/checkout': typeof ExchangeCheckoutRoute
@@ -186,6 +193,7 @@ export interface FileRoutesByTo {
   '/swap': typeof SwapRoute
   '/verify-email': typeof VerifyEmailRoute
   '/account/orders': typeof AccountOrdersRoute
+  '/account/reward': typeof AccountRewardRoute
   '/account/security': typeof AccountSecurityRoute
   '/account/wallets': typeof AccountWalletsRoute
   '/exchange/checkout': typeof ExchangeCheckoutRoute
@@ -212,6 +220,7 @@ export interface FileRoutesById {
   '/swap': typeof SwapRoute
   '/verify-email': typeof VerifyEmailRoute
   '/account/orders': typeof AccountOrdersRoute
+  '/account/reward': typeof AccountRewardRoute
   '/account/security': typeof AccountSecurityRoute
   '/account/wallets': typeof AccountWalletsRoute
   '/exchange/checkout': typeof ExchangeCheckoutRoute
@@ -239,6 +248,7 @@ export interface FileRouteTypes {
     | '/swap'
     | '/verify-email'
     | '/account/orders'
+    | '/account/reward'
     | '/account/security'
     | '/account/wallets'
     | '/exchange/checkout'
@@ -262,6 +272,7 @@ export interface FileRouteTypes {
     | '/swap'
     | '/verify-email'
     | '/account/orders'
+    | '/account/reward'
     | '/account/security'
     | '/account/wallets'
     | '/exchange/checkout'
@@ -287,6 +298,7 @@ export interface FileRouteTypes {
     | '/swap'
     | '/verify-email'
     | '/account/orders'
+    | '/account/reward'
     | '/account/security'
     | '/account/wallets'
     | '/exchange/checkout'
@@ -446,6 +458,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountSecurityRouteImport
       parentRoute: typeof AccountRoute
     }
+    '/account/reward': {
+      id: '/account/reward'
+      path: '/reward'
+      fullPath: '/account/reward'
+      preLoaderRoute: typeof AccountRewardRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/orders': {
       id: '/account/orders'
       path: '/orders'
@@ -486,6 +505,7 @@ declare module '@tanstack/react-router' {
 
 interface AccountRouteChildren {
   AccountOrdersRoute: typeof AccountOrdersRoute
+  AccountRewardRoute: typeof AccountRewardRoute
   AccountSecurityRoute: typeof AccountSecurityRoute
   AccountWalletsRoute: typeof AccountWalletsRoute
   AccountIndexRoute: typeof AccountIndexRoute
@@ -493,6 +513,7 @@ interface AccountRouteChildren {
 
 const AccountRouteChildren: AccountRouteChildren = {
   AccountOrdersRoute: AccountOrdersRoute,
+  AccountRewardRoute: AccountRewardRoute,
   AccountSecurityRoute: AccountSecurityRoute,
   AccountWalletsRoute: AccountWalletsRoute,
   AccountIndexRoute: AccountIndexRoute,

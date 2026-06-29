@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { Receipt, Shield, User, Wallet } from "lucide-react";
+import { Gift, Receipt, Shield, User, Wallet } from "lucide-react";
 import { PageChrome } from "@/components/paycrivo/PageChrome";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 
@@ -16,6 +16,7 @@ const links = [
   { to: "/account/security", label: "Security", icon: Shield, exact: false },
   { to: "/account/wallets", label: "Wallets", icon: Wallet, exact: false },
   { to: "/account/orders", label: "Orders", icon: Receipt, exact: false },
+  { to: "/account/reward", label: "Reward", icon: Gift, exact: false },
 ] as const;
 
 function AccountLayout() {
