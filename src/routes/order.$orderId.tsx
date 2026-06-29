@@ -87,6 +87,16 @@ function OrderStatusPage() {
                   <div className="text-sm font-bold text-foreground">Wallet address</div>
                   <div className="mt-1 break-all font-mono text-xs text-muted-foreground">{order.wallet}</div>
                   <div className="mt-2 text-xs text-muted-foreground">Network: {order.network}</div>
+                  <div className="mt-2 flex items-center gap-2 text-xs">
+                    <span className="text-muted-foreground">Wallet ownership:</span>
+                    {order.walletOwnership === "confirmed" ? (
+                      <span className="rounded-full bg-success/15 px-2 py-0.5 font-bold text-success">Confirmed</span>
+                    ) : order.walletOwnership === "manual" ? (
+                      <span className="rounded-full bg-amber-500/15 px-2 py-0.5 font-bold text-amber-600 dark:text-amber-400">Manual review</span>
+                    ) : (
+                      <span className="rounded-full bg-secondary px-2 py-0.5 font-bold text-muted-foreground">Not confirmed</span>
+                    )}
+                  </div>
                 </div>
                 <button onClick={() => { navigator.clipboard?.writeText(order.wallet); toast.success("Copied"); }}
                   className="grid size-9 shrink-0 place-items-center rounded-lg border border-border text-muted-foreground hover:text-foreground" aria-label="Copy">
