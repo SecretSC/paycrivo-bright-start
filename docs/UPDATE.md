@@ -63,5 +63,5 @@ The frontend is a standard Node server. You can also run it by hand:
 ```bash
 npm install
 npm run build
-node .output/server/index.mjs   # honours PORT, defaults to 3000
+node scripts/start-web.mjs   # hardened launcher; honours PORT, defaults to 4000
 ```

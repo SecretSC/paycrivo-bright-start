@@ -58,6 +58,20 @@ else
   ok "Backend .env present"
 fi
 
+# ---- Frontend env (VITE_* is baked in at BUILD time, so it must exist now) ----
+step "Checking frontend environment (.env.production)"
+if [ ! -f "$FRONTEND_DIR/.env.production" ] && [ ! -f "$FRONTEND_DIR/.env" ]; then
+  if [ -f "$FRONTEND_DIR/.env.production.example" ]; then
+    cp "$FRONTEND_DIR/.env.production.example" "$FRONTEND_DIR/.env.production"
+    echo "    Created $FRONTEND_DIR/.env.production from example"
+    echo "    ${BOLD}${RED}Set VITE_API_BASE_URL=https://api.paycrivo.com before going live.${RESET}"
+  else
+    echo "    ${RED}No frontend .env.production found and no example to copy.${RESET}"
+  fi
+else
+  ok "Frontend env present"
+fi
+
 # ---- Frontend build (TanStack Start SSR -> Node server) ----
 step "Building frontend SSR server ($FRONTEND_DIR)"
 [ -d "$FRONTEND_DIR" ] || die "Frontend folder not found: $FRONTEND_DIR"
@@ -92,12 +106,20 @@ fi
 # ---- Install systemd services ----
 step "Installing systemd services"
 if [ -d "$SYSTEMD_SRC" ]; then
-  for unit in "$WEB_SERVICE" "$API_SERVICE" "$WORKER_SERVICE"; do
+  # Always install web + api. The worker is OPTIONAL — only install it when a
+  # worker build actually exists, otherwise it would crash-loop on a missing file.
+  for unit in "$WEB_SERVICE" "$API_SERVICE"; do
     if [ -f "$SYSTEMD_SRC/${unit}.service" ]; then
       sudo cp "$SYSTEMD_SRC/${unit}.service" "/etc/systemd/system/${unit}.service"
       ok "Installed ${unit}.service"
     fi
   done
+  if [ -f "$BACKEND_DIR/dist/worker.js" ] && [ -f "$SYSTEMD_SRC/${WORKER_SERVICE}.service" ]; then
+    sudo cp "$SYSTEMD_SRC/${WORKER_SERVICE}.service" "/etc/systemd/system/${WORKER_SERVICE}.service"
+    ok "Installed ${WORKER_SERVICE}.service"
+  else
+    echo "    (no worker build at $BACKEND_DIR/dist/worker.js — skipping $WORKER_SERVICE)"
+  fi
   sudo systemctl daemon-reload
 else
   echo "    (no $SYSTEMD_SRC directory, skipping service install)"
