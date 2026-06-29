@@ -783,11 +783,7 @@ function SummaryAccordion({
 }) {
   const [open, setOpen] = useState(false);
   const asset = getAsset(coin)!;
-  const fiatInfo = fiatByCode(fiat);
-  const priceSnap = usePrices();
-  const price = getPrice(coin);
-  void priceSnap;
-  const fees = computeFees(parseFloat(spend) || 0, asset, true, price);
+  const { fees, money } = useQuote(spend, coin, fiat);
   return (
     <div className={cn("overflow-hidden rounded-2xl border border-border bg-card shadow-soft", className)}>
       {/* Collapsed receipt bar */}
@@ -798,12 +794,12 @@ function SummaryAccordion({
             {formatTokenAmount(fees.receive)} {asset.symbol}
           </div>
           <div className="text-xs text-muted-foreground">
-            Spend {fiatInfo.symbol}{fees.amount.toFixed(2)} {fiat}
+            Spend {money(fees.amount)} {fiat}
           </div>
         </div>
         <div className="text-right">
           <div className="text-[11px] text-muted-foreground">Total</div>
-          <div className="text-sm font-bold text-foreground">{fiatInfo.symbol}{fees.total.toFixed(2)}</div>
+          <div className="text-sm font-bold text-foreground">{money(fees.total)}</div>
         </div>
         <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
       </button>
