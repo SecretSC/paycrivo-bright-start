@@ -587,7 +587,6 @@ function OrderCreated({ id, state }: { id: string; state: CheckoutState }) {
   const { fees, money } = useQuote(state.spend, state.coin, state.fiat);
   const timeline = [
     { label: "Order created", status: "complete" as const },
-    { label: "Verification", status: "pending" as const },
     { label: "Payment", status: "pending" as const },
     { label: "Processing", status: "pending" as const },
     { label: "Crypto delivery", status: "pending" as const },
@@ -752,16 +751,6 @@ function CheckRow({ checked, onChange, error, children }: { checked: boolean; on
         <span className="text-sm text-muted-foreground">{children}</span>
       </button>
       {error && <p className="mt-1.5 pl-8 text-xs font-medium text-destructive">{error}</p>}
-    </div>
-  );
-}
-
-function VerifyCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
-  return (
-    <div className="rounded-xl border border-border bg-card p-4">
-      <div className="grid size-9 place-items-center rounded-lg bg-accent text-accent-foreground">{icon}</div>
-      <div className="mt-3 text-sm font-bold text-foreground">{title}</div>
-      <div className="text-xs text-muted-foreground">{desc}</div>
     </div>
   );
 }
