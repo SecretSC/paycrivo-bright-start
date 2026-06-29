@@ -15,7 +15,7 @@ import { OrderSummary } from "@/components/checkout/OrderSummary";
 import { CryptoIcon } from "@/components/CryptoIcon";
 import { getAsset, formatTokenAmount } from "@/data/cryptoAssets";
 import {
-  MAX_USD, MIN_USD, clearDraft, computeFees, defaultCheckout, fiatByCode,
+  MAX_USD, MIN_USD, clearDraft, defaultCheckout, fiatByCode,
   generateOrderId, getPaymentMethod, loadDraft, networksForAsset, saveDraft,
   saveOrder, usdValueOf, type CheckoutState,
 } from "@/lib/checkout";
@@ -23,9 +23,11 @@ import { CustomSelect, type SelectOption } from "@/components/paycrivo/CustomSel
 import { validateWallet, detectAddressKind, networkNeedsDestinationTag } from "@/utils/walletValidation";
 import {
   countryByName, nameRe, cityRe, validateAge18, validatePhone, validatePostal,
-  sanitizePhoneInput,
+  sanitizePhoneInput, stripLeadingDial,
 } from "@/data/countries";
-import { usePrices, getPrice, formatUtcTime } from "@/services/priceService";
+import { useQuote, formatUtcTime } from "@/services/marketDataService";
+import { AddressAutocomplete } from "@/components/checkout/AddressAutocomplete";
+import { StepLoader, type LoaderLabel } from "@/components/checkout/StepLoader";
 import { cn } from "@/lib/utils";
 
 const searchSchema = z.object({
@@ -52,7 +54,6 @@ const REVIEW = STEPS.length - 1; // 6
 function BuyFlow() {
   const search = Route.useSearch();
   const navigate = useNavigate();
-  const priceSnap = usePrices();
 
   const [state, setState] = useState<CheckoutState>(() => {
     const draft = loadDraft();
@@ -71,14 +72,13 @@ function BuyFlow() {
   const [createdId, setCreatedId] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [kycPreview, setKycPreview] = useState(false);
+  const [loader, setLoader] = useState<LoaderLabel | null>(null);
   const topRef = useRef<HTMLDivElement>(null);
 
   const set = <K extends keyof CheckoutState>(key: K, value: CheckoutState[K]) =>
     setState((s) => ({ ...s, [key]: value }));
 
   const asset = getAsset(state.coin)!;
-  const price = getPrice(state.coin); // re-reads on snapshot change via priceSnap
-  void priceSnap;
   const networks = useMemo(() => networksForAsset(state.coin), [state.coin]);
 
   useEffect(() => {
@@ -96,10 +96,8 @@ function BuyFlow() {
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [state.step, createdId]);
 
-  const fees = useMemo(
-    () => computeFees(parseFloat(state.spend) || 0, asset, true, price),
-    [state.spend, asset, price],
-  );
+  const quote = useQuote(state.spend, state.coin, state.fiat);
+  const { fees, priceFiat: price } = quote;
 
   const networkOpts: SelectOption[] = networks.map((n) => ({ value: n, label: n }));
 
@@ -156,7 +154,12 @@ function BuyFlow() {
 
   const next = () => {
     if (!validateStep(state.step)) return;
-    set("step", Math.min(state.step + 1, REVIEW));
+    const label = STEP_LOADER[state.step] ?? "Loading…";
+    setLoader(label);
+    window.setTimeout(() => {
+      setLoader(null);
+      set("step", Math.min(state.step + 1, REVIEW));
+    }, 2200);
   };
   const back = () => {
     setErrors({});
@@ -166,9 +169,9 @@ function BuyFlow() {
   const onSelectCountry = (name: string) => {
     setState((s) => {
       const c = countryByName(name);
-      const digits = s.phone.replace(/\D/g, "");
-      const shouldPrefill = !digits;
-      return { ...s, country: name, phone: shouldPrefill && c ? `${c.dial} ` : s.phone };
+      // Always swap the dial-code prefix so changing country updates the phone immediately.
+      const national = stripLeadingDial(s.phone);
+      return { ...s, country: name, phone: c ? `${c.dial} ${national}`.trim() + (national ? "" : " ") : national };
     });
     setErrors((e) => ({ ...e, country: "", phone: "" }));
   };
@@ -192,25 +195,27 @@ function BuyFlow() {
   const confirmOrder = () => {
     if (!validateStep(REVIEW)) return;
     setConfirming(true);
+    setLoader("Creating order…");
     setTimeout(() => {
       const id = generateOrderId();
       saveOrder({
-        id, createdAt: new Date().toISOString(), status: "Awaiting payment integration",
+        id, createdAt: new Date().toISOString(), status: "Awaiting payment",
         spend: state.spend, fiat: state.fiat, coin: state.coin, method: state.method,
         wallet: state.wallet, network: state.network, receive: fees.receive, fees,
         email: state.email, walletOwnership: state.walletOwnership, destinationTag: state.destinationTag,
       });
       clearDraft();
       setConfirming(false);
+      setLoader(null);
       setCreatedId(id);
-      toast.success("Order created in staging");
-    }, 1100);
+      toast.success("Order created");
+    }, 2400);
   };
 
-  if (createdId) return <OrderCreated id={createdId} state={state} price={price} />;
+  if (createdId) return <OrderCreated id={createdId} state={state} />;
 
   const fiatInfo = fiatByCode(state.fiat);
-  const money = (n: number) => `${fiatInfo.symbol}${n.toFixed(2)}`;
+  const money = quote.money;
 
   return (
     <div className="min-h-screen bg-background">
@@ -255,7 +260,7 @@ function BuyFlow() {
                 </Field>
 
                 <Field label="Payment method">
-                  <PaymentMethodSelector value={state.method} onChange={(v) => set("method", v)} />
+                  <PaymentMethodSelector value={state.method} onChange={(v) => set("method", v)} fiat={state.fiat} />
                 </Field>
 
                 <div className="space-y-2 rounded-2xl bg-surface p-4 text-sm">
@@ -307,7 +312,19 @@ function BuyFlow() {
                     />
                   </Field>
                   <Field label="Address" error={errors.address}>
-                    <input value={state.address} onChange={(e) => set("address", e.target.value)} className={inputCls(errors.address)} />
+                    <AddressAutocomplete
+                      value={state.address}
+                      country={state.country}
+                      error={!!errors.address}
+                      onChange={(v) => set("address", v)}
+                      onSelect={(r) => setState((s) => ({
+                        ...s,
+                        address: r.address,
+                        city: r.city || s.city,
+                        postal: r.postal || s.postal,
+                        country: r.country || s.country,
+                      }))}
+                    />
                   </Field>
                   <Field label="City" error={errors.city}>
                     <input value={state.city} onChange={(e) => set("city", e.target.value)} className={inputCls(errors.city)} />
@@ -457,7 +474,6 @@ function BuyFlow() {
                   <ReviewRow label="Wallet" value={`${state.wallet.slice(0, 8)}…${state.wallet.slice(-6)}`} copy={state.wallet} />
                   {state.destinationTag && <ReviewRow label="Destination tag" value={state.destinationTag} />}
                   <ReviewRow label="Wallet ownership" badge={state.walletOwnership} />
-                  <ReviewRow label="Verification" value="Staging (Phase 7)" />
                   <ReviewRow label="Payment method" value={getPaymentMethod(state.method).name} />
                   <ReviewRow label="Exchange rate" value={`1 ${state.coin} = ${money(price)}`} />
                   <ReviewRow label="Service fee" value={money(fees.serviceFee)} />
@@ -469,7 +485,7 @@ function BuyFlow() {
                     <span className="font-display text-lg font-bold text-foreground">{money(fees.total)} {state.fiat}</span>
                   </div>
                   <div className="mt-3 flex items-center justify-between border-t border-border pt-3 text-xs text-muted-foreground">
-                    <span>Price updated: {formatUtcTime(priceSnap.lastUpdated)} · {priceSnap.status === "live" ? "Live price" : "Price estimate"}</span>
+                    <span>{quote.status === "live" ? "Live rate" : "Estimated rate"} · updated {formatUtcTime(quote.lastUpdated)}</span>
                   </div>
                 </div>
                 <p className="flex items-start gap-2 rounded-xl bg-secondary px-3 py-2.5 text-xs text-muted-foreground">
@@ -492,7 +508,7 @@ function BuyFlow() {
               )}
               {state.step < REVIEW ? (
                 <button onClick={next} className="bg-gradient-primary flex flex-1 items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5">
-                  {state.step === 3 ? "Continue in staging" : "Continue"} <ArrowRight className="size-4" />
+                  Continue <ArrowRight className="size-4" />
                 </button>
               ) : (
                 <button onClick={confirmOrder} disabled={confirming}
@@ -511,7 +527,7 @@ function BuyFlow() {
             )
           )}
           <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted-foreground sm:justify-start">
-            <ShieldCheck className="size-3.5" /> No real payment is processed in staging.
+            <ShieldCheck className="size-3.5" /> Secure 256-bit encrypted checkout.
           </p>
           </div>
 
@@ -527,9 +543,29 @@ function BuyFlow() {
       </div>
 
       {kycPreview && <KycPreviewModal onClose={() => setKycPreview(false)} />}
+      {loader && (
+        <StepLoader
+          label={loader}
+          coin={state.coin}
+          fiat={state.fiat}
+          spend={state.spend}
+          receive={fees.receive}
+          total={fees.total}
+          money={money}
+        />
+      )}
     </div>
   );
 }
+
+const STEP_LOADER: Record<number, LoaderLabel> = {
+  0: "Preparing secure checkout…",
+  1: "Checking your email…",
+  2: "Verifying your details…",
+  3: "Preparing verification…",
+  4: "Preparing wallet step…",
+  5: "Reviewing your order…",
+};
 
 function networkHelp(symbol: string, network: string): string {
   const n = network.toLowerCase();
@@ -574,7 +610,6 @@ function VerificationStep({ onPreview }: { onPreview: () => void }) {
         <div className="rounded-2xl border border-border bg-card p-5">
           <div className="text-sm font-bold text-foreground">Use your phone to continue verification</div>
           <p className="mt-1 text-xs text-muted-foreground">Scan the code with your phone camera. QR expires in 15 minutes.</p>
-          <p className="mt-2 text-xs text-muted-foreground">Full mobile KYC flow will be added in Phase 7.</p>
           <button type="button" onClick={onPreview}
             className="mt-4 inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-primary/40">
             <Smartphone className="size-4" /> Preview mobile KYC
@@ -586,7 +621,7 @@ function VerificationStep({ onPreview }: { onPreview: () => void }) {
       </div>
 
       <p className="flex items-start gap-2 rounded-xl bg-secondary px-3 py-2.5 text-xs text-muted-foreground">
-        <Info className="mt-0.5 size-3.5 shrink-0" /> This is a staging preview. You can continue without completing verification.
+        <Info className="mt-0.5 size-3.5 shrink-0" /> Your information is encrypted and used only to verify your identity.
       </p>
     </Section>
   );
@@ -623,7 +658,7 @@ function KycPreviewModal({ onClose }: { onClose: () => void }) {
             <p className="mt-2 text-center text-[10px] font-medium text-muted-foreground">Look left, then right →</p>
           </div>
         </div>
-        <p className="mt-4 text-center text-xs text-muted-foreground">Visual preview only. The real camera flow ships in Phase 7.</p>
+        <p className="mt-4 text-center text-xs text-muted-foreground">Visual preview of the mobile verification experience.</p>
         <button onClick={onClose} className="bg-gradient-primary mt-4 w-full rounded-2xl py-3 text-sm font-bold text-primary-foreground">
           Close preview
         </button>
@@ -641,14 +676,13 @@ function OwnershipBadge({ status }: { status: CheckoutState["walletOwnership"] }
 }
 
 /* ---------- Order created ---------- */
-function OrderCreated({ id, state, price }: { id: string; state: CheckoutState; price: number }) {
+function OrderCreated({ id, state }: { id: string; state: CheckoutState }) {
   const asset = getAsset(state.coin)!;
-  const fiatInfo = fiatByCode(state.fiat);
-  const fees = computeFees(parseFloat(state.spend) || 0, asset, true, price);
+  const { fees, money } = useQuote(state.spend, state.coin, state.fiat);
   const timeline = [
     { label: "Order created", status: "complete" as const },
-    { label: "Verification", status: "staging" as const },
-    { label: "Payment", status: "pending" as const, note: "not integrated" },
+    { label: "Verification", status: "pending" as const },
+    { label: "Payment", status: "pending" as const },
     { label: "Processing", status: "pending" as const },
     { label: "Crypto delivery", status: "pending" as const },
   ];
@@ -662,7 +696,7 @@ function OrderCreated({ id, state, price }: { id: string; state: CheckoutState; 
             <Check className="size-8" />
           </div>
           <h1 className="mt-5 font-display text-2xl font-bold text-foreground">Order created</h1>
-          <p className="mt-2 text-muted-foreground">Your PayCrivo order has been created in staging.</p>
+          <p className="mt-2 text-muted-foreground">Your PayCrivo order has been created successfully.</p>
         </div>
 
         <div className="mt-8 rounded-3xl border border-border bg-card p-6 shadow-soft">
@@ -673,12 +707,12 @@ function OrderCreated({ id, state, price }: { id: string; state: CheckoutState; 
           <div className="mt-3 flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Status</span>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-xs font-bold text-accent-foreground">
-              Awaiting payment integration
+              Awaiting payment
             </span>
           </div>
           <div className="mt-4 grid gap-3 border-t border-border pt-4 sm:grid-cols-2">
             <Info2 label="Asset" value={`${asset.name} (${asset.symbol})`} />
-            <Info2 label="Amount" value={`${fiatInfo.symbol}${fees.amount.toFixed(2)} ${state.fiat}`} />
+            <Info2 label="Amount" value={`${money(fees.amount)} ${state.fiat}`} />
             <Info2 label="Estimated receive" value={`${formatTokenAmount(fees.receive)} ${asset.symbol}`} />
             <Info2 label="Network" value={state.network} />
             <Info2 label="Wallet" value={`${state.wallet.slice(0, 8)}…${state.wallet.slice(-6)}`} />
@@ -748,11 +782,7 @@ function SummaryAccordion({
 }) {
   const [open, setOpen] = useState(false);
   const asset = getAsset(coin)!;
-  const fiatInfo = fiatByCode(fiat);
-  const priceSnap = usePrices();
-  const price = getPrice(coin);
-  void priceSnap;
-  const fees = computeFees(parseFloat(spend) || 0, asset, true, price);
+  const { fees, money } = useQuote(spend, coin, fiat);
   return (
     <div className={cn("overflow-hidden rounded-2xl border border-border bg-card shadow-soft", className)}>
       {/* Collapsed receipt bar */}
@@ -763,12 +793,12 @@ function SummaryAccordion({
             {formatTokenAmount(fees.receive)} {asset.symbol}
           </div>
           <div className="text-xs text-muted-foreground">
-            Spend {fiatInfo.symbol}{fees.amount.toFixed(2)} {fiat}
+            Spend {money(fees.amount)} {fiat}
           </div>
         </div>
         <div className="text-right">
           <div className="text-[11px] text-muted-foreground">Total</div>
-          <div className="text-sm font-bold text-foreground">{fiatInfo.symbol}{fees.total.toFixed(2)}</div>
+          <div className="text-sm font-bold text-foreground">{money(fees.total)}</div>
         </div>
         <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
       </button>

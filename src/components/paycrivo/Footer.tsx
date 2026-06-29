@@ -47,7 +47,7 @@ export function Footer() {
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row">
           <p>© {new Date().getFullYear()} PayCrivo. All rights reserved.</p>
           <p className="max-w-md text-center text-xs sm:text-right">
-            Crypto assets are volatile. Buy only what you can afford. PayCrivo is a demo interface.
+            Crypto assets are volatile. Buy only what you can afford.
           </p>
         </div>
       </div>

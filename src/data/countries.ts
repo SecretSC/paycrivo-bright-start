@@ -18,24 +18,39 @@ export const countries: Country[] = [
   { name: "Spain", code: "ES", flag: "🇪🇸", dial: "+34", popular: true },
   { name: "Italy", code: "IT", flag: "🇮🇹", dial: "+39", popular: true },
   { name: "Netherlands", code: "NL", flag: "🇳🇱", dial: "+31", popular: true },
-  { name: "Poland", code: "PL", flag: "🇵🇱", dial: "+48" },
-  { name: "Ireland", code: "IE", flag: "🇮🇪", dial: "+353" },
-  { name: "Portugal", code: "PT", flag: "🇵🇹", dial: "+351" },
-  { name: "Belgium", code: "BE", flag: "🇧🇪", dial: "+32" },
-  { name: "Austria", code: "AT", flag: "🇦🇹", dial: "+43" },
-  { name: "Switzerland", code: "CH", flag: "🇨🇭", dial: "+41" },
-  { name: "Finland", code: "FI", flag: "🇫🇮", dial: "+358" },
-  { name: "Canada", code: "CA", flag: "🇨🇦", dial: "+1" },
-  { name: "Australia", code: "AU", flag: "🇦🇺", dial: "+61" },
-  { name: "United Arab Emirates", code: "AE", flag: "🇦🇪", dial: "+971" },
-  { name: "Turkey", code: "TR", flag: "🇹🇷", dial: "+90" },
-  { name: "Brazil", code: "BR", flag: "🇧🇷", dial: "+55" },
-  { name: "Mexico", code: "MX", flag: "🇲🇽", dial: "+52" },
-  { name: "Japan", code: "JP", flag: "🇯🇵", dial: "+81" },
-  { name: "India", code: "IN", flag: "🇮🇳", dial: "+91" },
-  { name: "Singapore", code: "SG", flag: "🇸🇬", dial: "+65" },
-  { name: "South Africa", code: "ZA", flag: "🇿🇦", dial: "+27" },
-  { name: "New Zealand", code: "NZ", flag: "🇳🇿", dial: "+64" },
+  ...([
+    ["Afghanistan","AF","+93"],["Albania","AL","+355"],["Algeria","DZ","+213"],["Andorra","AD","+376"],
+    ["Angola","AO","+244"],["Argentina","AR","+54"],["Armenia","AM","+374"],["Australia","AU","+61"],
+    ["Austria","AT","+43"],["Azerbaijan","AZ","+994"],["Bahamas","BS","+1"],["Bahrain","BH","+973"],
+    ["Bangladesh","BD","+880"],["Belarus","BY","+375"],["Belgium","BE","+32"],["Belize","BZ","+501"],
+    ["Benin","BJ","+229"],["Bolivia","BO","+591"],["Bosnia and Herzegovina","BA","+387"],["Botswana","BW","+267"],
+    ["Brazil","BR","+55"],["Brunei","BN","+673"],["Bulgaria","BG","+359"],["Burkina Faso","BF","+226"],
+    ["Cambodia","KH","+855"],["Cameroon","CM","+237"],["Canada","CA","+1"],["Chile","CL","+56"],
+    ["China","CN","+86"],["Colombia","CO","+57"],["Costa Rica","CR","+506"],["Croatia","HR","+385"],
+    ["Cyprus","CY","+357"],["Czechia","CZ","+420"],["Dominican Republic","DO","+1"],["Ecuador","EC","+593"],
+    ["Egypt","EG","+20"],["El Salvador","SV","+503"],["Estonia","EE","+372"],["Ethiopia","ET","+251"],
+    ["Fiji","FJ","+679"],["Finland","FI","+358"],["Georgia","GE","+995"],["Ghana","GH","+233"],
+    ["Greece","GR","+30"],["Guatemala","GT","+502"],["Honduras","HN","+504"],["Hong Kong","HK","+852"],
+    ["Hungary","HU","+36"],["Iceland","IS","+354"],["India","IN","+91"],["Indonesia","ID","+62"],
+    ["Iraq","IQ","+964"],["Ireland","IE","+353"],["Israel","IL","+972"],["Jamaica","JM","+1"],
+    ["Japan","JP","+81"],["Jordan","JO","+962"],["Kazakhstan","KZ","+7"],["Kenya","KE","+254"],
+    ["Kuwait","KW","+965"],["Latvia","LV","+371"],["Lebanon","LB","+961"],["Libya","LY","+218"],
+    ["Liechtenstein","LI","+423"],["Lithuania","LT","+370"],["Luxembourg","LU","+352"],["Malaysia","MY","+60"],
+    ["Malta","MT","+356"],["Mexico","MX","+52"],["Moldova","MD","+373"],["Monaco","MC","+377"],
+    ["Mongolia","MN","+976"],["Montenegro","ME","+382"],["Morocco","MA","+212"],["Nepal","NP","+977"],
+    ["New Zealand","NZ","+64"],["Nigeria","NG","+234"],["North Macedonia","MK","+389"],["Oman","OM","+968"],
+    ["Pakistan","PK","+92"],["Panama","PA","+507"],["Paraguay","PY","+595"],["Peru","PE","+51"],
+    ["Philippines","PH","+63"],["Poland","PL","+48"],["Portugal","PT","+351"],["Qatar","QA","+974"],
+    ["Romania","RO","+40"],["Rwanda","RW","+250"],["Saudi Arabia","SA","+966"],["Senegal","SN","+221"],
+    ["Serbia","RS","+381"],["Singapore","SG","+65"],["Slovakia","SK","+421"],["Slovenia","SI","+386"],
+    ["South Africa","ZA","+27"],["South Korea","KR","+82"],["Sri Lanka","LK","+94"],["Switzerland","CH","+41"],
+    ["Taiwan","TW","+886"],["Tanzania","TZ","+255"],["Thailand","TH","+66"],["Tunisia","TN","+216"],
+    ["Turkey","TR","+90"],["Uganda","UG","+256"],["Ukraine","UA","+380"],["United Arab Emirates","AE","+971"],
+    ["Uruguay","UY","+598"],["Uzbekistan","UZ","+998"],["Venezuela","VE","+58"],["Vietnam","VN","+84"],
+    ["Zambia","ZM","+260"],["Zimbabwe","ZW","+263"],
+  ] as const)
+    .map(([name, code, dial]) => ({ name, code, flag: "", dial }))
+    .sort((a, b) => a.name.localeCompare(b.name)),
 ];
 
 export const countryByName = (name: string) => countries.find((c) => c.name === name);
@@ -91,6 +106,11 @@ export function toE164(phone: string, countryName: string): string {
 
 export const nameRe = /^[A-Za-zÀ-ÿ' -]{2,}$/;
 export const cityRe = /^[A-Za-zÀ-ÿ' -]{2,}$/;
+
+// Remove a leading "+<dialcode> " prefix so the national number can be re-prefixed.
+export function stripLeadingDial(phone: string): string {
+  return phone.replace(/^\s*\+\d{1,4}[\s-]*/, "").trim();
+}
 
 export function validateAge18(dob: string): string | null {
   if (!dob) return "Date of birth is required.";

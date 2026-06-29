@@ -1,35 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import { Building2, Check, ChevronDown, CreditCard, Landmark, Smartphone } from "lucide-react";
-import { paymentMethods, getPaymentMethod, type PaymentMethodDef } from "@/lib/checkout";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Check, ChevronDown, X } from "lucide-react";
+import { paymentMethodsForFiat, getPaymentMethod, type PaymentMethodDef } from "@/data/paymentMethods";
+import { PaymentBrandIcon } from "./PaymentIcons";
 import { cn } from "@/lib/utils";
-
-function MethodIcon({ icon }: { icon: PaymentMethodDef["icon"] }) {
-  const base = "grid size-9 shrink-0 place-items-center rounded-xl border border-border bg-surface";
-  switch (icon) {
-    case "apple":
-      return <span className={cn(base, "text-[10px] font-bold tracking-tight text-foreground")}>Pay</span>;
-    case "google":
-      return <span className={cn(base, "text-[10px] font-bold tracking-tight text-foreground")}>GPay</span>;
-    case "bank":
-      return <span className={base}><Building2 className="size-[18px] text-primary" /></span>;
-    case "sepa":
-      return <span className={base}><Landmark className="size-[18px] text-primary" /></span>;
-    case "mobilepay":
-      return <span className={cn(base, "bg-[#5a78ff]/15")}><Smartphone className="size-[18px] text-[#5a78ff]" /></span>;
-    case "pix":
-      return <span className={cn(base, "bg-[#32bcad]/15 text-xs font-bold text-[#1ba39c]")}>PIX</span>;
-    default:
-      return <span className={base}><CreditCard className="size-[18px] text-primary" /></span>;
-  }
-}
-
-function StatusBadge({ status }: { status: PaymentMethodDef["status"] }) {
-  if (status === "available")
-    return <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-success">Available</span>;
-  if (status === "staging")
-    return <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent-foreground">Staging</span>;
-  return <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Coming soon</span>;
-}
 
 function Row({ m, active, onSelect }: { m: PaymentMethodDef; active: boolean; onSelect: () => void }) {
   return (
@@ -43,12 +16,9 @@ function Row({ m, active, onSelect }: { m: PaymentMethodDef; active: boolean; on
         active ? "border-primary/50 bg-accent" : "border-border bg-card hover:bg-secondary",
       )}
     >
-      <MethodIcon icon={m.icon} />
+      <PaymentBrandIcon icon={m.icon} size={38} />
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span className="truncate text-sm font-bold text-foreground">{m.name}</span>
-          <StatusBadge status={m.status} />
-        </div>
+        <div className="truncate text-sm font-bold text-foreground">{m.name}</div>
         <div className="mt-0.5 truncate text-xs text-muted-foreground">{m.desc} · {m.speed}</div>
       </div>
       <span className="grid size-5 shrink-0 place-items-center">{active && <Check className="size-4 text-primary" />}</span>
@@ -59,25 +29,34 @@ function Row({ m, active, onSelect }: { m: PaymentMethodDef; active: boolean; on
 export function PaymentMethodSelector({
   value,
   onChange,
+  fiat = "USD",
 }: {
   value: string;
   onChange: (id: string) => void;
+  fiat?: string;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const selected = getPaymentMethod(value);
+
+  const available = useMemo(() => paymentMethodsForFiat(fiat), [fiat]);
+
+  // Auto-select the first available method when the current one isn't offered for this fiat.
+  useEffect(() => {
+    if (!available.some((m) => m.id === value) && available[0]) {
+      onChange(available[0].id);
+    }
+  }, [available, value, onChange]);
+
+  const selected = getPaymentMethod(available.some((m) => m.id === value) ? value : available[0]?.id ?? value);
 
   useEffect(() => {
     if (!open) return;
-    const onClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    document.addEventListener("mousedown", onClick);
     document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
     return () => {
-      document.removeEventListener("mousedown", onClick);
       document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
     };
   }, [open]);
 
@@ -85,27 +64,39 @@ export function PaymentMethodSelector({
     <div className="relative" ref={ref}>
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => setOpen(true)}
         className="flex w-full items-center gap-3 rounded-2xl border border-border bg-surface px-3 py-3 text-left transition-colors hover:border-primary/40"
-        aria-haspopup="listbox"
+        aria-haspopup="dialog"
         aria-expanded={open}
       >
-        <MethodIcon icon={selected.icon} />
+        <PaymentBrandIcon icon={selected.icon} size={38} />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="truncate text-sm font-bold text-foreground">{selected.name}</span>
-            <StatusBadge status={selected.status} />
-          </div>
+          <div className="truncate text-sm font-bold text-foreground">{selected.name}</div>
           <div className="mt-0.5 truncate text-xs text-muted-foreground">{selected.desc} · {selected.speed}</div>
         </div>
-        <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
+        <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
       </button>
 
       {open && (
-        <div role="listbox" className="animate-scale-in absolute z-50 mt-2 w-full space-y-1.5 rounded-2xl border border-border bg-popover p-2 shadow-elegant">
-          {paymentMethods.map((m) => (
-            <Row key={m.id} m={m} active={m.id === value} onSelect={() => { onChange(m.id); setOpen(false); }} />
-          ))}
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-foreground/40 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+          <div
+            role="dialog"
+            aria-label="Select a payment method"
+            className="animate-scale-in flex max-h-[88vh] w-full flex-col overflow-hidden rounded-t-3xl bg-popover shadow-elegant sm:h-auto sm:max-h-[80vh] sm:max-w-md sm:rounded-3xl sm:border sm:border-border"
+          >
+            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+              <h3 className="font-display text-base font-bold text-foreground">Payment method</h3>
+              <button type="button" onClick={() => setOpen(false)}
+                className="grid size-8 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground" aria-label="Close">
+                <X className="size-5" />
+              </button>
+            </div>
+            <div className="scrollbar-custom flex-1 space-y-2 overflow-y-auto p-3">
+              {available.map((m) => (
+                <Row key={m.id} m={m} active={m.id === selected.id} onSelect={() => { onChange(m.id); setOpen(false); }} />
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -1,13 +1,13 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowRight, Info, Lock, ShieldCheck } from "lucide-react";
+import { ArrowRight, ShieldCheck } from "lucide-react";
 import { FiatSelector } from "./FiatSelector";
 import { AssetPicker } from "./AssetPicker";
 import { PaymentMethodSelector } from "@/components/checkout/PaymentMethodSelector";
 import { fiats } from "@/lib/paycrivo-data";
-import { getAsset, formatUsd, formatTokenAmount } from "@/data/cryptoAssets";
-import { computeFees } from "@/lib/checkout";
-import { usePrices } from "@/services/priceService";
+import { getAsset, formatTokenAmount } from "@/data/cryptoAssets";
+import { useQuote, formatUtcTime } from "@/services/marketDataService";
+import { StepLoader } from "@/components/checkout/StepLoader";
 
 export function BuyWidget() {
   const navigate = useNavigate();
@@ -15,18 +15,16 @@ export function BuyWidget() {
   const [fiat, setFiat] = useState("USD");
   const [coin, setCoin] = useState("BTC");
   const [method, setMethod] = useState("card");
-  const snap = usePrices();
+  const [loading, setLoading] = useState(false);
 
   const selectedCoin = getAsset(coin)!;
   const selectedFiat = fiats.find((f) => f.code === fiat)!;
-  const price = snap.prices[coin]?.price ?? selectedCoin.mockPriceUsd;
+  const { fees: calc, priceFiat, status, lastUpdated, money } = useQuote(spend, coin, fiat);
 
-  const calc = useMemo(
-    () => computeFees(parseFloat(spend) || 0, selectedCoin, true, price),
-    [spend, selectedCoin, price],
-  );
-
-  const goToCheckout = () => navigate({ to: "/buy", search: { spend, fiat, coin, method } });
+  const goToCheckout = () => {
+    setLoading(true);
+    window.setTimeout(() => navigate({ to: "/buy", search: { spend, fiat, coin, method } }), 2200);
+  };
 
   return (
     <div className="w-full max-w-md rounded-3xl border border-border bg-card p-5 shadow-elegant sm:p-6" id="buy">
@@ -66,19 +64,19 @@ export function BuyWidget() {
       </div>
 
       <label className="mb-2 mt-4 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Payment Method</label>
-      <PaymentMethodSelector value={method} onChange={setMethod} />
+      <PaymentMethodSelector value={method} onChange={setMethod} fiat={fiat} />
 
       <div className="mt-4 space-y-2 rounded-2xl bg-surface p-4 text-sm">
-        <Row label="Exchange rate" value={`1 ${coin} = ${selectedFiat.symbol}${formatUsd(price)}`} />
-        <Row label="Service fee (1%)" value={`${selectedFiat.symbol}${calc.serviceFee.toFixed(2)}`} />
-        <Row label="Network fee" value={`${selectedFiat.symbol}${calc.networkFee.toFixed(2)}`} />
-        <Row label="PayCrivo fee" value={`${selectedFiat.symbol}${calc.paycrivoFee.toFixed(2)}`} />
+        <Row label="Exchange rate" value={`1 ${coin} = ${money(priceFiat)}`} />
+        <Row label="Service fee (1%)" value={money(calc.serviceFee)} />
+        <Row label="Network fee" value={money(calc.networkFee)} />
+        <Row label="PayCrivo fee" value={money(calc.paycrivoFee)} />
         <div className="flex items-center justify-between border-t border-border pt-2">
           <span className="font-medium text-success">First purchase discount</span>
           <span className="font-bold text-success">−100% PayCrivo fee</span>
         </div>
         <div className="flex items-center justify-between border-t border-border pt-2 text-xs text-muted-foreground">
-          <span>{snap.status === "live" ? "Live price" : "Price estimate"}</span>
+          <span>{status === "live" ? "Live rate" : "Estimated rate"} · updated {formatUtcTime(lastUpdated)}</span>
         </div>
       </div>
 
@@ -90,11 +88,15 @@ export function BuyWidget() {
       </button>
 
       <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-        <Lock className="size-3.5" /> No real payment is processed in staging.
+        <ShieldCheck className="size-3.5" /> Secure checkout · transparent fees · 24/7 support
       </p>
-      <p className="mt-2 flex items-center justify-center gap-1.5 rounded-xl bg-secondary px-3 py-2 text-center text-xs font-medium text-muted-foreground">
-        <Info className="size-3.5 shrink-0" /> Payment integrations are not active in staging.
-      </p>
+      {loading && (
+        <StepLoader
+          label="Preparing secure checkout…"
+          coin={coin} fiat={fiat} spend={spend}
+          receive={calc.receive} total={calc.total} money={money}
+        />
+      )}
     </div>
   );
 }
