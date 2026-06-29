@@ -1,9 +1,20 @@
 import { useMemo, useState } from "react";
-import { ArrowRight, Lock, ShieldCheck } from "lucide-react";
-import { CoinIcon } from "./CoinIcon";
+import { ArrowRight, Info, Lock, ShieldCheck } from "lucide-react";
 import { FiatBadge } from "./FiatBadge";
+import { AssetPicker } from "./AssetPicker";
 import { CustomSelect, type SelectOption } from "./CustomSelect";
-import { cryptos, fiats, paymentMethods, formatPrice } from "@/lib/paycrivo-data";
+import { fiats } from "@/lib/paycrivo-data";
+import { getAsset, formatUsd, formatTokenAmount } from "@/data/cryptoAssets";
+
+const paymentMethods = [
+  { id: "card", name: "Credit / Debit Card", desc: "Visa, Mastercard · Instant" },
+  { id: "apple", name: "Apple Pay", desc: "Instant checkout" },
+  { id: "google", name: "Google Pay", desc: "Instant checkout" },
+  { id: "bank", name: "Bank Transfer", desc: "1–2 business days" },
+  { id: "sepa", name: "SEPA Transfer", desc: "Euro area · low fee" },
+  { id: "pix", name: "PIX (placeholder)", desc: "Brazil · coming soon" },
+  { id: "mobilepay", name: "MobilePay (placeholder)", desc: "Nordics · coming soon" },
+];
 
 export function BuyWidget() {
   const [spend, setSpend] = useState("500");
@@ -18,20 +29,13 @@ export function BuyWidget() {
     leading: <FiatBadge symbol={f.symbol} />,
   }));
 
-  const coinOpts: SelectOption[] = cryptos.map((c) => ({
-    value: c.symbol,
-    label: c.symbol,
-    sub: c.name,
-    leading: <CoinIcon symbol={c.symbol} color={c.color} size={26} />,
-  }));
-
   const methodOpts: SelectOption[] = paymentMethods.map((m) => ({
     value: m.id,
     label: m.name,
     sub: m.desc,
   }));
 
-  const selectedCoin = cryptos.find((c) => c.symbol === coin)!;
+  const selectedCoin = getAsset(coin)!;
   const selectedFiat = fiats.find((f) => f.code === fiat)!;
 
   const calc = useMemo(() => {
@@ -41,7 +45,7 @@ export function BuyWidget() {
     const paycrivoFee = 0; // first purchase 0%
     const totalFees = serviceFee + networkFee + paycrivoFee;
     const net = Math.max(amount - totalFees, 0);
-    const receive = net / selectedCoin.price;
+    const receive = net / selectedCoin.mockPriceUsd;
     return { amount, serviceFee, networkFee, paycrivoFee, receive };
   }, [spend, selectedCoin]);
 
@@ -93,17 +97,10 @@ export function BuyWidget() {
       <div className="flex items-center gap-2 rounded-2xl border border-border bg-surface p-2">
         <div className="flex flex-1 items-center pl-2">
           <span className="w-full truncate text-2xl font-bold text-foreground">
-            {calc.receive.toLocaleString("en-US", { maximumFractionDigits: 6 })}
+            {formatTokenAmount(calc.receive)}
           </span>
         </div>
-        <CustomSelect
-          className="w-36 shrink-0"
-          options={coinOpts}
-          value={coin}
-          onChange={setCoin}
-          align="right"
-          compact
-        />
+        <AssetPicker value={coin} onChange={setCoin} className="w-36 shrink-0" compact />
       </div>
 
       {/* Payment method */}
@@ -114,7 +111,10 @@ export function BuyWidget() {
 
       {/* Fee breakdown */}
       <div className="mt-4 space-y-2 rounded-2xl bg-surface p-4 text-sm">
-        <Row label="Exchange rate" value={`1 ${coin} = ${selectedFiat.symbol}${formatPrice(selectedCoin.price)}`} />
+        <Row
+          label="Exchange rate"
+          value={`1 ${coin} = ${selectedFiat.symbol}${formatUsd(selectedCoin.mockPriceUsd)}`}
+        />
         <Row label="Service fee (1%)" value={`${selectedFiat.symbol}${calc.serviceFee.toFixed(2)}`} />
         <Row label="Network fee" value={`${selectedFiat.symbol}${calc.networkFee.toFixed(2)}`} />
         <Row label="PayCrivo fee" value={`${selectedFiat.symbol}${calc.paycrivoFee.toFixed(2)}`} />
@@ -125,10 +125,14 @@ export function BuyWidget() {
       </div>
 
       <button className="bg-gradient-primary mt-4 flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5 active:translate-y-0">
-        Buy {coin} <ArrowRight className="size-4" />
+        Buy {selectedCoin.name} <ArrowRight className="size-4" />
       </button>
+
       <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
         <Lock className="size-3.5" /> All fees shown before checkout · No hidden costs
+      </p>
+      <p className="mt-2 flex items-center justify-center gap-1.5 rounded-xl bg-secondary px-3 py-2 text-center text-xs font-medium text-muted-foreground">
+        <Info className="size-3.5 shrink-0" /> Payment integrations are not active in staging.
       </p>
     </div>
   );
