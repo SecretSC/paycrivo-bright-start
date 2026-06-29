@@ -54,7 +54,7 @@ export function Hero() {
         </div>
 
         <div className="flex justify-center lg:justify-end">
-          <div className="animate-float w-full max-w-md">
+          <div className="w-full max-w-md">
             <BuyWidget />
           </div>
         </div>
