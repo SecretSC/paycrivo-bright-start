@@ -511,10 +511,12 @@ function DetailsForm({
 function Conversation({
   ticket,
   messages,
+  online,
   onSend,
 }: {
   ticket: ApiSupportTicket;
   messages: ApiSupportMessage[];
+  online: boolean;
   onSend: (text: string) => Promise<void>;
 }) {
   const [draft, setDraft] = useState("");
@@ -524,7 +526,11 @@ function Conversation({
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages.length]);
+  }, [messages.length, sending]);
+
+  // Show an agent typing indicator while the customer is waiting on a reply.
+  const lastMsg = messages[messages.length - 1];
+  const awaitingReply = online && !!lastMsg && lastMsg.senderType === "customer";
 
   const onChange = (v: string) => {
     setDraft(v);
@@ -550,6 +556,11 @@ function Conversation({
         Ticket #{ticket.ticketNumber} • {ticket.status}
       </div>
       <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto scrollbar-custom p-4">
+        <div className="flex justify-start">
+          <div className="max-w-[80%] rounded-2xl rounded-bl-sm bg-muted px-3 py-2 text-sm text-foreground">
+            Hi 👋 Welcome to PayCrivo Support. How can we help you today?
+          </div>
+        </div>
         {messages.map((m) => {
           if (m.senderType === "system") {
             return (
@@ -587,6 +598,15 @@ function Conversation({
             </div>
           );
         })}
+        {awaitingReply && (
+          <div className="flex justify-start">
+            <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm bg-muted px-3 py-2.5">
+              <span className="size-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]" />
+              <span className="size-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]" />
+              <span className="size-1.5 animate-bounce rounded-full bg-muted-foreground" />
+            </div>
+          </div>
+        )}
       </div>
       <div className="border-t border-border p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
         {secretWarning && (
