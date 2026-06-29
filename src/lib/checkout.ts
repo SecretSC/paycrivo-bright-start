@@ -1,16 +1,24 @@
 import { getAsset, type CryptoAsset } from "@/data/cryptoAssets";
 import { fiats } from "@/lib/paycrivo-data";
 
-export type PaymentMethodDef = { id: string; name: string; desc: string };
+export type PaymentStatus = "available" | "staging" | "coming";
+export type PaymentMethodDef = {
+  id: string;
+  name: string;
+  desc: string;
+  speed: string;
+  status: PaymentStatus;
+  icon: "card" | "apple" | "google" | "bank" | "sepa" | "mobilepay" | "pix";
+};
 
 export const paymentMethods: PaymentMethodDef[] = [
-  { id: "card", name: "Credit / Debit Card", desc: "Visa, Mastercard · Instant" },
-  { id: "apple", name: "Apple Pay", desc: "Instant checkout" },
-  { id: "google", name: "Google Pay", desc: "Instant checkout" },
-  { id: "bank", name: "Bank Transfer", desc: "1–2 business days" },
-  { id: "sepa", name: "SEPA Transfer", desc: "Euro area · low fee" },
-  { id: "mobilepay", name: "MobilePay (placeholder)", desc: "Nordics · coming soon" },
-  { id: "pix", name: "PIX (placeholder)", desc: "Brazil · coming soon" },
+  { id: "card", name: "Credit / Debit Card", desc: "Visa, Mastercard", speed: "Instant", status: "available", icon: "card" },
+  { id: "apple", name: "Apple Pay", desc: "Instant checkout", speed: "Instant", status: "staging", icon: "apple" },
+  { id: "google", name: "Google Pay", desc: "Instant checkout", speed: "Instant", status: "staging", icon: "google" },
+  { id: "bank", name: "Bank Transfer", desc: "Standard transfer", speed: "1–2 business days", status: "available", icon: "bank" },
+  { id: "sepa", name: "SEPA Transfer", desc: "Euro area · low fee", speed: "Same day", status: "available", icon: "sepa" },
+  { id: "mobilepay", name: "MobilePay", desc: "Denmark", speed: "Instant", status: "coming", icon: "mobilepay" },
+  { id: "pix", name: "PIX", desc: "Brazil", speed: "Instant", status: "coming", icon: "pix" },
 ];
 
 export const getPaymentMethod = (id: string) =>
