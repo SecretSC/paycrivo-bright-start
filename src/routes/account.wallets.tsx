@@ -7,12 +7,14 @@ import { CryptoIcon } from "@/components/CryptoIcon";
 import { getAsset } from "@/data/cryptoAssets";
 import { networksForAsset, validateWalletAddress } from "@/lib/checkout";
 import { addWallet, deleteWallet, loadWallets, setDefaultWallet, type SavedWallet } from "@/lib/wallets";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/account/wallets")({
   component: WalletsPage,
 });
 
 function WalletsPage() {
+  const { user } = useAuth();
   const [wallets, setWallets] = useState<SavedWallet[]>([]);
   const [coin, setCoin] = useState("BTC");
   const [network, setNetwork] = useState(networksForAsset("BTC")[0]);
@@ -21,16 +23,17 @@ function WalletsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setWallets(loadWallets());
-  }, []);
+    if (user) setWallets(loadWallets(user.id));
+  }, [user]);
 
   const networks = networksForAsset(coin);
 
   const add = () => {
+    if (!user) return;
     setError(null);
     const err = validateWalletAddress(address, network);
     if (err) { setError(err); return; }
-    setWallets(addWallet({ coin, network, address: address.trim(), nickname: nickname.trim() }));
+    setWallets(addWallet(user.id, { coin, network, address: address.trim(), nickname: nickname.trim() }));
     setAddress(""); setNickname("");
     toast.success("Wallet saved");
   };
@@ -80,11 +83,11 @@ function WalletsPage() {
                 <p className="truncate text-xs text-muted-foreground">{w.network} · {w.address}</p>
               </div>
               {!w.isDefault && (
-                <button onClick={() => setWallets(setDefaultWallet(w.id))} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="Set default">
+                <button onClick={() => user && setWallets(setDefaultWallet(user.id, w.id))} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="Set default">
                   <Star className="size-4" />
                 </button>
               )}
-              <button onClick={() => setWallets(deleteWallet(w.id))} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive" aria-label="Delete wallet">
+              <button onClick={() => user && setWallets(deleteWallet(user.id, w.id))} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive" aria-label="Delete wallet">
                 <Trash2 className="size-4" />
               </button>
             </div>

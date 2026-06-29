@@ -61,7 +61,15 @@ export async function sendEmailCode(email: string, purpose: EmailPurpose): Promi
   const code = createEmailCode();
   storeEmailCode(email, purpose, code);
 
-  const sent = await deliverEmail(email, purpose, code);
+  const { html, text } = renderOtpEmail(purpose, code);
+  const sent = await sendTransactionalEmail({
+    to: email,
+    subject: subjectFor(purpose),
+    html,
+    text,
+    purpose,
+    metadata: { kind: "otp" },
+  });
   if (!sent.ok) {
     return { ok: false, error: sent.error };
   }
@@ -114,22 +122,31 @@ export function peekEmailCode(email: string, purpose: EmailPurpose): string | nu
   return rec.code;
 }
 
-async function deliverEmail(
-  email: string,
-  purpose: EmailPurpose,
-  code: string,
+// Generic transactional sender. Used for OTP codes and reward-claim notices.
+// Adds best-practice headers: Reply-To and a unique X-Entity-Ref-ID. No tracking.
+export type TransactionalEmailInput = {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+  purpose: string;
+  metadata?: Record<string, unknown>;
+};
+
+export async function sendTransactionalEmail(
+  input: TransactionalEmailInput,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
   const fromEmail = process.env.SMTP_FROM_EMAIL || "noreply@panema.it";
   const fromName = process.env.SMTP_FROM_NAME || "PayCrivo";
+  const replyTo = process.env.SMTP_REPLY_TO || "support@panema.it";
 
   if (!user || !pass) {
     return { ok: false, error: "Email service is not configured." };
   }
 
-  const { html, text } = renderOtpEmail(purpose, code);
-  const subject = subjectFor(purpose);
+  const refId = `pcv-${input.purpose}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
   const auth = btoa(`${user}:${pass}`);
 
   try {
@@ -143,10 +160,13 @@ async function deliverEmail(
         Messages: [
           {
             From: { Email: fromEmail, Name: fromName },
-            To: [{ Email: email }],
-            Subject: subject,
-            HTMLPart: html,
-            TextPart: text,
+            ReplyTo: { Email: replyTo, Name: fromName },
+            To: [{ Email: input.to }],
+            Subject: input.subject,
+            HTMLPart: input.html,
+            TextPart: input.text,
+            CustomID: refId,
+            Headers: { "X-Entity-Ref-ID": refId },
           },
         ],
       }),

@@ -13,6 +13,7 @@ import { CtaBanner } from "@/components/paycrivo/CtaBanner";
 import { FAQ } from "@/components/paycrivo/FAQ";
 import { Footer } from "@/components/paycrivo/Footer";
 import { UnfinishedOrderBanner } from "@/components/checkout/UnfinishedOrderBanner";
+import { RewardBanner } from "@/components/paycrivo/RewardBanner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -43,6 +44,7 @@ function Index() {
       <main>
         <Hero />
         <PriceChart />
+      <RewardBanner />
         <HowToBuy />
         <WhyChoose />
         <CryptoTrends />

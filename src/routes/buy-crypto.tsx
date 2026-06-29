@@ -7,6 +7,7 @@ import { HowToBuy } from "@/components/paycrivo/HowToBuy";
 import { SupportedCrypto } from "@/components/paycrivo/SupportedCrypto";
 import { FAQ } from "@/components/paycrivo/FAQ";
 import { UnfinishedOrderBanner } from "@/components/checkout/UnfinishedOrderBanner";
+import { RewardBanner } from "@/components/paycrivo/RewardBanner";
 import { PAYMENT_METHODS } from "@/data/paymentMethods";
 import { PaymentBrandIcon } from "@/components/checkout/PaymentIcons";
 
@@ -87,6 +88,7 @@ function BuyCryptoLanding() {
           </div>
         </section>
 
+        <RewardBanner />
         <PriceChart />
         <HowToBuy />
         <SupportedCrypto />

@@ -5,6 +5,8 @@ import { PageChrome } from "@/components/paycrivo/PageChrome";
 import { OtpVerify } from "@/components/auth/OtpVerify";
 import { sendCode } from "@/lib/email-otp";
 import { useAuth } from "@/lib/auth";
+import { isPasswordValid, PASSWORD_ERROR } from "@/lib/password";
+import { PasswordChecklist } from "@/components/auth/PasswordChecklist";
 
 export const Route = createFileRoute("/forgot-password")({
   head: () => ({ meta: [{ title: "Reset your PayCrivo password" }] }),
@@ -38,8 +40,8 @@ function ForgotPasswordPage() {
 
   const applyNewPassword = () => {
     setError(null);
-    if (pw.length < 8 || !/[a-z]/.test(pw) || !/[A-Z]/.test(pw) || !/[0-9]/.test(pw)) {
-      setError("Password needs 8+ chars with upper, lower case and a number.");
+    if (!isPasswordValid(pw)) {
+      setError(PASSWORD_ERROR);
       return;
     }
     if (pw !== confirm) {
@@ -85,6 +87,7 @@ function ForgotPasswordPage() {
               <div className="mt-5 space-y-4">
                 <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="New password"
                   className="w-full rounded-2xl border border-border bg-surface px-3 py-3 text-sm text-foreground outline-none focus:border-primary" />
+                <PasswordChecklist value={pw} />
                 <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="Confirm password"
                   className="w-full rounded-2xl border border-border bg-surface px-3 py-3 text-sm text-foreground outline-none focus:border-primary" />
                 {error && <p className="text-sm text-destructive">{error}</p>}
