@@ -218,7 +218,7 @@ function BuyFlow() {
       <div ref={topRef} />
       <ProgressBar step={state.step} />
 
-      <div className="mx-auto grid max-w-5xl items-start gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_330px]">
+      <div className="mx-auto max-w-[600px] px-4 py-8 sm:px-6">
         <div className="min-w-0">
           <button
             onClick={() => (state.step === 0 ? navigate({ to: "/" }) : back())}
@@ -226,14 +226,6 @@ function BuyFlow() {
           >
             <ArrowLeft className="size-4" /> {state.step === 0 ? "Back to homepage" : "Back"}
           </button>
-
-          {/* Mobile order summary accordion */}
-          <div className="mb-5 lg:hidden">
-            <MobileSummary
-              spend={state.spend} fiat={state.fiat} coin={state.coin} method={state.method}
-              network={state.step >= 4 ? state.network : undefined} wallet={state.step >= 4 ? state.wallet : undefined}
-            />
-          </div>
 
           <div className="rounded-3xl border border-border bg-card p-5 shadow-soft sm:p-7">
           <div key={state.step} className="animate-step-in">
@@ -522,12 +514,16 @@ function BuyFlow() {
             <ShieldCheck className="size-3.5" /> No real payment is processed in staging.
           </p>
           </div>
-        </div>
 
-        <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
-          <OrderSummary spend={state.spend} fiat={state.fiat} coin={state.coin} method={state.method}
-            network={state.step >= 4 ? state.network : undefined} wallet={state.step >= 4 ? state.wallet : undefined} />
-        </aside>
+          {/* Compact receipt-style summary accordion under the form */}
+          <SummaryAccordion
+            className="mt-5"
+            spend={state.spend} fiat={state.fiat} coin={state.coin} method={state.method}
+            network={state.step >= 4 ? state.network : undefined}
+            wallet={state.step >= 4 ? state.wallet : undefined}
+            ownership={state.step >= 5 ? state.walletOwnership : undefined}
+          />
+        </div>
       </div>
 
       {kycPreview && <KycPreviewModal onClose={() => setKycPreview(false)} />}
@@ -729,7 +725,7 @@ function ProgressBar({ step }: { step: number }) {
   const pct = ((step + 1) / STEPS.length) * 100;
   return (
     <div className="border-b border-border bg-card/50">
-      <div className="mx-auto max-w-5xl px-4 py-3 sm:px-6">
+      <div className="mx-auto max-w-[600px] px-4 py-3 sm:px-6">
         <div className="mb-2 flex items-center justify-between text-xs font-semibold">
           <span className="text-foreground">Step {step + 1} of {STEPS.length} · {STEPS[step]}</span>
           <span className="text-muted-foreground">{Math.round(pct)}%</span>
@@ -742,10 +738,13 @@ function ProgressBar({ step }: { step: number }) {
   );
 }
 
-function MobileSummary({
-  spend, fiat, coin, method, network, wallet,
+function SummaryAccordion({
+  spend, fiat, coin, method, network, wallet, ownership, className,
 }: {
-  spend: string; fiat: string; coin: string; method: string; network?: string; wallet?: string;
+  spend: string; fiat: string; coin: string; method: string;
+  network?: string; wallet?: string;
+  ownership?: CheckoutState["walletOwnership"];
+  className?: string;
 }) {
   const [open, setOpen] = useState(false);
   const asset = getAsset(coin)!;
@@ -755,21 +754,27 @@ function MobileSummary({
   void priceSnap;
   const fees = computeFees(parseFloat(spend) || 0, asset, true, price);
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
-      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center gap-3 p-3 text-left">
-        <CryptoIcon symbol={asset.symbol} color={asset.iconColor} size={32} />
+    <div className={cn("overflow-hidden rounded-2xl border border-border bg-card shadow-soft", className)}>
+      {/* Collapsed receipt bar */}
+      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center gap-3 p-3.5 text-left">
+        <CryptoIcon symbol={asset.symbol} color={asset.iconColor} size={30} />
         <div className="min-w-0 flex-1">
-          <div className="text-xs text-muted-foreground">Order total</div>
-          <div className="text-sm font-bold text-foreground">{fiatInfo.symbol}{fees.total.toFixed(2)} {fiat}</div>
+          <div className="text-sm font-bold text-foreground">
+            {formatTokenAmount(fees.receive)} {asset.symbol}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Spend {fiatInfo.symbol}{fees.amount.toFixed(2)} {fiat}
+          </div>
         </div>
-        <span className="text-right text-xs text-muted-foreground">
-          {formatTokenAmount(fees.receive)} {asset.symbol}
-        </span>
-        <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", open && "rotate-180")} />
+        <div className="text-right">
+          <div className="text-[11px] text-muted-foreground">Total</div>
+          <div className="text-sm font-bold text-foreground">{fiatInfo.symbol}{fees.total.toFixed(2)}</div>
+        </div>
+        <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
       </button>
       {open && (
         <div className="border-t border-border p-3">
-          <OrderSummary spend={spend} fiat={fiat} coin={coin} method={method} network={network} wallet={wallet} />
+          <OrderSummary spend={spend} fiat={fiat} coin={coin} method={method} network={network} wallet={wallet} ownership={ownership} />
         </div>
       )}
     </div>

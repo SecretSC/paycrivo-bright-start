@@ -7,7 +7,7 @@ import { usePrices, formatUtcTime } from "@/services/priceService";
 import { cn } from "@/lib/utils";
 
 export function OrderSummary({
-  spend, fiat, coin, method, network, wallet,
+  spend, fiat, coin, method, network, wallet, ownership,
 }: {
   spend: string;
   fiat: string;
@@ -15,6 +15,7 @@ export function OrderSummary({
   method: string;
   network?: string;
   wallet?: string;
+  ownership?: "none" | "confirmed" | "manual";
 }) {
   const asset = getAsset(coin)!;
   const fiatInfo = fiatByCode(fiat);
@@ -47,6 +48,9 @@ export function OrderSummary({
         <Row label="Rate" value={`1 ${coin} = ${sym}${formatUsd(price)}`} />
         <Row label="Payment" value={getPaymentMethod(method).name} />
         {wallet && <Row label="Wallet" value={`${wallet.slice(0, 6)}…${wallet.slice(-4)}`} />}
+        {ownership && ownership !== "none" && (
+          <Row label="Wallet ownership" value={ownership === "confirmed" ? "Confirmed" : "Manual review"} />
+        )}
 
         <button
           type="button"

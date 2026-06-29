@@ -1,5 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
+// Hand-verified official brand logos (highest priority, instant, same-origin).
+const overrideIcons = import.meta.glob(
+  "/src/assets/crypto-icons/*.svg",
+  { eager: true, query: "?url", import: "default" },
+) as Record<string, string>;
+
+function overrideUrl(slug: string): string | undefined {
+  return overrideIcons[`/src/assets/crypto-icons/${slug}.svg`];
+}
+
 // Locally bundled SVG logos (instant, same-origin, never a broken remote image).
 const localIcons = import.meta.glob(
   "/node_modules/cryptocurrency-icons/svg/color/*.svg",
@@ -36,6 +46,8 @@ export function CryptoIcon({
   // Ordered candidate sources: bundled SVG first, then CDN.
   const sources = useMemo(() => {
     const out: string[] = [];
+    const o = overrideUrl(slug);
+    if (o) out.push(o);
     const l = localUrl(slug);
     if (l) out.push(l);
     if (slug) out.push(remoteUrl(slug));
