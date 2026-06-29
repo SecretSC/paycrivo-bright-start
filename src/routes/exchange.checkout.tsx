@@ -365,8 +365,13 @@ function ExchangeCheckout() {
               className="bg-gradient-primary flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5">
               Create exchange order <ArrowRight className="size-4" />
             </button>
-          ) : state.step === 3 ? (
+          ) : state.step === SEND ? (
             <button onClick={next} disabled={!state.depositConfirmed}
+              className="bg-gradient-primary flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50">
+              Continue <ArrowRight className="size-4" />
+            </button>
+          ) : state.step === OWNERSHIP ? (
+            <button onClick={next} disabled={state.walletOwnership === "none"}
               className="bg-gradient-primary flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50">
               Continue <ArrowRight className="size-4" />
             </button>
@@ -517,12 +522,12 @@ function SummaryAccordion({ state, className }: { state: ExchangeState; classNam
 
 /* ---------- shared pieces ---------- */
 function ProgressBar({ step }: { step: number }) {
-  const pct = ((step + 1) / STEPS.length) * 100;
+  const pct = ((step + 1) / TOTAL_STEPS) * 100;
   return (
     <div className="border-b border-border bg-card/50">
       <div className="mx-auto max-w-[600px] px-4 py-3 sm:px-6">
         <div className="mb-2 flex items-center justify-between text-xs font-semibold">
-          <span className="text-foreground">Step {step + 1} of {STEPS.length} · {STEPS[step]}</span>
+          <span className="text-foreground">Step {step + 1} of {TOTAL_STEPS} · {STEPS[step]}</span>
           <span className="text-muted-foreground">{Math.round(pct)}%</span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
@@ -596,4 +601,12 @@ function SRow({ label, value }: { label: string; value: string }) {
       <span className="text-right font-semibold text-foreground">{value}</span>
     </div>
   );
+}
+
+function ExchangeOwnershipBadge({ status }: { status: ExchangeState["walletOwnership"] }) {
+  if (status === "confirmed")
+    return <span className="rounded-full bg-success/15 px-3 py-1 text-xs font-bold text-success">Confirmed</span>;
+  if (status === "manual")
+    return <span className="rounded-full bg-amber-500/15 px-3 py-1 text-xs font-bold text-amber-600 dark:text-amber-400">Manual review</span>;
+  return <span className="rounded-full bg-secondary px-3 py-1 text-xs font-bold text-muted-foreground">Not confirmed</span>;
 }
