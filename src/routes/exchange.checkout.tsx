@@ -18,6 +18,7 @@ import {
 } from "@/lib/exchange";
 import { useExchangeQuote, needsDestinationTag } from "@/services/exchangeQuote";
 import { formatUtcTime } from "@/services/priceService";
+import { WalletConnect, type WalletConnectStatus } from "@/components/wallet/WalletConnect";
 import { validateWallet, detectAddressKind } from "@/utils/walletValidation";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { cn } from "@/lib/utils";
@@ -49,7 +50,7 @@ function ExchangeCheckout() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loader, setLoader] = useState<string | null>(null);
   const [checkingDeposit, setCheckingDeposit] = useState(false);
-  const [connecting, setConnecting] = useState(false);
+  const [walletStatus, setWalletStatus] = useState<WalletConnectStatus>("idle");
   const [emailVerified, setEmailVerified] = useState(false);
   const [otpOpen, setOtpOpen] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
@@ -139,20 +140,13 @@ function ExchangeCheckout() {
 
   const back = () => { setErrors({}); setOtpOpen(false); set("step", Math.max(state.step - 1, 0)); };
 
-  const connectWallet = () => {
-    setConnecting(true);
-    window.setTimeout(() => {
-      setConnecting(false);
+  const handleWalletStatus = (s: WalletConnectStatus) => {
+    setWalletStatus(s);
+    if (s === "verified") {
       set("walletOwnership", "confirmed");
       setErrors((e) => ({ ...e, ownership: "" }));
-      toast.success("Wallet ownership confirmed");
-    }, 2600);
-  };
-
-  const cannotConnect = () => {
-    set("walletOwnership", "manual");
-    setErrors((e) => ({ ...e, ownership: "" }));
-    toast("Marked for manual review");
+      toast.success("Wallet ownership verified.");
+    }
   };
 
   const confirmDeposit = () => {
@@ -319,33 +313,14 @@ function ExchangeCheckout() {
                     <ExchangeOwnershipBadge status={state.walletOwnership} />
                   </div>
 
-                  <p className="mt-4 flex items-start gap-2 rounded-xl bg-card px-3 py-2.5 text-xs text-muted-foreground">
-                    <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-primary" />
-                    We never ask for seed phrases or private keys.
-                  </p>
-
-                  {state.walletOwnership === "confirmed" && (
-                    <div className="mt-4 flex items-center gap-2 rounded-xl bg-success/10 px-3 py-3 text-sm font-bold text-success">
-                      <Check className="size-4" /> Wallet ownership confirmed
-                    </div>
-                  )}
-                  {state.walletOwnership === "manual" && (
-                    <div className="mt-4 flex items-center gap-2 rounded-xl bg-amber-500/10 px-3 py-3 text-sm font-bold text-amber-600 dark:text-amber-400">
-                      <AlertTriangle className="size-4" /> Manual review required
-                    </div>
-                  )}
-                  {state.walletOwnership === "none" && (
-                    <div className="mt-4 space-y-3">
-                      <button type="button" onClick={connectWallet} disabled={connecting}
-                        className="bg-gradient-primary flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5 disabled:opacity-70">
-                        {connecting ? <><Loader2 className="size-4 animate-spin" /> Opening wallet confirmation…</> : <><Wallet className="size-4" /> Connect wallet</>}
-                      </button>
-                      <button type="button" onClick={cannotConnect}
-                        className="w-full rounded-2xl border border-border py-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
-                        I cannot connect this wallet
-                      </button>
-                    </div>
-                  )}
+                  <div className="mt-4">
+                    <WalletConnect
+                      coin={receiveAsset.symbol}
+                      network={state.receiveNetwork}
+                      status={walletStatus}
+                      onStatusChange={handleWalletStatus}
+                    />
+                  </div>
                   {errors.ownership && <p className="mt-2 text-xs font-medium text-destructive">{errors.ownership}</p>}
                 </div>
               </Section>
