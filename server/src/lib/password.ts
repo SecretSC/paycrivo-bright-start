@@ -1,12 +1,13 @@
-import argon2 from "argon2";
+import bcrypt from "bcryptjs";
 
+// bcryptjs is pure JS (no native build) — keeps self-hosting friction-free.
 export function hashPassword(plain: string): Promise<string> {
-  return argon2.hash(plain, { type: argon2.argon2id });
+  return bcrypt.hash(plain, 12);
 }
 
 export async function verifyPassword(hash: string, plain: string): Promise<boolean> {
   try {
-    return await argon2.verify(hash, plain);
+    return await bcrypt.compare(plain, hash);
   } catch {
     return false;
   }
