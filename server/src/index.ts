@@ -10,6 +10,7 @@ import { ordersRouter } from "./routes/orders.js";
 import { walletsRouter } from "./routes/wallets.js";
 import { supportRouter } from "./routes/support.js";
 import { liveRouter } from "./routes/live.js";
+import { rewardsRouter } from "./routes/rewards.js";
 import { adminRouter } from "./routes/admin/index.js";
 
 const app = express();
@@ -39,6 +40,7 @@ app.use("/api/orders", ordersRouter);
 app.use("/api/wallets", walletsRouter);
 app.use("/api/support", supportRouter);
 app.use("/api/live", liveRouter);
+app.use("/api/rewards", rewardsRouter);
 
 // Admin API
 app.use("/api/admin", adminRouter);
