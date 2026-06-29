@@ -216,7 +216,6 @@ function BuyFlow() {
 
   const fiatInfo = fiatByCode(state.fiat);
   const money = quote.money;
-  void fiatInfo;
 
   return (
     <div className="min-h-screen bg-background">
