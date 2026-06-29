@@ -2,14 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Search, X } from "lucide-react";
 import { countries, type Country } from "@/data/countries";
 import { cn } from "@/lib/utils";
-
-function Flag({ flag }: { flag: string }) {
-  return (
-    <span className="grid size-7 shrink-0 place-items-center overflow-hidden rounded-full border border-border bg-secondary text-base leading-none" aria-hidden>
-      {flag}
-    </span>
-  );
-}
+import { FlagIcon } from "@/components/FlagIcon";
 
 function Row({ c, active, onSelect }: { c: Country; active: boolean; onSelect: () => void }) {
   return (
@@ -23,7 +16,7 @@ function Row({ c, active, onSelect }: { c: Country; active: boolean; onSelect: (
         active ? "bg-accent" : "hover:bg-secondary",
       )}
     >
-      <Flag flag={c.flag} />
+      <FlagIcon code={c.code} size={28} />
       <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{c.name}</span>
       <span className="text-xs font-semibold text-muted-foreground">{c.dial}</span>
       <span className="grid size-5 shrink-0 place-items-center">{active && <Check className="size-4 text-primary" />}</span>
