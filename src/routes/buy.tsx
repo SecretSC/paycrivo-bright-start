@@ -218,7 +218,7 @@ function BuyFlow() {
       <div ref={topRef} />
       <ProgressBar step={state.step} />
 
-      <div className="mx-auto grid max-w-5xl items-start gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_330px]">
+      <div className="mx-auto max-w-[600px] px-4 py-8 sm:px-6">
         <div className="min-w-0">
           <button
             onClick={() => (state.step === 0 ? navigate({ to: "/" }) : back())}
@@ -226,14 +226,6 @@ function BuyFlow() {
           >
             <ArrowLeft className="size-4" /> {state.step === 0 ? "Back to homepage" : "Back"}
           </button>
-
-          {/* Mobile order summary accordion */}
-          <div className="mb-5 lg:hidden">
-            <MobileSummary
-              spend={state.spend} fiat={state.fiat} coin={state.coin} method={state.method}
-              network={state.step >= 4 ? state.network : undefined} wallet={state.step >= 4 ? state.wallet : undefined}
-            />
-          </div>
 
           <div className="rounded-3xl border border-border bg-card p-5 shadow-soft sm:p-7">
           <div key={state.step} className="animate-step-in">
