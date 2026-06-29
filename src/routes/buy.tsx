@@ -725,7 +725,7 @@ function ProgressBar({ step }: { step: number }) {
   const pct = ((step + 1) / STEPS.length) * 100;
   return (
     <div className="border-b border-border bg-card/50">
-      <div className="mx-auto max-w-5xl px-4 py-3 sm:px-6">
+      <div className="mx-auto max-w-[600px] px-4 py-3 sm:px-6">
         <div className="mb-2 flex items-center justify-between text-xs font-semibold">
           <span className="text-foreground">Step {step + 1} of {STEPS.length} · {STEPS[step]}</span>
           <span className="text-muted-foreground">{Math.round(pct)}%</span>
