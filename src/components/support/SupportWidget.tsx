@@ -106,6 +106,7 @@ function fmtTime(iso: string): string {
 export function SupportWidget() {
   const { user } = useAuth();
   const meta = useSupportMeta();
+  const online = useAgentsOnline();
 
   const [open, setOpen] = useState(false);
   const [stage, setStage] = useState<Stage>("welcome");
@@ -227,6 +228,7 @@ export function SupportWidget() {
             user={user}
             meta={meta}
             promptText={promptText}
+            online={online}
             stage={stage}
             setStage={setStage}
             ticket={ticket}
