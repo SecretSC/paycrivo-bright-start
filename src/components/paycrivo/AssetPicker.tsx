@@ -165,7 +165,7 @@ export function AssetPicker({
           <div
             role="dialog"
             aria-label="Select a crypto asset"
-            className="animate-scale-in flex h-full w-full flex-col overflow-hidden bg-popover shadow-elegant sm:h-auto sm:max-h-[80vh] sm:max-w-lg sm:rounded-3xl sm:border sm:border-border"
+            className="animate-scale-in flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-3xl bg-popover shadow-elegant sm:h-auto sm:max-h-[80vh] sm:max-w-lg sm:rounded-3xl sm:border sm:border-border"
           >
             {/* header */}
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
