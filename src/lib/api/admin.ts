@@ -320,3 +320,88 @@ function mapPriorityToBackend(p: string): string {
       return "normal";
   }
 }
+
+// ----------------------------- Directory pages -----------------------------
+type AdminCustomerRow = {
+  id: string;
+  name: string;
+  email: string;
+  country?: string | null;
+  totalOrders?: number;
+  rewardStatus?: string;
+  createdAt?: string | null;
+};
+
+export const adminDirectory = {
+  async customers(q = ""): Promise<AdminCustomerRow[]> {
+    return withFallback(
+      async () => {
+        const { users } = await apiFetch<{ users: (ApiUser & { totalOrders?: number; rewardStatus?: string })[] }>(
+          `/api/admin/users?q=${encodeURIComponent(q)}`,
+          { auth: "admin" },
+        );
+        return users.map((u) => ({
+          id: u.id,
+          name: [u.firstName, u.lastName].filter(Boolean).join(" ") || u.email,
+          email: u.email,
+          country: u.country,
+          totalOrders: u.totalOrders ?? 0,
+          rewardStatus: u.rewardStatus ?? "available",
+          createdAt: u.createdAt,
+        }));
+      },
+      () => {
+        const tickets = readTickets();
+        const byEmail = new Map<string, AdminCustomerRow>();
+        Object.values(tickets).forEach((e) => {
+          const email = e.ticket.email ?? "guest";
+          if (!byEmail.has(email)) {
+            byEmail.set(email, {
+              id: email,
+              name: e.ticket.customerName ?? "Guest visitor",
+              email,
+              country: e.ticket.country ?? null,
+              totalOrders: 0,
+              rewardStatus: "available",
+              createdAt: e.ticket.createdAt ?? null,
+            });
+          }
+        });
+        const rows = [...byEmail.values()];
+        return q ? rows.filter((r) => `${r.name} ${r.email}`.toLowerCase().includes(q.toLowerCase())) : rows;
+      },
+    );
+  },
+
+  async orders(q = ""): Promise<ApiOrder[]> {
+    return withFallback(
+      async () => {
+        const { orders } = await apiFetch<{ orders: ApiOrder[] }>(`/api/admin/orders?q=${encodeURIComponent(q)}`, { auth: "admin" });
+        return orders;
+      },
+      () => [],
+    );
+  },
+
+  async rewards(): Promise<ApiRewardClaim[]> {
+    return withFallback(
+      async () => {
+        const { claims } = await apiFetch<{ claims: ApiRewardClaim[] }>(`/api/admin/rewards`, { auth: "admin" });
+        return claims;
+      },
+      () => [],
+    );
+  },
+
+  async wallets(): Promise<ApiWallet[]> {
+    return withFallback(
+      async () => {
+        const { wallets } = await apiFetch<{ wallets: ApiWallet[] }>(`/api/admin/wallets`, { auth: "admin" });
+        return wallets;
+      },
+      () => [],
+    );
+  },
+};
+
+export type { AdminCustomerRow };
