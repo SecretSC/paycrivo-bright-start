@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   ArrowLeft, ArrowRight, Check, ChevronDown, ClipboardPaste, Copy, Info,
-  Loader2, QrCode, AlertTriangle, Clock, ShieldCheck,
+  Loader2, QrCode, AlertTriangle, Clock,
 } from "lucide-react";
 import { CheckoutHeader } from "@/routes/buy";
 import { SwapWidget, type SwapState } from "@/components/exchange/SwapWidget";
