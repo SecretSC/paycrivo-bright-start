@@ -12,6 +12,7 @@ import { SupportedFiat } from "@/components/paycrivo/SupportedFiat";
 import { CtaBanner } from "@/components/paycrivo/CtaBanner";
 import { FAQ } from "@/components/paycrivo/FAQ";
 import { Footer } from "@/components/paycrivo/Footer";
+import { UnfinishedOrderBanner } from "@/components/checkout/UnfinishedOrderBanner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -38,6 +39,7 @@ function Index() {
     <div className="min-h-screen bg-background">
       <PromoBar />
       <Header theme={theme} onToggleTheme={toggle} />
+      <UnfinishedOrderBanner />
       <main>
         <Hero />
         <PriceChart />
