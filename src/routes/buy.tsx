@@ -488,7 +488,7 @@ export function CheckoutHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5 sm:px-6">
-        <Link to="/"><Logo /></Link>
+        <Logo />
         <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
           <ShieldCheck className="size-4 text-success" /> Secure checkout
         </span>
