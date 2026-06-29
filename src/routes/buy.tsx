@@ -738,10 +738,13 @@ function ProgressBar({ step }: { step: number }) {
   );
 }
 
-function MobileSummary({
-  spend, fiat, coin, method, network, wallet,
+function SummaryAccordion({
+  spend, fiat, coin, method, network, wallet, ownership, className,
 }: {
-  spend: string; fiat: string; coin: string; method: string; network?: string; wallet?: string;
+  spend: string; fiat: string; coin: string; method: string;
+  network?: string; wallet?: string;
+  ownership?: CheckoutState["walletOwnership"];
+  className?: string;
 }) {
   const [open, setOpen] = useState(false);
   const asset = getAsset(coin)!;
@@ -751,21 +754,27 @@ function MobileSummary({
   void priceSnap;
   const fees = computeFees(parseFloat(spend) || 0, asset, true, price);
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
-      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center gap-3 p-3 text-left">
-        <CryptoIcon symbol={asset.symbol} color={asset.iconColor} size={32} />
+    <div className={cn("overflow-hidden rounded-2xl border border-border bg-card shadow-soft", className)}>
+      {/* Collapsed receipt bar */}
+      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center gap-3 p-3.5 text-left">
+        <CryptoIcon symbol={asset.symbol} color={asset.iconColor} size={30} />
         <div className="min-w-0 flex-1">
-          <div className="text-xs text-muted-foreground">Order total</div>
-          <div className="text-sm font-bold text-foreground">{fiatInfo.symbol}{fees.total.toFixed(2)} {fiat}</div>
+          <div className="text-sm font-bold text-foreground">
+            {formatTokenAmount(fees.receive)} {asset.symbol}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Spend {fiatInfo.symbol}{fees.amount.toFixed(2)} {fiat}
+          </div>
         </div>
-        <span className="text-right text-xs text-muted-foreground">
-          {formatTokenAmount(fees.receive)} {asset.symbol}
-        </span>
-        <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", open && "rotate-180")} />
+        <div className="text-right">
+          <div className="text-[11px] text-muted-foreground">Total</div>
+          <div className="text-sm font-bold text-foreground">{fiatInfo.symbol}{fees.total.toFixed(2)}</div>
+        </div>
+        <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
       </button>
       {open && (
         <div className="border-t border-border p-3">
-          <OrderSummary spend={spend} fiat={fiat} coin={coin} method={method} network={network} wallet={wallet} />
+          <OrderSummary spend={spend} fiat={fiat} coin={coin} method={method} network={network} wallet={wallet} ownership={ownership} />
         </div>
       )}
     </div>
