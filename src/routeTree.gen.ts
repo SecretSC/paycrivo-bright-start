@@ -27,7 +27,13 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AccountIndexRouteImport } from './routes/account.index'
 import { Route as OrderOrderIdRouteImport } from './routes/order.$orderId'
 import { Route as ExchangeCheckoutRouteImport } from './routes/exchange.checkout'
+import { Route as AdminWalletsRouteImport } from './routes/admin.wallets'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminRewardsRouteImport } from './routes/admin.rewards'
+import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
+import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
 import { Route as AdminConversationsRouteImport } from './routes/admin.conversations'
+import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AccountWalletsRouteImport } from './routes/account.wallets'
 import { Route as AccountSecurityRouteImport } from './routes/account.security'
 import { Route as AccountRewardRouteImport } from './routes/account.reward'
@@ -127,9 +133,39 @@ const ExchangeCheckoutRoute = ExchangeCheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => ExchangeRoute,
 } as any)
+const AdminWalletsRoute = AdminWalletsRouteImport.update({
+  id: '/wallets',
+  path: '/wallets',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRewardsRoute = AdminRewardsRouteImport.update({
+  id: '/rewards',
+  path: '/rewards',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminOrdersRoute = AdminOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCustomersRoute = AdminCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminConversationsRoute = AdminConversationsRouteImport.update({
   id: '/conversations',
   path: '/conversations',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
   getParentRoute: () => AdminRoute,
 } as any)
 const AccountWalletsRoute = AccountWalletsRouteImport.update({
@@ -191,7 +227,13 @@ export interface FileRoutesByFullPath {
   '/account/reward': typeof AccountRewardRoute
   '/account/security': typeof AccountSecurityRoute
   '/account/wallets': typeof AccountWalletsRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/conversations': typeof AdminConversationsRoute
+  '/admin/customers': typeof AdminCustomersRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/admin/rewards': typeof AdminRewardsRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/wallets': typeof AdminWalletsRoute
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/account/': typeof AccountIndexRoute
@@ -217,7 +259,13 @@ export interface FileRoutesByTo {
   '/account/reward': typeof AccountRewardRoute
   '/account/security': typeof AccountSecurityRoute
   '/account/wallets': typeof AccountWalletsRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/conversations': typeof AdminConversationsRoute
+  '/admin/customers': typeof AdminCustomersRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/admin/rewards': typeof AdminRewardsRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/wallets': typeof AdminWalletsRoute
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/account': typeof AccountIndexRoute
@@ -247,7 +295,13 @@ export interface FileRoutesById {
   '/account/reward': typeof AccountRewardRoute
   '/account/security': typeof AccountSecurityRoute
   '/account/wallets': typeof AccountWalletsRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/conversations': typeof AdminConversationsRoute
+  '/admin/customers': typeof AdminCustomersRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/admin/rewards': typeof AdminRewardsRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/wallets': typeof AdminWalletsRoute
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/account/': typeof AccountIndexRoute
@@ -278,7 +332,13 @@ export interface FileRouteTypes {
     | '/account/reward'
     | '/account/security'
     | '/account/wallets'
+    | '/admin/analytics'
     | '/admin/conversations'
+    | '/admin/customers'
+    | '/admin/orders'
+    | '/admin/rewards'
+    | '/admin/settings'
+    | '/admin/wallets'
     | '/exchange/checkout'
     | '/order/$orderId'
     | '/account/'
@@ -304,7 +364,13 @@ export interface FileRouteTypes {
     | '/account/reward'
     | '/account/security'
     | '/account/wallets'
+    | '/admin/analytics'
     | '/admin/conversations'
+    | '/admin/customers'
+    | '/admin/orders'
+    | '/admin/rewards'
+    | '/admin/settings'
+    | '/admin/wallets'
     | '/exchange/checkout'
     | '/order/$orderId'
     | '/account'
@@ -333,7 +399,13 @@ export interface FileRouteTypes {
     | '/account/reward'
     | '/account/security'
     | '/account/wallets'
+    | '/admin/analytics'
     | '/admin/conversations'
+    | '/admin/customers'
+    | '/admin/orders'
+    | '/admin/rewards'
+    | '/admin/settings'
+    | '/admin/wallets'
     | '/exchange/checkout'
     | '/order/$orderId'
     | '/account/'
@@ -493,11 +565,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExchangeCheckoutRouteImport
       parentRoute: typeof ExchangeRoute
     }
+    '/admin/wallets': {
+      id: '/admin/wallets'
+      path: '/wallets'
+      fullPath: '/admin/wallets'
+      preLoaderRoute: typeof AdminWalletsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/rewards': {
+      id: '/admin/rewards'
+      path: '/rewards'
+      fullPath: '/admin/rewards'
+      preLoaderRoute: typeof AdminRewardsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/orders': {
+      id: '/admin/orders'
+      path: '/orders'
+      fullPath: '/admin/orders'
+      preLoaderRoute: typeof AdminOrdersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/customers': {
+      id: '/admin/customers'
+      path: '/customers'
+      fullPath: '/admin/customers'
+      preLoaderRoute: typeof AdminCustomersRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/conversations': {
       id: '/admin/conversations'
       path: '/conversations'
       fullPath: '/admin/conversations'
       preLoaderRoute: typeof AdminConversationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/analytics': {
+      id: '/admin/analytics'
+      path: '/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AdminAnalyticsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/account/wallets': {
@@ -579,12 +693,24 @@ const AccountRouteWithChildren =
   AccountRoute._addFileChildren(AccountRouteChildren)
 
 interface AdminRouteChildren {
+  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminConversationsRoute: typeof AdminConversationsRoute
+  AdminCustomersRoute: typeof AdminCustomersRoute
+  AdminOrdersRoute: typeof AdminOrdersRoute
+  AdminRewardsRoute: typeof AdminRewardsRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminWalletsRoute: typeof AdminWalletsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminConversationsRoute: AdminConversationsRoute,
+  AdminCustomersRoute: AdminCustomersRoute,
+  AdminOrdersRoute: AdminOrdersRoute,
+  AdminRewardsRoute: AdminRewardsRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
+  AdminWalletsRoute: AdminWalletsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 

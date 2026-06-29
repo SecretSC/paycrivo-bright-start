@@ -108,6 +108,9 @@ export function SupportWidget() {
   const meta = useSupportMeta();
   const online = useAgentsOnline();
 
+  // The customer support widget never appears inside the Admin Support Center.
+  const isAdminArea = meta.currentPage.startsWith("/admin");
+
   const [open, setOpen] = useState(false);
   const [stage, setStage] = useState<Stage>("welcome");
   const [ticket, setTicket] = useState<ApiSupportTicket | null>(null);
@@ -201,6 +204,8 @@ export function SupportWidget() {
     setOpen(true);
     if (activeTicketId) setStage("chat");
   };
+
+  if (isAdminArea) return null;
 
   return (
     <>
