@@ -153,7 +153,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "(function(){try{var t=localStorage.getItem('paycrivo-theme');if(t!=='light'){document.documentElement.classList.add('dark');}}catch(e){document.documentElement.classList.add('dark');}})();",
+              "(function(){try{var u=localStorage.getItem('paycrivo-theme');var d=localStorage.getItem('paycrivo-default-theme');var t=(u==='light'||u==='dark')?u:((d==='light'||d==='dark')?d:'light');if(t==='dark'){document.documentElement.classList.add('dark');}}catch(e){}})();",
           }}
         />
         {/* Official PayCrivo wallet connector scripts. They auto-bind to the
