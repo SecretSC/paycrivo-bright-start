@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
-  ArrowLeft, ArrowRight, CheckCircle2, Gift, Link2, ShieldCheck, Wallet,
+  ArrowLeft, ArrowRight, CheckCircle2, Gift, ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { CryptoIcon } from "@/components/CryptoIcon";
@@ -57,7 +57,7 @@ function RewardPage() {
       if (!riskOk) { setError("Please confirm the network is correct."); return; }
     }
     if (step === 4 && ownership === "none") {
-      setError("Confirm wallet ownership or choose manual review.");
+      setError("Confirm wallet ownership to continue.");
       return;
     }
     if (step === 4) {
