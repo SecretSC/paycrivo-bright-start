@@ -34,7 +34,7 @@ bash scripts/first-deploy.sh
 This does everything `update.sh` does, plus:
 
 - Creates `server/.env` from `server/.env.example` if missing (edit it with real values).
-- Installs systemd units from `docs/systemd/` (`paycrivo-api.service`, `paycrivo-worker.service`).
+- Installs systemd units from `docs/systemd/` (`paycrivo-web.service`, `paycrivo-api.service`, `paycrivo-worker.service`).
 - Enables and starts the services on boot.
 
 ## Fixed paths used by both scripts
@@ -42,8 +42,9 @@ This does everything `update.sh` does, plus:
 | Item              | Path / value                          |
 |-------------------|---------------------------------------|
 | Project root      | `/var/www/paycrivo.com`               |
-| Frontend folder   | `/var/www/paycrivo.com/frontend`      |
-| Frontend dist     | `/var/www/paycrivo.com/frontend/dist` |
+| Frontend (SSR)    | `/var/www/paycrivo.com`               |
+| Frontend SSR entry| `.output/server/index.mjs`            |
+| Web service       | `paycrivo-web`                        |
 | Backend folder    | `/var/www/paycrivo.com/server`        |
 | Backend port      | `4100`                                |
 | API service       | `paycrivo-api`                        |
@@ -53,4 +54,14 @@ This does everything `update.sh` does, plus:
 
 - **Permission errors on restart/reload** — the script uses `sudo` for `systemctl`. Run as a user with sudo rights, or run the whole command with `sudo`.
 - **A step failed** — read the `ERROR: Update failed at step N` line, fix the cause, and re-run `bash scripts/update.sh`. The script is safe to run again.
-- **Check logs** — `sudo journalctl -u paycrivo-api -f` (or `paycrivo-worker`).
+- **Check logs** — `sudo journalctl -u paycrivo-web -f` (or `paycrivo-api`, `paycrivo-worker`).
+
+## Manual production run (without systemd)
+
+The frontend is a standard Node server. You can also run it by hand:
+
+```bash
+npm install
+npm run build
+node .output/server/index.mjs   # honours PORT, defaults to 3000
+```
