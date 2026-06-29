@@ -48,8 +48,11 @@ export const Route = createFileRoute("/buy")({
   component: BuyFlow,
 });
 
-const STEPS = ["Amount", "Email", "Details", "Verification", "Wallet", "Ownership", "Review"];
-const REVIEW = STEPS.length - 1; // 6
+const STEPS = ["Amount", "Email", "Details", "Wallet", "Ownership", "Review"];
+const REVIEW = STEPS.length - 1; // 5
+const WALLET = 3;
+const OWNERSHIP = 4;
+const TOTAL_STEPS = 7; // includes the created success page
 
 function BuyFlow() {
   const search = Route.useSearch();
@@ -71,7 +74,6 @@ function BuyFlow() {
   const [confirming, setConfirming] = useState(false);
   const [createdId, setCreatedId] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
-  const [kycPreview, setKycPreview] = useState(false);
   const [loader, setLoader] = useState<LoaderLabel | null>(null);
   const topRef = useRef<HTMLDivElement>(null);
 
@@ -137,12 +139,12 @@ function BuyFlow() {
       if (postalErr) e.postal = postalErr;
       if (!state.detailsConfirmed) e.detailsConfirmed = "Please confirm your details.";
     }
-    if (step === 4) {
+    if (step === WALLET) {
       if (!state.network) e.network = "Select a network.";
       if (!walletCheck.valid) e.wallet = walletCheck.error ?? "Enter a valid wallet address.";
       if (!state.networkRiskAck) e.networkRiskAck = "Please confirm you understand the network risk.";
     }
-    if (step === 5) {
+    if (step === OWNERSHIP) {
       if (state.walletOwnership === "none") e.ownership = "Confirm wallet ownership or choose manual review.";
     }
     if (step === REVIEW) {
