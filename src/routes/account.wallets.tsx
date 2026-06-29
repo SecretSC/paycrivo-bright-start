@@ -7,12 +7,14 @@ import { CryptoIcon } from "@/components/CryptoIcon";
 import { getAsset } from "@/data/cryptoAssets";
 import { networksForAsset, validateWalletAddress } from "@/lib/checkout";
 import { addWallet, deleteWallet, loadWallets, setDefaultWallet, type SavedWallet } from "@/lib/wallets";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/account/wallets")({
   component: WalletsPage,
 });
 
 function WalletsPage() {
+  const { user } = useAuth();
   const [wallets, setWallets] = useState<SavedWallet[]>([]);
   const [coin, setCoin] = useState("BTC");
   const [network, setNetwork] = useState(networksForAsset("BTC")[0]);
@@ -21,16 +23,17 @@ function WalletsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setWallets(loadWallets());
-  }, []);
+    if (user) setWallets(loadWallets(user.id));
+  }, [user]);
 
   const networks = networksForAsset(coin);
 
   const add = () => {
+    if (!user) return;
     setError(null);
     const err = validateWalletAddress(address, network);
     if (err) { setError(err); return; }
-    setWallets(addWallet({ coin, network, address: address.trim(), nickname: nickname.trim() }));
+    setWallets(addWallet(user.id, { coin, network, address: address.trim(), nickname: nickname.trim() }));
     setAddress(""); setNickname("");
     toast.success("Wallet saved");
   };
