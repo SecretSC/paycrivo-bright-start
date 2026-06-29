@@ -19,6 +19,7 @@ import { Route as ExchangeRouteImport } from './routes/exchange'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as BuyCryptoRouteImport } from './routes/buy-crypto'
 import { Route as BuyRouteImport } from './routes/buy'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ExchangeIndexRouteImport } from './routes/exchange.index'
@@ -82,6 +83,11 @@ const BuyCryptoRoute = BuyCryptoRouteImport.update({
 const BuyRoute = BuyRouteImport.update({
   id: '/buy',
   path: '/buy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AccountRoute = AccountRouteImport.update({
@@ -158,6 +164,7 @@ const ApiEmailRewardClaimRoute = ApiEmailRewardClaimRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRouteWithChildren
+  '/admin': typeof AdminRoute
   '/buy': typeof BuyRoute
   '/buy-crypto': typeof BuyCryptoRoute
   '/dashboard': typeof DashboardRoute
@@ -183,6 +190,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/buy': typeof BuyRoute
   '/buy-crypto': typeof BuyCryptoRoute
   '/dashboard': typeof DashboardRoute
@@ -209,6 +217,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/account': typeof AccountRouteWithChildren
+  '/admin': typeof AdminRoute
   '/buy': typeof BuyRoute
   '/buy-crypto': typeof BuyCryptoRoute
   '/dashboard': typeof DashboardRoute
@@ -237,6 +246,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/account'
+    | '/admin'
     | '/buy'
     | '/buy-crypto'
     | '/dashboard'
@@ -262,6 +272,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/buy'
     | '/buy-crypto'
     | '/dashboard'
@@ -287,6 +298,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/account'
+    | '/admin'
     | '/buy'
     | '/buy-crypto'
     | '/dashboard'
@@ -314,6 +326,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRouteWithChildren
+  AdminRoute: typeof AdminRoute
   BuyRoute: typeof BuyRoute
   BuyCryptoRoute: typeof BuyCryptoRoute
   DashboardRoute: typeof DashboardRoute
@@ -400,6 +413,13 @@ declare module '@tanstack/react-router' {
       path: '/buy'
       fullPath: '/buy'
       preLoaderRoute: typeof BuyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/account': {
@@ -541,6 +561,7 @@ const ExchangeRouteWithChildren = ExchangeRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRouteWithChildren,
+  AdminRoute: AdminRoute,
   BuyRoute: BuyRoute,
   BuyCryptoRoute: BuyCryptoRoute,
   DashboardRoute: DashboardRoute,

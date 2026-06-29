@@ -10,7 +10,7 @@ import { useRealtimePoll } from "@/providers/RealtimeProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { initials } from "@/lib/admin-ui";
 
@@ -213,11 +213,9 @@ function AdminShell() {
       </Sheet>
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center gap-2 border-b border-border bg-card px-4 py-2.5 lg:hidden">
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={() => setMobileOpen(true)} aria-label="Open menu">
-              <Menu className="size-5" />
-            </Button>
-          </SheetTrigger>
+          <Button variant="ghost" size="icon" onClick={() => setMobileOpen(true)} aria-label="Open menu">
+            <Menu className="size-5" />
+          </Button>
           <span className="text-sm font-semibold">PayCrivo Support Center</span>
         </header>
         <main className="min-h-0 flex-1 overflow-hidden">
