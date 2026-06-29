@@ -277,13 +277,15 @@ function BuyFlow() {
 
                 <div className="space-y-2 rounded-2xl bg-surface p-4 text-sm">
                   <Row label="Exchange rate" value={`1 ${state.coin} = ${money(price)}`} />
-                  <Row label="Service fee (1%)" value={money(fees.serviceFee)} />
+                  <Row label="Service fee" value={money(fees.serviceFee)} />
                   <Row label="Network fee" value={money(fees.networkFee)} />
                   <Row label="PayCrivo fee" value={money(fees.paycrivoFee)} />
-                  <div className="flex items-center justify-between border-t border-border pt-2">
-                    <span className="font-medium text-success">First purchase discount</span>
-                    <span className="font-bold text-success">−{money(fees.discount)}</span>
-                  </div>
+                  {fees.firstPurchase && (
+                    <div className="flex items-center gap-1.5 border-t border-border pt-2 text-success">
+                      <ShieldCheck className="size-3.5 shrink-0" />
+                      <span className="font-semibold">First purchase includes 0% PayCrivo fee</span>
+                    </div>
+                  )}
                 </div>
               </Section>
             )}
@@ -486,7 +488,9 @@ function BuyFlow() {
                   <ReviewRow label="Service fee" value={money(fees.serviceFee)} />
                   <ReviewRow label="Network fee" value={money(fees.networkFee)} />
                   <ReviewRow label="PayCrivo fee" value={money(fees.paycrivoFee)} />
-                  <ReviewRow label="First purchase discount" value={`−${money(fees.discount)}`} success />
+                  {fees.firstPurchase && (
+                    <ReviewRow label="Promotion" value="0% PayCrivo fee applied" success />
+                  )}
                   <div className="mt-2 flex items-center justify-between border-t border-border pt-3">
                     <span className="font-bold text-foreground">Total</span>
                     <span className="font-display text-lg font-bold text-foreground">{money(fees.total)} {state.fiat}</span>
