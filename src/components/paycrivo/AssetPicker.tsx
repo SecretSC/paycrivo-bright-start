@@ -161,7 +161,7 @@ export function AssetPicker({
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[60] flex items-start justify-center bg-foreground/40 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-foreground/40 p-0 backdrop-blur-sm sm:items-center sm:p-4">
           <div
             role="dialog"
             aria-label="Select a crypto asset"
