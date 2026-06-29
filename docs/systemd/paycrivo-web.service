@@ -1,0 +1,28 @@
+# PayCrivo web (TanStack Start SSR) — systemd unit
+# Install to: /etc/systemd/system/paycrivo-web.service
+# Then: sudo systemctl daemon-reload && sudo systemctl enable --now paycrivo-web
+#
+# This runs the production Node server produced by `npm run build`
+# (Nitro `node-server` preset -> .output/server/index.mjs). It listens on
+# 127.0.0.1:$PORT and is reverse-proxied by Apache at https://paycrivo.com.
+#
+# The TanStack app lives at the project root (/var/www/paycrivo.com). The
+# separate Express API (server/) runs as paycrivo-api on port 4100.
+
+[Unit]
+Description=PayCrivo Web (TanStack Start SSR)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/paycrivo.com
+# SSR server port (reverse-proxied by Apache). Change if 4000 is taken.
+Environment=PORT=4000
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node .output/server/index.mjs
+Restart=always
+RestartSec=5
+User=www-data
+
+[Install]
+WantedBy=multi-user.target
