@@ -121,7 +121,7 @@ export function OtpVerify({
         ))}
       </div>
 
-      {devCode && (
+      {devCode && import.meta.env.VITE_SHOW_DEV_CODES === "true" && (
         <p className="mt-3 text-xs text-muted-foreground">Dev code: <span className="font-mono font-bold">{devCode}</span></p>
       )}
       {error && <p className="mt-3 text-sm font-medium text-destructive">{error}</p>}
@@ -143,6 +143,10 @@ export function OtpVerify({
         <RefreshCw className={`size-3.5 ${sending ? "animate-spin" : ""}`} />
         {cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}
       </button>
+
+      <p className="mt-4 text-xs text-muted-foreground">
+        Didn't receive it? Check your spam or junk folder, then try resend.
+      </p>
     </div>
   );
 }

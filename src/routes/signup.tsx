@@ -5,6 +5,8 @@ import { PageChrome } from "@/components/paycrivo/PageChrome";
 import { CountrySelector } from "@/components/checkout/CountrySelector";
 import { countries } from "@/data/countries";
 import { useAuth } from "@/lib/auth";
+import { isPasswordValid, PASSWORD_ERROR } from "@/lib/password";
+import { PasswordChecklist } from "@/components/auth/PasswordChecklist";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -40,9 +42,7 @@ function SignupPage() {
   const validate = () => {
     const e: Record<string, string> = {};
     if (!EMAIL_RE.test(form.email)) e.email = "Enter a valid email address.";
-    if (form.password.length < 8) e.password = "Use at least 8 characters.";
-    else if (!/[a-z]/.test(form.password) || !/[A-Z]/.test(form.password) || !/[0-9]/.test(form.password))
-      e.password = "Include upper, lower case and a number.";
+    if (!isPasswordValid(form.password)) e.password = PASSWORD_ERROR;
     if (form.confirm !== form.password) e.confirm = "Passwords don't match.";
     if (!form.firstName.trim()) e.firstName = "First name is required.";
     if (!form.lastName.trim()) e.lastName = "Last name is required.";
@@ -95,6 +95,7 @@ function SignupPage() {
                 {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
               </button>
             </div>
+            <PasswordChecklist value={form.password} />
           </Field>
           <Field label="Confirm password" error={errors.confirm}>
             <input type={showPw ? "text" : "password"} className={inp(errors.confirm)} value={form.confirm} onChange={(e) => set("confirm", e.target.value)} />

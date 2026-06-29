@@ -31,6 +31,7 @@ import { Route as AccountOrdersRouteImport } from './routes/account.orders'
 import { Route as ExchangeOrderOrderIdRouteImport } from './routes/exchange.order.$orderId'
 import { Route as ApiEmailVerifyCodeRouteImport } from './routes/api/email/verify-code'
 import { Route as ApiEmailSendCodeRouteImport } from './routes/api/email/send-code'
+import { Route as ApiEmailRewardClaimRouteImport } from './routes/api/email/reward-claim'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -142,6 +143,11 @@ const ApiEmailSendCodeRoute = ApiEmailSendCodeRouteImport.update({
   path: '/api/email/send-code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiEmailRewardClaimRoute = ApiEmailRewardClaimRouteImport.update({
+  id: '/api/email/reward-claim',
+  path: '/api/email/reward-claim',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -163,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/order/$orderId': typeof OrderOrderIdRoute
   '/account/': typeof AccountIndexRoute
   '/exchange/': typeof ExchangeIndexRoute
+  '/api/email/reward-claim': typeof ApiEmailRewardClaimRoute
   '/api/email/send-code': typeof ApiEmailSendCodeRoute
   '/api/email/verify-code': typeof ApiEmailVerifyCodeRoute
   '/exchange/order/$orderId': typeof ExchangeOrderOrderIdRoute
@@ -185,6 +192,7 @@ export interface FileRoutesByTo {
   '/order/$orderId': typeof OrderOrderIdRoute
   '/account': typeof AccountIndexRoute
   '/exchange': typeof ExchangeIndexRoute
+  '/api/email/reward-claim': typeof ApiEmailRewardClaimRoute
   '/api/email/send-code': typeof ApiEmailSendCodeRoute
   '/api/email/verify-code': typeof ApiEmailVerifyCodeRoute
   '/exchange/order/$orderId': typeof ExchangeOrderOrderIdRoute
@@ -210,6 +218,7 @@ export interface FileRoutesById {
   '/order/$orderId': typeof OrderOrderIdRoute
   '/account/': typeof AccountIndexRoute
   '/exchange/': typeof ExchangeIndexRoute
+  '/api/email/reward-claim': typeof ApiEmailRewardClaimRoute
   '/api/email/send-code': typeof ApiEmailSendCodeRoute
   '/api/email/verify-code': typeof ApiEmailVerifyCodeRoute
   '/exchange/order/$orderId': typeof ExchangeOrderOrderIdRoute
@@ -236,6 +245,7 @@ export interface FileRouteTypes {
     | '/order/$orderId'
     | '/account/'
     | '/exchange/'
+    | '/api/email/reward-claim'
     | '/api/email/send-code'
     | '/api/email/verify-code'
     | '/exchange/order/$orderId'
@@ -258,6 +268,7 @@ export interface FileRouteTypes {
     | '/order/$orderId'
     | '/account'
     | '/exchange'
+    | '/api/email/reward-claim'
     | '/api/email/send-code'
     | '/api/email/verify-code'
     | '/exchange/order/$orderId'
@@ -282,6 +293,7 @@ export interface FileRouteTypes {
     | '/order/$orderId'
     | '/account/'
     | '/exchange/'
+    | '/api/email/reward-claim'
     | '/api/email/send-code'
     | '/api/email/verify-code'
     | '/exchange/order/$orderId'
@@ -301,6 +313,7 @@ export interface RootRouteChildren {
   SwapRoute: typeof SwapRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
   OrderOrderIdRoute: typeof OrderOrderIdRoute
+  ApiEmailRewardClaimRoute: typeof ApiEmailRewardClaimRoute
   ApiEmailSendCodeRoute: typeof ApiEmailSendCodeRoute
   ApiEmailVerifyCodeRoute: typeof ApiEmailVerifyCodeRoute
 }
@@ -461,6 +474,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiEmailSendCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/email/reward-claim': {
+      id: '/api/email/reward-claim'
+      path: '/api/email/reward-claim'
+      fullPath: '/api/email/reward-claim'
+      preLoaderRoute: typeof ApiEmailRewardClaimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -511,6 +531,7 @@ const rootRouteChildren: RootRouteChildren = {
   SwapRoute: SwapRoute,
   VerifyEmailRoute: VerifyEmailRoute,
   OrderOrderIdRoute: OrderOrderIdRoute,
+  ApiEmailRewardClaimRoute: ApiEmailRewardClaimRoute,
   ApiEmailSendCodeRoute: ApiEmailSendCodeRoute,
   ApiEmailVerifyCodeRoute: ApiEmailVerifyCodeRoute,
 }
