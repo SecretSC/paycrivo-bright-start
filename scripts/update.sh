@@ -87,15 +87,32 @@ if [ -d "$BACKEND_DIR/prisma" ] || [ -f "$BACKEND_DIR/prisma/schema.prisma" ]; t
   node --input-type=module <<'NODE'
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
+const tables = [
+  'users', 'admin_users', 'sessions', 'live_events', 'orders', 'order_events', 'order_notes',
+  'wallets', 'reward_claims', 'support_tickets', 'support_messages',
+  'support_conversation_events', 'ticket_notes', 'admin_action_logs', 'email_codes', 'settings',
+];
 try {
-  const rows = await prisma.$queryRaw`SELECT to_regclass('public.email_codes') IS NOT NULL AS "exists"`;
-  if (!rows?.[0]?.exists) throw new Error('public.email_codes was not created');
+  const rows = await prisma.$queryRawUnsafe(
+    `SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename = ANY($1::text[])`,
+    tables,
+  );
+  const found = new Set(rows.map((r) => r.tablename));
+  const missing = tables.filter((t) => !found.has(t));
+  if (missing.length) throw new Error(`Missing required table(s): ${missing.join(', ')}`);
 } finally {
   await prisma.$disconnect();
 }
 NODE
   ok "Prisma migrations applied"
-  ok "Verified public.email_codes exists"
+  ok "Verified required database tables exist"
+  npm run seed:settings
+  if [ -n "${ADMIN_EMAIL:-}" ] && [ -n "${ADMIN_PASSWORD:-}" ]; then
+    npm run seed:admin
+  else
+    echo "    (ADMIN_EMAIL/ADMIN_PASSWORD not set in shell; seed-admin reads server/.env at runtime if configured)"
+    npm run seed:admin || echo "    (admin seed skipped; set ADMIN_EMAIL and ADMIN_PASSWORD in server/.env)"
+  fi
 else
   echo "    (no Prisma schema found, skipping migration)"
 fi
@@ -184,6 +201,16 @@ ok "Apache reloaded"
 step "Service status"
 curl -fsS --max-time 10 "http://127.0.0.1:${BACKEND_PORT}/health" >/dev/null || die "API health check failed on port ${BACKEND_PORT}"
 ok "API health check passed"
+cors_headers="$(mktemp)"
+curl -fsS --max-time 10 -X OPTIONS \
+  -H "Origin: https://paycrivo.com" \
+  -H "Access-Control-Request-Method: POST" \
+  -D "$cors_headers" \
+  -o /dev/null \
+  "http://127.0.0.1:${BACKEND_PORT}/api/email/send-code" || { rm -f "$cors_headers"; die "API CORS preflight failed"; }
+grep -qi '^access-control-allow-origin: https://paycrivo.com' "$cors_headers" || { cat "$cors_headers"; rm -f "$cors_headers"; die "API CORS preflight did not allow https://paycrivo.com"; }
+rm -f "$cors_headers"
+ok "API CORS preflight allows https://paycrivo.com"
 systemctl --no-pager --lines=0 status "$WEB_SERVICE" || true
 systemctl --no-pager --lines=0 status "$API_SERVICE" || true
 
