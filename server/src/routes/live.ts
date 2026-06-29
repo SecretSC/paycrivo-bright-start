@@ -64,7 +64,7 @@ liveRouter.post("/track", optionalCustomer, validateBody(trackSchema), async (re
   await prisma.liveEvent.create({
     data: {
       sessionId: session.id, userId: req.customer?.sub ?? null,
-      eventType: d.eventType, metadataJson: metadata,
+      eventType: d.eventType, metadataJson: metadata as object,
     },
   });
   res.json({ ok: true, sessionId: session.id });
