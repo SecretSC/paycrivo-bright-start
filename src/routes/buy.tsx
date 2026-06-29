@@ -23,7 +23,7 @@ import { CustomSelect, type SelectOption } from "@/components/paycrivo/CustomSel
 import { validateWallet, detectAddressKind, networkNeedsDestinationTag } from "@/utils/walletValidation";
 import {
   countryByName, nameRe, cityRe, validateAge18, validatePhone, validatePostal,
-  sanitizePhoneInput, toE164,
+  sanitizePhoneInput,
 } from "@/data/countries";
 import { usePrices, getPrice, formatUtcTime } from "@/services/priceService";
 import { cn } from "@/lib/utils";
