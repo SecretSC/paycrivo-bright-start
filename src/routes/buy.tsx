@@ -312,7 +312,7 @@ function BuyFlow() {
                 email={state.email.trim().toLowerCase()}
                 purpose="buy_checkout"
                 title="Verify your email"
-                subtitle={<>We sent a 4-digit code to <span className="font-semibold text-foreground">{state.email}</span> so we can send your purchase updates.</> as unknown as string}
+                subtitle={`We sent a 4-digit code to ${state.email} so we can send your purchase updates.`}
                 onVerified={() => {
                   setEmailVerified(true);
                   setOtpOpen(false);
