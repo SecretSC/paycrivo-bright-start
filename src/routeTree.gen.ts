@@ -16,6 +16,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ExchangeRouteImport } from './routes/exchange'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as BuyCryptoRouteImport } from './routes/buy-crypto'
 import { Route as BuyRouteImport } from './routes/buy'
 import { Route as IndexRouteImport } from './routes/index'
@@ -59,6 +60,11 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
 const ExchangeRoute = ExchangeRouteImport.update({
   id: '/exchange',
   path: '/exchange',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BuyCryptoRoute = BuyCryptoRouteImport.update({
@@ -111,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/buy': typeof BuyRoute
   '/buy-crypto': typeof BuyCryptoRoute
+  '/dashboard': typeof DashboardRoute
   '/exchange': typeof ExchangeRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/buy': typeof BuyRoute
   '/buy-crypto': typeof BuyCryptoRoute
+  '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/buy': typeof BuyRoute
   '/buy-crypto': typeof BuyCryptoRoute
+  '/dashboard': typeof DashboardRoute
   '/exchange': typeof ExchangeRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/'
     | '/buy'
     | '/buy-crypto'
+    | '/dashboard'
     | '/exchange'
     | '/forgot-password'
     | '/login'
@@ -185,6 +195,7 @@ export interface FileRouteTypes {
     | '/'
     | '/buy'
     | '/buy-crypto'
+    | '/dashboard'
     | '/forgot-password'
     | '/login'
     | '/signup'
@@ -202,6 +213,7 @@ export interface FileRouteTypes {
     | '/'
     | '/buy'
     | '/buy-crypto'
+    | '/dashboard'
     | '/exchange'
     | '/forgot-password'
     | '/login'
@@ -221,6 +233,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BuyRoute: typeof BuyRoute
   BuyCryptoRoute: typeof BuyCryptoRoute
+  DashboardRoute: typeof DashboardRoute
   ExchangeRoute: typeof ExchangeRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
@@ -282,6 +295,13 @@ declare module '@tanstack/react-router' {
       path: '/exchange'
       fullPath: '/exchange'
       preLoaderRoute: typeof ExchangeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/buy-crypto': {
@@ -370,6 +390,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BuyRoute: BuyRoute,
   BuyCryptoRoute: BuyCryptoRoute,
+  DashboardRoute: DashboardRoute,
   ExchangeRoute: ExchangeRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
