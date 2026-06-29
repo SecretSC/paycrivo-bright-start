@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth";
 import { RealtimeProvider } from "@/providers/RealtimeProvider";
+import { SupportWidget } from "@/components/support/SupportWidget";
 
 function NotFoundComponent() {
   return (
@@ -142,6 +143,7 @@ function RootComponent() {
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
           <Toaster position="top-center" richColors />
+          <SupportWidget />
         </RealtimeProvider>
       </AuthProvider>
     </QueryClientProvider>
