@@ -70,13 +70,15 @@ export function BuyWidget() {
 
       <div className="mt-4 space-y-2 rounded-2xl bg-surface p-4 text-sm">
         <Row label="Exchange rate" value={`1 ${coin} = ${money(priceFiat)}`} />
-        <Row label="Service fee (1%)" value={money(calc.serviceFee)} />
+        <Row label="Service fee" value={money(calc.serviceFee)} />
         <Row label="Network fee" value={money(calc.networkFee)} />
         <Row label="PayCrivo fee" value={money(calc.paycrivoFee)} />
-        <div className="flex items-center justify-between border-t border-border pt-2">
-          <span className="font-medium text-success">First purchase discount</span>
-          <span className="font-bold text-success">−100% PayCrivo fee</span>
-        </div>
+        {calc.firstPurchase && (
+          <div className="flex items-center gap-1.5 border-t border-border pt-2 text-success">
+            <ShieldCheck className="size-3.5 shrink-0" />
+            <span className="font-semibold">First purchase includes 0% PayCrivo fee</span>
+          </div>
+        )}
         <div className="flex items-center justify-between border-t border-border pt-2 text-xs text-muted-foreground">
           <span>{status === "live" ? "Live rate" : "Estimated rate"}{hydrated ? ` · updated ${formatUtcTime(lastUpdated)}` : ""}</span>
         </div>
