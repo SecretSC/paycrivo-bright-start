@@ -18,6 +18,7 @@ PROJECT_ROOT="/var/www/paycrivo.com"
 # The TanStack Start app lives at the project root and builds an SSR Node server.
 FRONTEND_DIR="$PROJECT_ROOT"
 SSR_ENTRY="$PROJECT_ROOT/.output/server/index.mjs"
+SSR_SERVICE="$PROJECT_ROOT/.output/server/_ssr/ssr.mjs"
 BACKEND_DIR="$PROJECT_ROOT/server"
 BACKEND_PORT="4100"
 WEB_PORT="4000"
@@ -81,7 +82,9 @@ cd "$FRONTEND_DIR"
 npm install
 npm run build
 [ -f "$SSR_ENTRY" ] || die "Build did not produce SSR server: $SSR_ENTRY (check Nitro preset is node-server)"
+[ -f "$SSR_SERVICE" ] || die "Build did not produce TanStack SSR service: $SSR_SERVICE (routes are not mounted)"
 ok "Frontend SSR server built -> $SSR_ENTRY"
+ok "TanStack route service built -> $SSR_SERVICE"
 
 # ---- Backend build ----
 step "Building backend ($BACKEND_DIR)"

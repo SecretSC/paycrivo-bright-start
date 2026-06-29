@@ -23,7 +23,7 @@ npm run build
 [ -f "$FRONTEND_DIR/.output/server/index.mjs" ] || \
   echo "   (warning: .output/server/index.mjs not found — check Nitro preset is node-server)"
 [ -f "$FRONTEND_DIR/.output/server/_ssr/ssr.mjs" ] || \
-  echo "   (warning: .output/server/_ssr/ssr.mjs not found — TanStack SSR routes may not be emitted)"
+  { echo "   error: .output/server/_ssr/ssr.mjs not found — TanStack SSR routes were not emitted"; exit 1; }
 
 # --- Server ---
 echo "==> Building server"
