@@ -29,10 +29,10 @@ import { usePrices, getPrice, formatUtcTime } from "@/services/priceService";
 import { cn } from "@/lib/utils";
 
 const searchSchema = z.object({
-  spend: z.string().optional(),
-  fiat: z.string().optional(),
-  coin: z.string().optional(),
-  method: z.string().optional(),
+  spend: z.coerce.string().optional(),
+  fiat: z.coerce.string().optional(),
+  coin: z.coerce.string().optional(),
+  method: z.coerce.string().optional(),
 });
 
 export const Route = createFileRoute("/buy")({
