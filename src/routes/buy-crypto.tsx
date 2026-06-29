@@ -99,15 +99,15 @@ function BuyCryptoLanding() {
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {PAYMENT_METHODS.map((m) => (
+            {Object.values(PAYMENT_METHODS).map((m) => (
               <div
                 key={m.id}
                 className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:border-primary/40"
               >
-                <PaymentBrandIcon icon={m.icon} className="size-8 shrink-0" />
+                <PaymentBrandIcon icon={m.icon} size={32} />
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-foreground">{m.label}</p>
-                  {m.note && <p className="truncate text-xs text-muted-foreground">{m.note}</p>}
+                  <p className="truncate text-sm font-semibold text-foreground">{m.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">{m.desc}</p>
                 </div>
               </div>
             ))}
