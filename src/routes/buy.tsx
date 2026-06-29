@@ -497,7 +497,7 @@ function BuyFlow() {
           </div>
 
           {/* actions */}
-          {state.step !== 5 || state.walletOwnership !== "none" ? (
+          {state.step !== OWNERSHIP || state.walletOwnership !== "none" ? (
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
               {state.step > 0 && (
                 <button onClick={back} className="rounded-2xl border border-border px-6 py-3.5 text-sm font-bold text-foreground transition-colors hover:bg-secondary">
@@ -516,7 +516,7 @@ function BuyFlow() {
               )}
             </div>
           ) : (
-            state.step === 5 && (
+            state.step === OWNERSHIP && (
               <div className="mt-6">
                 <button onClick={back} className="rounded-2xl border border-border px-6 py-3.5 text-sm font-bold text-foreground transition-colors hover:bg-secondary">
                   Back
@@ -533,14 +533,13 @@ function BuyFlow() {
           <SummaryAccordion
             className="mt-5"
             spend={state.spend} fiat={state.fiat} coin={state.coin} method={state.method}
-            network={state.step >= 4 ? state.network : undefined}
-            wallet={state.step >= 4 ? state.wallet : undefined}
-            ownership={state.step >= 5 ? state.walletOwnership : undefined}
+            network={state.step >= WALLET ? state.network : undefined}
+            wallet={state.step >= WALLET ? state.wallet : undefined}
+            ownership={state.step >= OWNERSHIP ? state.walletOwnership : undefined}
           />
         </div>
       </div>
 
-      {kycPreview && <KycPreviewModal onClose={() => setKycPreview(false)} />}
       {loader && (
         <StepLoader
           label={loader}
@@ -560,9 +559,8 @@ const STEP_LOADER: Record<number, LoaderLabel> = {
   0: "Preparing secure checkout…",
   1: "Checking your email…",
   2: "Verifying your details…",
-  3: "Preparing verification…",
-  4: "Preparing wallet step…",
-  5: "Reviewing your order…",
+  3: "Preparing wallet step…",
+  4: "Reviewing your order…",
 };
 
 function networkHelp(symbol: string, network: string): string {
