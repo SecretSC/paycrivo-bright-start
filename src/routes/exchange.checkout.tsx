@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   ArrowLeft, ArrowRight, Check, ChevronDown, ClipboardPaste, Copy, Info,
-  Loader2, QrCode, AlertTriangle, Clock,
+  Loader2, QrCode, AlertTriangle, Clock, Wallet, ShieldCheck,
 } from "lucide-react";
 import { CheckoutHeader } from "@/routes/buy";
 import { SwapWidget, type SwapState } from "@/components/exchange/SwapWidget";
@@ -27,13 +27,17 @@ export const Route = createFileRoute("/exchange/checkout")({
   component: ExchangeCheckout,
 });
 
-const STEPS = ["Pair", "Email", "Receiving wallet", "Send crypto", "Review"];
-const REVIEW = STEPS.length - 1; // 4
+const STEPS = ["Pair", "Email", "Receiving wallet", "Ownership", "Send crypto", "Review"];
+const REVIEW = STEPS.length - 1; // 5
+const OWNERSHIP = 3;
+const SEND = 4;
+const TOTAL_STEPS = 7; // includes the created success page
 const STEP_LOADER = [
   "Checking live rate…",
   "Saving your email…",
   "Validating receiving network…",
   "Generating deposit address…",
+  "Finalizing your exchange…",
 ];
 const RESERVE_MS = 15 * 60 * 1000;
 
@@ -43,6 +47,7 @@ function ExchangeCheckout() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loader, setLoader] = useState<string | null>(null);
   const [checkingDeposit, setCheckingDeposit] = useState(false);
+  const [connecting, setConnecting] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
 
   const set = <K extends keyof ExchangeState>(key: K, value: ExchangeState[K]) =>
@@ -90,7 +95,10 @@ function ExchangeCheckout() {
       if (!walletCheck.valid) e.wallet = walletCheck.error ?? "Enter a valid wallet address.";
       if (!state.networkRiskAck) e.networkRiskAck = "Please confirm you understand the network risk.";
     }
-    if (step === 3) {
+    if (step === OWNERSHIP) {
+      if (state.walletOwnership === "none") e.ownership = "Confirm wallet ownership or choose manual review.";
+    }
+    if (step === SEND) {
       if (!state.depositConfirmed) e.deposit = "Confirm you have sent the crypto to continue.";
     }
     if (step === REVIEW) {
@@ -109,13 +117,29 @@ function ExchangeCheckout() {
       setState((s) => {
         const target = Math.min(s.step + 1, REVIEW);
         // Reserve the rate when entering the Send crypto step.
-        const reservedUntil = target === 3 && !s.reservedUntil ? Date.now() + RESERVE_MS : s.reservedUntil;
+        const reservedUntil = target === SEND && !s.reservedUntil ? Date.now() + RESERVE_MS : s.reservedUntil;
         return { ...s, step: target, reservedUntil };
       });
     }, 2200);
   };
 
   const back = () => { setErrors({}); set("step", Math.max(state.step - 1, 0)); };
+
+  const connectWallet = () => {
+    setConnecting(true);
+    window.setTimeout(() => {
+      setConnecting(false);
+      set("walletOwnership", "confirmed");
+      setErrors((e) => ({ ...e, ownership: "" }));
+      toast.success("Wallet ownership confirmed");
+    }, 2600);
+  };
+
+  const cannotConnect = () => {
+    set("walletOwnership", "manual");
+    setErrors((e) => ({ ...e, ownership: "" }));
+    toast("Marked for manual review");
+  };
 
   const confirmDeposit = () => {
     setCheckingDeposit(true);
@@ -140,7 +164,7 @@ function ExchangeCheckout() {
         receiveEstimate: quote.netReceive, rate: quote.rate,
         wallet: state.wallet, destinationTag: state.destinationTag || undefined,
         email: state.email, depositAddress: deposit, depositConfirmed: state.depositConfirmed,
-        reservedUntil: state.reservedUntil,
+        walletOwnership: state.walletOwnership, reservedUntil: state.reservedUntil,
       });
       clearExchangeDraft();
       setLoader(null);
