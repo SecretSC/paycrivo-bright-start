@@ -7,6 +7,7 @@ import { PaymentMethodSelector } from "@/components/checkout/PaymentMethodSelect
 import { fiats } from "@/lib/paycrivo-data";
 import { getAsset, formatTokenAmount } from "@/data/cryptoAssets";
 import { useQuote, formatUtcTime } from "@/services/marketDataService";
+import { StepLoader } from "@/components/checkout/StepLoader";
 
 export function BuyWidget() {
   const navigate = useNavigate();
@@ -14,12 +15,16 @@ export function BuyWidget() {
   const [fiat, setFiat] = useState("USD");
   const [coin, setCoin] = useState("BTC");
   const [method, setMethod] = useState("card");
+  const [loading, setLoading] = useState(false);
 
   const selectedCoin = getAsset(coin)!;
   const selectedFiat = fiats.find((f) => f.code === fiat)!;
   const { fees: calc, priceFiat, status, lastUpdated, money } = useQuote(spend, coin, fiat);
 
-  const goToCheckout = () => navigate({ to: "/buy", search: { spend, fiat, coin, method } });
+  const goToCheckout = () => {
+    setLoading(true);
+    window.setTimeout(() => navigate({ to: "/buy", search: { spend, fiat, coin, method } }), 2200);
+  };
 
   return (
     <div className="w-full max-w-md rounded-3xl border border-border bg-card p-5 shadow-elegant sm:p-6" id="buy">
@@ -85,6 +90,13 @@ export function BuyWidget() {
       <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
         <ShieldCheck className="size-3.5" /> Secure checkout · transparent fees · 24/7 support
       </p>
+      {loading && (
+        <StepLoader
+          label="Preparing secure checkout…"
+          coin={coin} fiat={fiat} spend={spend}
+          receive={calc.receive} total={calc.total} money={money}
+        />
+      )}
     </div>
   );
 }
