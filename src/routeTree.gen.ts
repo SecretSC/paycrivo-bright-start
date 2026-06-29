@@ -27,6 +27,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AccountIndexRouteImport } from './routes/account.index'
 import { Route as OrderOrderIdRouteImport } from './routes/order.$orderId'
 import { Route as ExchangeCheckoutRouteImport } from './routes/exchange.checkout'
+import { Route as AdminConversationsRouteImport } from './routes/admin.conversations'
 import { Route as AccountWalletsRouteImport } from './routes/account.wallets'
 import { Route as AccountSecurityRouteImport } from './routes/account.security'
 import { Route as AccountRewardRouteImport } from './routes/account.reward'
@@ -126,6 +127,11 @@ const ExchangeCheckoutRoute = ExchangeCheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => ExchangeRoute,
 } as any)
+const AdminConversationsRoute = AdminConversationsRouteImport.update({
+  id: '/conversations',
+  path: '/conversations',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AccountWalletsRoute = AccountWalletsRouteImport.update({
   id: '/wallets',
   path: '/wallets',
@@ -185,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/account/reward': typeof AccountRewardRoute
   '/account/security': typeof AccountSecurityRoute
   '/account/wallets': typeof AccountWalletsRoute
+  '/admin/conversations': typeof AdminConversationsRoute
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/account/': typeof AccountIndexRoute
@@ -210,6 +217,7 @@ export interface FileRoutesByTo {
   '/account/reward': typeof AccountRewardRoute
   '/account/security': typeof AccountSecurityRoute
   '/account/wallets': typeof AccountWalletsRoute
+  '/admin/conversations': typeof AdminConversationsRoute
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/account': typeof AccountIndexRoute
@@ -239,6 +247,7 @@ export interface FileRoutesById {
   '/account/reward': typeof AccountRewardRoute
   '/account/security': typeof AccountSecurityRoute
   '/account/wallets': typeof AccountWalletsRoute
+  '/admin/conversations': typeof AdminConversationsRoute
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/account/': typeof AccountIndexRoute
@@ -269,6 +278,7 @@ export interface FileRouteTypes {
     | '/account/reward'
     | '/account/security'
     | '/account/wallets'
+    | '/admin/conversations'
     | '/exchange/checkout'
     | '/order/$orderId'
     | '/account/'
@@ -294,6 +304,7 @@ export interface FileRouteTypes {
     | '/account/reward'
     | '/account/security'
     | '/account/wallets'
+    | '/admin/conversations'
     | '/exchange/checkout'
     | '/order/$orderId'
     | '/account'
@@ -322,6 +333,7 @@ export interface FileRouteTypes {
     | '/account/reward'
     | '/account/security'
     | '/account/wallets'
+    | '/admin/conversations'
     | '/exchange/checkout'
     | '/order/$orderId'
     | '/account/'
@@ -481,6 +493,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExchangeCheckoutRouteImport
       parentRoute: typeof ExchangeRoute
     }
+    '/admin/conversations': {
+      id: '/admin/conversations'
+      path: '/conversations'
+      fullPath: '/admin/conversations'
+      preLoaderRoute: typeof AdminConversationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/account/wallets': {
       id: '/account/wallets'
       path: '/wallets'
@@ -560,10 +579,12 @@ const AccountRouteWithChildren =
   AccountRoute._addFileChildren(AccountRouteChildren)
 
 interface AdminRouteChildren {
+  AdminConversationsRoute: typeof AdminConversationsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminConversationsRoute: AdminConversationsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
