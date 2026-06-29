@@ -521,9 +521,10 @@ function BuyFlow() {
           <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted-foreground sm:justify-start">
             <ShieldCheck className="size-3.5" /> No real payment is processed in staging.
           </p>
+          </div>
         </div>
 
-        <aside className="lg:sticky lg:top-24 lg:self-start">
+        <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
           <OrderSummary spend={state.spend} fiat={state.fiat} coin={state.coin} method={state.method}
             network={state.step >= 4 ? state.network : undefined} wallet={state.step >= 4 ? state.wallet : undefined} />
         </aside>
