@@ -271,7 +271,54 @@ function ExchangeCheckout() {
               </Section>
             )}
 
-            {state.step === 3 && (
+            {state.step === OWNERSHIP && (
+              <Section title="Confirm wallet ownership" subtitle="To help protect your exchange, confirm that you control the receiving wallet.">
+                <div className="rounded-2xl border border-border bg-surface p-5">
+                  <div className="flex items-center gap-3">
+                    <CryptoIcon symbol={receiveAsset.symbol} color={receiveAsset.iconColor} size={40} />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-bold text-foreground">{receiveAsset.name} ({receiveAsset.symbol})</div>
+                      <div className="text-xs text-muted-foreground">{state.receiveNetwork}</div>
+                      <div className="truncate font-mono text-xs text-muted-foreground">
+                        {state.wallet ? `${state.wallet.slice(0, 10)}…${state.wallet.slice(-6)}` : "No address"}
+                      </div>
+                    </div>
+                    <ExchangeOwnershipBadge status={state.walletOwnership} />
+                  </div>
+
+                  <p className="mt-4 flex items-start gap-2 rounded-xl bg-card px-3 py-2.5 text-xs text-muted-foreground">
+                    <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-primary" />
+                    We never ask for seed phrases or private keys.
+                  </p>
+
+                  {state.walletOwnership === "confirmed" && (
+                    <div className="mt-4 flex items-center gap-2 rounded-xl bg-success/10 px-3 py-3 text-sm font-bold text-success">
+                      <Check className="size-4" /> Wallet ownership confirmed
+                    </div>
+                  )}
+                  {state.walletOwnership === "manual" && (
+                    <div className="mt-4 flex items-center gap-2 rounded-xl bg-amber-500/10 px-3 py-3 text-sm font-bold text-amber-600 dark:text-amber-400">
+                      <AlertTriangle className="size-4" /> Manual review required
+                    </div>
+                  )}
+                  {state.walletOwnership === "none" && (
+                    <div className="mt-4 space-y-3">
+                      <button type="button" onClick={connectWallet} disabled={connecting}
+                        className="bg-gradient-primary flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5 disabled:opacity-70">
+                        {connecting ? <><Loader2 className="size-4 animate-spin" /> Opening wallet confirmation…</> : <><Wallet className="size-4" /> Connect wallet</>}
+                      </button>
+                      <button type="button" onClick={cannotConnect}
+                        className="w-full rounded-2xl border border-border py-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                        I cannot connect this wallet
+                      </button>
+                    </div>
+                  )}
+                  {errors.ownership && <p className="mt-2 text-xs font-medium text-destructive">{errors.ownership}</p>}
+                </div>
+              </Section>
+            )}
+
+            {state.step === SEND && (
               <SendCryptoStep
                 state={state} deposit={deposit} sendAsset={sendAsset}
                 checking={checkingDeposit} onConfirm={confirmDeposit} error={errors.deposit}
@@ -287,6 +334,11 @@ function ExchangeCheckout() {
                   <ReviewRow label="Receive network" value={state.receiveNetwork} />
                   <ReviewRow label="Receiving wallet" value={`${state.wallet.slice(0, 8)}…${state.wallet.slice(-6)}`} copy={state.wallet} />
                   {state.destinationTag && <ReviewRow label="Tag / memo" value={state.destinationTag} />}
+                  <ReviewRow
+                    label="Wallet ownership"
+                    value={state.walletOwnership === "confirmed" ? "Confirmed" : state.walletOwnership === "manual" ? "Manual review required" : "Not confirmed"}
+                    success={state.walletOwnership === "confirmed"}
+                  />
                   <div className="border-t border-border pt-1.5">
                     <ReviewRow label="Exchange rate" value={`1 ${sendAsset.symbol} ≈ ${formatTokenAmount(quote.rate)} ${receiveAsset.symbol}`} />
                     <ReviewRow label="PayCrivo fee" value="0% (first exchange)" />
