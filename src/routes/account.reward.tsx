@@ -62,7 +62,7 @@ function RewardPage() {
       if (saveWallet) addWallet(user.id, { coin: asset, network, address: address.trim(), nickname: `${asset} reward wallet` });
       const updated = claimReward(user.id, {
         selectedAsset: asset, selectedNetwork: network, walletAddress: address.trim(),
-        walletOwnershipStatus: ownership,
+        walletOwnershipStatus: ownership as WalletOwnership,
       });
       setReward(updated);
       // optional reward email (best-effort)
