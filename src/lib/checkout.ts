@@ -49,7 +49,12 @@ export type FeeBreakdown = {
   total: number;
 };
 
-export function computeFees(amount: number, asset: CryptoAsset, firstPurchase = true): FeeBreakdown {
+export function computeFees(
+  amount: number,
+  asset: CryptoAsset,
+  firstPurchase = true,
+  priceUsd?: number,
+): FeeBreakdown {
   const safe = Number.isFinite(amount) && amount > 0 ? amount : 0;
   const serviceFee = safe * 0.01;
   const networkFee = 1.99;
@@ -58,7 +63,8 @@ export function computeFees(amount: number, asset: CryptoAsset, firstPurchase = 
   const paycrivoFee = basePaycrivo - discount;
   const totalFees = serviceFee + networkFee + paycrivoFee;
   const net = Math.max(safe - totalFees, 0);
-  const receive = asset.mockPriceUsd > 0 ? net / asset.mockPriceUsd : 0;
+  const unitPrice = priceUsd && priceUsd > 0 ? priceUsd : asset.mockPriceUsd;
+  const receive = unitPrice > 0 ? net / unitPrice : 0;
   return {
     amount: safe,
     serviceFee,
