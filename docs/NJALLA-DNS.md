@@ -27,7 +27,7 @@ Notes:
 - The **www CNAME** points to the apex `paycrivo.com.` (include the trailing dot
   if Njalla requires it).
 - The **api A record** points to the same server IP (the reverse proxy routes it
-  to the Node API on port 4000).
+  to the Node API on port 4100).
 - If you use IPv6, add matching `AAAA` records for `@` and `api`.
 
 ## 3. DNS propagation

@@ -1,7 +1,7 @@
 # Deploy with Nginx
 
 Assumes you completed [DEPLOY-DEBIAN.md](./DEPLOY-DEBIAN.md) and the API runs on
-`127.0.0.1:4000`.
+`127.0.0.1:4100`.
 
 ## 1. Install Nginx + Certbot
 
@@ -17,7 +17,7 @@ sudo apt install -y nginx certbot python3-certbot-nginx
 server {
     listen 80;
     server_name paycrivo.com www.paycrivo.com;
-    root /var/www/paycrivo.com/dist;
+    root /var/www/paycrivo.com/frontend/dist;
     index index.html;
 
     # SPA fallback — every route serves index.html
@@ -46,7 +46,7 @@ server {
     server_name api.paycrivo.com;
 
     location / {
-        proxy_pass http://127.0.0.1:4000;
+        proxy_pass http://127.0.0.1:4100;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;

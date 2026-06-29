@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { PageChrome } from "@/components/paycrivo/PageChrome";
 import { useAuth } from "@/lib/auth";
+import { Logo } from "@/components/paycrivo/Logo";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in to PayCrivo" }] }),
@@ -35,6 +36,7 @@ function LoginPage() {
   return (
     <PageChrome>
       <main className="mx-auto flex max-w-md flex-col px-4 py-14 sm:py-20">
+        <Logo asLink imgClassName="h-9 w-auto max-w-[170px] mb-6" />
         <h1 className="font-display text-2xl font-bold text-foreground">Welcome back</h1>
         <p className="mt-1.5 text-sm text-muted-foreground">Sign in to your PayCrivo account.</p>
 

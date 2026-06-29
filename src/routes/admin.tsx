@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { initials } from "@/lib/admin-ui";
+import { Logo } from "@/components/paycrivo/Logo";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "PayCrivo Support Center" }, { name: "robots", content: "noindex" }] }),
@@ -59,14 +60,9 @@ function AdminLogin() {
   return (
     <div className="grid min-h-screen place-items-center bg-gradient-to-br from-background to-muted/30 p-4">
       <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-2xl">
-        <div className="mb-6 flex items-center gap-3">
-          <span className="grid size-11 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary-glow text-primary-foreground">
-            <Headset className="size-5" />
-          </span>
-          <div>
-            <p className="text-base font-semibold text-foreground">PayCrivo Support</p>
-            <p className="text-xs text-muted-foreground">Agent sign in</p>
-          </div>
+        <div className="mb-6 flex flex-col items-start gap-2">
+          <Logo asLink={false} imgClassName="h-8 w-auto max-w-[170px]" />
+          <p className="text-xs text-muted-foreground">Support Center · Agent sign in</p>
         </div>
         <form className="space-y-4" onSubmit={submit}>
           <div className="space-y-1.5">
@@ -129,9 +125,7 @@ function SidebarContent({ counts, onNavigate }: { counts: { open: number; pendin
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2.5 border-b border-border px-4 py-4">
-        <span className="grid size-9 place-items-center rounded-lg bg-gradient-to-br from-primary to-primary-glow text-primary-foreground">
-          <Headset className="size-4.5" />
-        </span>
+        <Logo markOnly asLink={false} imgClassName="h-8 w-auto" />
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-foreground">Support Center</p>
           <p className="truncate text-[11px] text-muted-foreground">PayCrivo</p>
@@ -217,7 +211,8 @@ function AdminShell() {
           <Button variant="ghost" size="icon" onClick={() => setMobileOpen(true)} aria-label="Open menu">
             <Menu className="size-5" />
           </Button>
-          <span className="text-sm font-semibold">PayCrivo Support Center</span>
+          <Logo markOnly asLink={false} imgClassName="h-7 w-auto" />
+          <span className="text-sm font-semibold">Support Center</span>
         </header>
         <main className="min-h-0 flex-1 overflow-hidden">
           <Outlet />
