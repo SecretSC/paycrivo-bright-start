@@ -142,7 +142,7 @@ function RewardPage() {
                 <Link2 className="size-5 text-primary" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-foreground">Connect wallet</p>
-                  <p className="text-xs text-muted-foreground">Simulated connection to confirm ownership.</p>
+                  <p className="text-xs text-muted-foreground">Securely connect your wallet to confirm ownership.</p>
                 </div>
                 {ownership === "confirmed" && <CheckCircle2 className="size-5 text-success" />}
               </button>

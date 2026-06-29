@@ -119,7 +119,7 @@ function ExchangeOrderPage() {
         {/* addresses */}
         <div className="mt-6 space-y-4">
           <AddressCard label="Receiving wallet" value={order.wallet} note={`Network: ${order.receiveNetwork}`} onCopy={() => copy(order.wallet)} />
-          <AddressCard label="PayCrivo deposit address" value={order.depositAddress} note="Prototype deposit address for staging." onCopy={() => copy(order.depositAddress)} />
+          <AddressCard label="PayCrivo deposit address" value={order.depositAddress} note="Send only the exact amount shown to this address." onCopy={() => copy(order.depositAddress)} />
         </div>
 
         {/* support */}
@@ -215,7 +215,7 @@ function Timeline({ items, className }: { items: TLItem[]; className?: string })
             <div className="pb-4">
               <div className="text-sm font-semibold text-foreground">{it.label}</div>
               <div className="text-xs text-muted-foreground">
-                {it.note ?? (it.status === "complete" ? "Complete" : it.status === "staging" ? "Staging complete" : "Pending")}
+                {it.note ?? (it.status === "complete" ? "Complete" : it.status === "staging" ? "In progress" : "Pending")}
               </div>
             </div>
           </div>

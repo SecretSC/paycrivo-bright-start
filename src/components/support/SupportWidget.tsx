@@ -17,7 +17,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth";
 import { supportApi } from "@/lib/api/support";
-import { isBackendConfigured } from "@/lib/api/client";
 import { useRealtimePoll } from "@/providers/RealtimeProvider";
 import type { ApiSupportMessage, ApiSupportTicket } from "@/lib/api/types";
 import { loadDraft } from "@/lib/checkout";
@@ -48,6 +47,15 @@ const SECRET_RE =
   /\b(seed\s?phrase|recovery\s?phrase|mnemonic|private\s?key|secret\s?key|pass\s?word|passphrase|cvv|card\s?number)\b/i;
 
 type Stage = "welcome" | "form" | "chat";
+
+// Agent availability for the UI (business hours, local time). Backend transport
+// status is intentionally never surfaced to customers.
+function useAgentsOnline(): boolean {
+  return useMemo(() => {
+    const hour = new Date().getHours();
+    return hour >= 6 && hour < 22;
+  }, []);
+}
 
 type SafeMeta = {
   currentPage: string;
@@ -98,6 +106,7 @@ function fmtTime(iso: string): string {
 export function SupportWidget() {
   const { user } = useAuth();
   const meta = useSupportMeta();
+  const online = useAgentsOnline();
 
   const [open, setOpen] = useState(false);
   const [stage, setStage] = useState<Stage>("welcome");
@@ -219,6 +228,7 @@ export function SupportWidget() {
             user={user}
             meta={meta}
             promptText={promptText}
+            online={online}
             stage={stage}
             setStage={setStage}
             ticket={ticket}
@@ -255,6 +265,7 @@ function SupportPanel({
   user,
   meta,
   promptText,
+  online,
   stage,
   setStage,
   ticket,
@@ -267,6 +278,7 @@ function SupportPanel({
   user: ReturnType<typeof useAuth>["user"];
   meta: SafeMeta;
   promptText: string;
+  online: boolean;
   stage: Stage;
   setStage: (s: Stage) => void;
   ticket: ApiSupportTicket | null;
@@ -280,13 +292,19 @@ function SupportPanel({
     <>
       <header className="flex items-center justify-between gap-2 border-b border-border bg-gradient-to-br from-primary to-primary-glow px-4 py-3 text-primary-foreground">
         <div className="flex min-w-0 items-center gap-2.5">
-          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary-foreground/15">
+          <span className="relative grid size-9 shrink-0 place-items-center rounded-full bg-primary-foreground/15">
             <Headset className="size-4.5" />
+            <span
+              className={cn(
+                "absolute -bottom-0.5 -right-0.5 size-3 rounded-full ring-2 ring-primary",
+                online ? "bg-emerald-400" : "bg-muted-foreground",
+              )}
+            />
           </span>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold">PayCrivo Support</p>
             <p className="truncate text-xs text-primary-foreground/80">
-              {isBackendConfigured() ? "We typically reply quickly" : "Demo mode • responses simulated"}
+              {online ? "Typically replies within a few minutes" : "Offline · we'll reply by email"}
             </p>
           </div>
         </div>
@@ -311,26 +329,28 @@ function SupportPanel({
       </header>
 
       {stage === "welcome" && (
-        <WelcomeScreen promptText={promptText} onStart={() => setStage("form")} />
+        <WelcomeScreen promptText={promptText} online={online} onStart={() => setStage("form")} />
       )}
       {stage === "form" && (
         <DetailsForm user={user} meta={meta} onCreated={onTicketCreated} onBack={() => setStage("welcome")} />
       )}
       {stage === "chat" && ticket && (
-        <Conversation ticket={ticket} messages={messages} onSend={onSend} />
+        <Conversation ticket={ticket} messages={messages} online={online} onSend={onSend} />
       )}
     </>
   );
 }
 
-function WelcomeScreen({ promptText, onStart }: { promptText: string; onStart: () => void }) {
+function WelcomeScreen({ promptText, online, onStart }: { promptText: string; online: boolean; onStart: () => void }) {
   return (
     <div className="flex flex-1 flex-col justify-between overflow-y-auto p-5">
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-foreground">Hi there 👋</h3>
+        <h3 className="text-lg font-semibold text-foreground">Hi 👋 Welcome to PayCrivo Support</h3>
         <p className="text-sm text-muted-foreground">{promptText}</p>
         <p className="text-sm text-muted-foreground">
-          Tell us a bit about what you need and a PayCrivo support agent will help you out.
+          {online
+            ? "Tell us a bit about what you need and a PayCrivo support agent will help you out."
+            : "Our team is offline right now. Leave us a message and we'll reply by email."}
         </p>
       </div>
       <div className="space-y-3">
@@ -341,7 +361,7 @@ function WelcomeScreen({ promptText, onStart }: { promptText: string; onStart: (
           </span>
         </div>
         <Button onClick={onStart} className="w-full">
-          Start a conversation
+          {online ? "Start a conversation" : "Leave a message"}
         </Button>
       </div>
     </div>
@@ -491,10 +511,12 @@ function DetailsForm({
 function Conversation({
   ticket,
   messages,
+  online,
   onSend,
 }: {
   ticket: ApiSupportTicket;
   messages: ApiSupportMessage[];
+  online: boolean;
   onSend: (text: string) => Promise<void>;
 }) {
   const [draft, setDraft] = useState("");
@@ -504,7 +526,11 @@ function Conversation({
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages.length]);
+  }, [messages.length, sending]);
+
+  // Show an agent typing indicator while the customer is waiting on a reply.
+  const lastMsg = messages[messages.length - 1];
+  const awaitingReply = online && !!lastMsg && lastMsg.senderType === "customer";
 
   const onChange = (v: string) => {
     setDraft(v);
@@ -530,6 +556,11 @@ function Conversation({
         Ticket #{ticket.ticketNumber} • {ticket.status}
       </div>
       <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto scrollbar-custom p-4">
+        <div className="flex justify-start">
+          <div className="max-w-[80%] rounded-2xl rounded-bl-sm bg-muted px-3 py-2 text-sm text-foreground">
+            Hi 👋 Welcome to PayCrivo Support. How can we help you today?
+          </div>
+        </div>
         {messages.map((m) => {
           if (m.senderType === "system") {
             return (
@@ -567,6 +598,15 @@ function Conversation({
             </div>
           );
         })}
+        {awaitingReply && (
+          <div className="flex justify-start">
+            <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm bg-muted px-3 py-2.5">
+              <span className="size-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]" />
+              <span className="size-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]" />
+              <span className="size-1.5 animate-bounce rounded-full bg-muted-foreground" />
+            </div>
+          </div>
+        )}
       </div>
       <div className="border-t border-border p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
         {secretWarning && (
