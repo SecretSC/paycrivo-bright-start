@@ -17,7 +17,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth";
 import { supportApi } from "@/lib/api/support";
-import { isBackendConfigured } from "@/lib/api/client";
 import { useRealtimePoll } from "@/providers/RealtimeProvider";
 import type { ApiSupportMessage, ApiSupportTicket } from "@/lib/api/types";
 import { loadDraft } from "@/lib/checkout";
@@ -48,6 +47,15 @@ const SECRET_RE =
   /\b(seed\s?phrase|recovery\s?phrase|mnemonic|private\s?key|secret\s?key|pass\s?word|passphrase|cvv|card\s?number)\b/i;
 
 type Stage = "welcome" | "form" | "chat";
+
+// Agent availability for the UI (business hours, local time). Backend transport
+// status is intentionally never surfaced to customers.
+function useAgentsOnline(): boolean {
+  return useMemo(() => {
+    const hour = new Date().getHours();
+    return hour >= 6 && hour < 22;
+  }, []);
+}
 
 type SafeMeta = {
   currentPage: string;
