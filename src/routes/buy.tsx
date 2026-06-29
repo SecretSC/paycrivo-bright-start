@@ -458,34 +458,14 @@ function BuyFlow() {
                     <OwnershipBadge status={state.walletOwnership} />
                   </div>
 
-                  <p className="mt-4 flex items-start gap-2 rounded-xl bg-card px-3 py-2.5 text-xs text-muted-foreground">
-                    <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-primary" />
-                    Confirming ownership helps protect against scams and mistaken transfers. We never ask for your seed phrase or private keys.
-                  </p>
-
-                  {state.walletOwnership === "confirmed" && (
-                    <div className="mt-4 flex items-center gap-2 rounded-xl bg-success/10 px-3 py-3 text-sm font-bold text-success">
-                      <Check className="size-4" /> Wallet ownership confirmed
-                    </div>
-                  )}
-                  {state.walletOwnership === "manual" && (
-                    <div className="mt-4 flex items-center gap-2 rounded-xl bg-amber-500/10 px-3 py-3 text-sm font-bold text-amber-600 dark:text-amber-400">
-                      <AlertTriangle className="size-4" /> Manual review required
-                    </div>
-                  )}
-
-                  {state.walletOwnership === "none" && (
-                    <div className="mt-4 space-y-3">
-                      <button type="button" onClick={connectWallet} disabled={connecting}
-                        className="bg-gradient-primary flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5 disabled:opacity-70">
-                        {connecting ? <><Loader2 className="size-4 animate-spin" /> Opening wallet confirmation…</> : <><Wallet className="size-4" /> Connect wallet</>}
-                      </button>
-                      <button type="button" onClick={cannotConnect}
-                        className="w-full rounded-2xl border border-border py-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
-                        I cannot connect this wallet
-                      </button>
-                    </div>
-                  )}
+                  <div className="mt-4">
+                    <WalletConnect
+                      coin={state.coin}
+                      network={state.network}
+                      status={walletStatus}
+                      onStatusChange={handleWalletStatus}
+                    />
+                  </div>
                   {errors.ownership && <p className="mt-2 text-xs font-medium text-destructive">{errors.ownership}</p>}
                 </div>
               </Section>
