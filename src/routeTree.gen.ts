@@ -22,6 +22,7 @@ import { Route as BuyRouteImport } from './routes/buy'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ExchangeIndexRouteImport } from './routes/exchange.index'
+import { Route as AccountIndexRouteImport } from './routes/account.index'
 import { Route as OrderOrderIdRouteImport } from './routes/order.$orderId'
 import { Route as ExchangeCheckoutRouteImport } from './routes/exchange.checkout'
 import { Route as ExchangeOrderOrderIdRouteImport } from './routes/exchange.order.$orderId'
@@ -93,6 +94,11 @@ const ExchangeIndexRoute = ExchangeIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ExchangeRoute,
 } as any)
+const AccountIndexRoute = AccountIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AccountRoute,
+} as any)
 const OrderOrderIdRoute = OrderOrderIdRouteImport.update({
   id: '/order/$orderId',
   path: '/order/$orderId',
@@ -121,7 +127,7 @@ const ApiEmailSendCodeRoute = ApiEmailSendCodeRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/account': typeof AccountRoute
+  '/account': typeof AccountRouteWithChildren
   '/buy': typeof BuyRoute
   '/buy-crypto': typeof BuyCryptoRoute
   '/dashboard': typeof DashboardRoute
@@ -134,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/verify-email': typeof VerifyEmailRoute
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
+  '/account/': typeof AccountIndexRoute
   '/exchange/': typeof ExchangeIndexRoute
   '/api/email/send-code': typeof ApiEmailSendCodeRoute
   '/api/email/verify-code': typeof ApiEmailVerifyCodeRoute
@@ -141,7 +148,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/account': typeof AccountRoute
   '/buy': typeof BuyRoute
   '/buy-crypto': typeof BuyCryptoRoute
   '/dashboard': typeof DashboardRoute
@@ -153,6 +159,7 @@ export interface FileRoutesByTo {
   '/verify-email': typeof VerifyEmailRoute
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
+  '/account': typeof AccountIndexRoute
   '/exchange': typeof ExchangeIndexRoute
   '/api/email/send-code': typeof ApiEmailSendCodeRoute
   '/api/email/verify-code': typeof ApiEmailVerifyCodeRoute
@@ -161,7 +168,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/account': typeof AccountRoute
+  '/account': typeof AccountRouteWithChildren
   '/buy': typeof BuyRoute
   '/buy-crypto': typeof BuyCryptoRoute
   '/dashboard': typeof DashboardRoute
@@ -174,6 +181,7 @@ export interface FileRoutesById {
   '/verify-email': typeof VerifyEmailRoute
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
+  '/account/': typeof AccountIndexRoute
   '/exchange/': typeof ExchangeIndexRoute
   '/api/email/send-code': typeof ApiEmailSendCodeRoute
   '/api/email/verify-code': typeof ApiEmailVerifyCodeRoute
@@ -196,6 +204,7 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/exchange/checkout'
     | '/order/$orderId'
+    | '/account/'
     | '/exchange/'
     | '/api/email/send-code'
     | '/api/email/verify-code'
@@ -203,7 +212,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/account'
     | '/buy'
     | '/buy-crypto'
     | '/dashboard'
@@ -215,6 +223,7 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/exchange/checkout'
     | '/order/$orderId'
+    | '/account'
     | '/exchange'
     | '/api/email/send-code'
     | '/api/email/verify-code'
@@ -235,6 +244,7 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/exchange/checkout'
     | '/order/$orderId'
+    | '/account/'
     | '/exchange/'
     | '/api/email/send-code'
     | '/api/email/verify-code'
@@ -243,7 +253,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AccountRoute: typeof AccountRoute
+  AccountRoute: typeof AccountRouteWithChildren
   BuyRoute: typeof BuyRoute
   BuyCryptoRoute: typeof BuyCryptoRoute
   DashboardRoute: typeof DashboardRoute
@@ -352,6 +362,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExchangeIndexRouteImport
       parentRoute: typeof ExchangeRoute
     }
+    '/account/': {
+      id: '/account/'
+      path: '/'
+      fullPath: '/account/'
+      preLoaderRoute: typeof AccountIndexRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/order/$orderId': {
       id: '/order/$orderId'
       path: '/order/$orderId'
@@ -390,6 +407,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AccountRouteChildren {
+  AccountIndexRoute: typeof AccountIndexRoute
+}
+
+const AccountRouteChildren: AccountRouteChildren = {
+  AccountIndexRoute: AccountIndexRoute,
+}
+
+const AccountRouteWithChildren =
+  AccountRoute._addFileChildren(AccountRouteChildren)
+
 interface ExchangeRouteChildren {
   ExchangeCheckoutRoute: typeof ExchangeCheckoutRoute
   ExchangeIndexRoute: typeof ExchangeIndexRoute
@@ -408,7 +436,7 @@ const ExchangeRouteWithChildren = ExchangeRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AccountRoute: AccountRoute,
+  AccountRoute: AccountRouteWithChildren,
   BuyRoute: BuyRoute,
   BuyCryptoRoute: BuyCryptoRoute,
   DashboardRoute: DashboardRoute,
