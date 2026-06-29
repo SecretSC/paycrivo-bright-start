@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
-  ArrowLeft, ArrowRight, CheckCircle2, Gift, Link2, ShieldCheck, Wallet,
+  ArrowLeft, ArrowRight, CheckCircle2, Gift, ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { CryptoIcon } from "@/components/CryptoIcon";
@@ -10,6 +10,7 @@ import { getAsset } from "@/data/cryptoAssets";
 import { validateWalletAddress } from "@/lib/checkout";
 import { addWallet } from "@/lib/wallets";
 import { recordEvent } from "@/lib/liveLog";
+import { WalletConnect, type WalletConnectStatus } from "@/components/wallet/WalletConnect";
 import {
   claimReward, getReward, REWARD_AMOUNT_USD, REWARD_ASSETS, REWARD_NETWORKS,
   type Reward, type WalletOwnership,
@@ -31,6 +32,7 @@ function RewardPage() {
   const [riskOk, setRiskOk] = useState(false);
   const [saveWallet, setSaveWallet] = useState(false);
   const [ownership, setOwnership] = useState<WalletOwnership | "none">("none");
+  const [walletStatus, setWalletStatus] = useState<WalletConnectStatus>("idle");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -55,7 +57,7 @@ function RewardPage() {
       if (!riskOk) { setError("Please confirm the network is correct."); return; }
     }
     if (step === 4 && ownership === "none") {
-      setError("Confirm wallet ownership or choose manual review.");
+      setError("Confirm wallet ownership to continue.");
       return;
     }
     if (step === 4) {
@@ -138,26 +140,15 @@ function RewardPage() {
 
         {step === 4 && (
           <Section title="Confirm wallet ownership" subtitle="Confirm you control this wallet to help protect your reward.">
-            <div className="space-y-3">
-              <button onClick={() => { setOwnership("confirmed"); toast.success("Wallet ownership confirmed"); }}
-                className={`flex w-full items-center gap-3 rounded-2xl border p-4 text-left transition-colors ${ownership === "confirmed" ? "border-primary bg-accent/40" : "border-border hover:border-primary/40"}`}>
-                <Link2 className="size-5 text-primary" />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-foreground">Connect wallet</p>
-                  <p className="text-xs text-muted-foreground">Securely connect your wallet to confirm ownership.</p>
-                </div>
-                {ownership === "confirmed" && <CheckCircle2 className="size-5 text-success" />}
-              </button>
-              <button onClick={() => { setOwnership("manual"); toast("Manual review selected"); }}
-                className={`flex w-full items-center gap-3 rounded-2xl border p-4 text-left transition-colors ${ownership === "manual" ? "border-primary bg-accent/40" : "border-border hover:border-primary/40"}`}>
-                <Wallet className="size-5 text-muted-foreground" />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-foreground">I cannot connect this wallet</p>
-                  <p className="text-xs text-muted-foreground">We'll review your reward claim manually.</p>
-                </div>
-                {ownership === "manual" && <CheckCircle2 className="size-5 text-success" />}
-              </button>
-            </div>
+            <WalletConnect
+              coin={asset}
+              network={network}
+              status={walletStatus}
+              onStatusChange={(s) => {
+                setWalletStatus(s);
+                if (s === "verified") { setOwnership("confirmed"); setError(null); }
+              }}
+            />
           </Section>
         )}
 

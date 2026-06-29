@@ -28,6 +28,7 @@ import {
 import { useQuote, formatUtcTime } from "@/services/marketDataService";
 import { AddressAutocomplete } from "@/components/checkout/AddressAutocomplete";
 import { StepLoader, type LoaderLabel } from "@/components/checkout/StepLoader";
+import { WalletConnect, type WalletConnectStatus } from "@/components/wallet/WalletConnect";
 import { cn } from "@/lib/utils";
 import { OtpVerify } from "@/components/auth/OtpVerify";
 import { recordEvent } from "@/lib/liveLog";
@@ -75,7 +76,7 @@ function BuyFlow() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [confirming, setConfirming] = useState(false);
   const [createdId, setCreatedId] = useState<string | null>(null);
-  const [connecting, setConnecting] = useState(false);
+  const [walletStatus, setWalletStatus] = useState<WalletConnectStatus>("idle");
   const [loader, setLoader] = useState<LoaderLabel | null>(null);
   const [emailVerified, setEmailVerified] = useState(false);
   const [otpOpen, setOtpOpen] = useState(false);
@@ -152,7 +153,7 @@ function BuyFlow() {
       if (!state.networkRiskAck) e.networkRiskAck = "Please confirm you understand the network risk.";
     }
     if (step === OWNERSHIP) {
-      if (state.walletOwnership === "none") e.ownership = "Confirm wallet ownership or choose manual review.";
+      if (state.walletOwnership === "none") e.ownership = "Confirm wallet ownership to continue.";
     }
     if (step === REVIEW) {
       if (!state.riskAck) e.riskAck = "Please acknowledge to confirm.";
@@ -194,20 +195,13 @@ function BuyFlow() {
     setErrors((e) => ({ ...e, country: "", phone: "" }));
   };
 
-  const connectWallet = () => {
-    setConnecting(true);
-    setTimeout(() => {
-      setConnecting(false);
+  const handleWalletStatus = (s: WalletConnectStatus) => {
+    setWalletStatus(s);
+    if (s === "verified") {
       set("walletOwnership", "confirmed");
       setErrors((e) => ({ ...e, ownership: "" }));
-      toast.success("Wallet ownership confirmed");
-    }, 1400);
-  };
-
-  const cannotConnect = () => {
-    set("walletOwnership", "manual");
-    setErrors((e) => ({ ...e, ownership: "" }));
-    toast("Marked for manual review");
+      toast.success("Wallet ownership verified.");
+    }
   };
 
   const confirmOrder = () => {
@@ -464,34 +458,14 @@ function BuyFlow() {
                     <OwnershipBadge status={state.walletOwnership} />
                   </div>
 
-                  <p className="mt-4 flex items-start gap-2 rounded-xl bg-card px-3 py-2.5 text-xs text-muted-foreground">
-                    <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-primary" />
-                    Confirming ownership helps protect against scams and mistaken transfers. We never ask for your seed phrase or private keys.
-                  </p>
-
-                  {state.walletOwnership === "confirmed" && (
-                    <div className="mt-4 flex items-center gap-2 rounded-xl bg-success/10 px-3 py-3 text-sm font-bold text-success">
-                      <Check className="size-4" /> Wallet ownership confirmed
-                    </div>
-                  )}
-                  {state.walletOwnership === "manual" && (
-                    <div className="mt-4 flex items-center gap-2 rounded-xl bg-amber-500/10 px-3 py-3 text-sm font-bold text-amber-600 dark:text-amber-400">
-                      <AlertTriangle className="size-4" /> Manual review required
-                    </div>
-                  )}
-
-                  {state.walletOwnership === "none" && (
-                    <div className="mt-4 space-y-3">
-                      <button type="button" onClick={connectWallet} disabled={connecting}
-                        className="bg-gradient-primary flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5 disabled:opacity-70">
-                        {connecting ? <><Loader2 className="size-4 animate-spin" /> Opening wallet confirmation…</> : <><Wallet className="size-4" /> Connect wallet</>}
-                      </button>
-                      <button type="button" onClick={cannotConnect}
-                        className="w-full rounded-2xl border border-border py-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
-                        I cannot connect this wallet
-                      </button>
-                    </div>
-                  )}
+                  <div className="mt-4">
+                    <WalletConnect
+                      coin={state.coin}
+                      network={state.network}
+                      status={walletStatus}
+                      onStatusChange={handleWalletStatus}
+                    />
+                  </div>
                   {errors.ownership && <p className="mt-2 text-xs font-medium text-destructive">{errors.ownership}</p>}
                 </div>
               </Section>
