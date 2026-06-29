@@ -61,7 +61,7 @@ export const paymentMethods: PaymentMethod[] = [
 export const faqs = [
   {
     q: "Is PayCrivo safe to use?",
-    a: "PayCrivo uses bank-grade encryption, continuous fraud monitoring, and segregated infrastructure. Your crypto is delivered straight to your own wallet — we never hold it longer than the transaction requires.",
+    a: "PayCrivo uses strong encryption, continuous fraud monitoring, and secure infrastructure. Your crypto is delivered straight to your own wallet — we never hold it longer than the transaction requires.",
   },
   {
     q: "How fast will I receive my crypto?",

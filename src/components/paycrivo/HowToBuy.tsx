@@ -14,7 +14,7 @@ const steps = [
   {
     n: "03",
     title: "Pay with card or your preferred method",
-    body: "Use a credit/debit card, Apple Pay, Google Pay, SEPA, or bank wire. Payments are secured with bank-grade encryption.",
+    body: "Use a credit/debit card, Apple Pay, Google Pay, SEPA, or bank wire. Payments are protected with strong encryption.",
   },
   {
     n: "04",
