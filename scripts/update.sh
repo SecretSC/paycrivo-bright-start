@@ -68,7 +68,11 @@ ok "TanStack route service built -> $SSR_SERVICE"
 step "Building backend ($BACKEND_DIR)"
 [ -d "$BACKEND_DIR" ] || die "Backend folder not found: $BACKEND_DIR"
 cd "$BACKEND_DIR"
+[ -f "$BACKEND_DIR/.env" ] || die "Missing $BACKEND_DIR/.env. Copy server/.env.production.example to server/.env and set DATABASE_URL, SMTP, and JWT secrets before running update."
 npm install
+if [ -d "$BACKEND_DIR/prisma" ] || [ -f "$BACKEND_DIR/prisma/schema.prisma" ]; then
+  npx prisma generate
+fi
 if npm run | grep -qE '^[[:space:]]*build'; then
   npm run build
   ok "Backend built"
@@ -79,9 +83,35 @@ fi
 # ---- Prisma migration (only if Prisma is present) ----
 step "Running database migration (Prisma, if present)"
 if [ -d "$BACKEND_DIR/prisma" ] || [ -f "$BACKEND_DIR/prisma/schema.prisma" ]; then
-  npx prisma generate
   npx prisma migrate deploy
+  node --input-type=module <<'NODE'
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
+const tables = [
+  'users', 'admin_users', 'sessions', 'live_events', 'orders', 'order_events', 'order_notes',
+  'wallets', 'reward_claims', 'support_tickets', 'support_messages',
+  'support_conversation_events', 'ticket_notes', 'admin_action_logs', 'email_codes', 'settings',
+];
+try {
+  const missing = [];
+  for (const table of tables) {
+    const rows = await prisma.$queryRawUnsafe(`SELECT to_regclass('public."${table}"') IS NOT NULL AS "exists"`);
+    if (!rows?.[0]?.exists) missing.push(table);
+  }
+  if (missing.length) throw new Error(`Missing required table(s): ${missing.join(', ')}`);
+} finally {
+  await prisma.$disconnect();
+}
+NODE
   ok "Prisma migrations applied"
+  ok "Verified required database tables exist"
+  npm run seed:settings
+  if [ -n "${ADMIN_EMAIL:-}" ] && [ -n "${ADMIN_PASSWORD:-}" ]; then
+    npm run seed:admin
+  else
+    echo "    (ADMIN_EMAIL/ADMIN_PASSWORD not set in shell; seed-admin reads server/.env at runtime if configured)"
+    npm run seed:admin || echo "    (admin seed skipped; set ADMIN_EMAIL and ADMIN_PASSWORD in server/.env)"
+  fi
 else
   echo "    (no Prisma schema found, skipping migration)"
 fi
@@ -101,6 +131,7 @@ if [ -d "$SYSTEMD_SRC" ]; then
     echo "    (worker build not present, leaving $WORKER_SERVICE unchanged/skipped)"
   fi
   sudo systemctl daemon-reload
+  sudo systemctl enable "$WEB_SERVICE" "$API_SERVICE"
   ok "systemd reloaded"
 else
   die "Systemd unit directory not found: $SYSTEMD_SRC"
@@ -167,6 +198,18 @@ ok "Apache reloaded"
 
 # ---- Health summary ----
 step "Service status"
+curl -fsS --max-time 10 "http://127.0.0.1:${BACKEND_PORT}/health" >/dev/null || die "API health check failed on port ${BACKEND_PORT}"
+ok "API health check passed"
+cors_headers="$(mktemp)"
+curl -fsS --max-time 10 -X OPTIONS \
+  -H "Origin: https://paycrivo.com" \
+  -H "Access-Control-Request-Method: POST" \
+  -D "$cors_headers" \
+  -o /dev/null \
+  "http://127.0.0.1:${BACKEND_PORT}/api/email/send-code" || { rm -f "$cors_headers"; die "API CORS preflight failed"; }
+grep -qi '^access-control-allow-origin: https://paycrivo.com' "$cors_headers" || { cat "$cors_headers"; rm -f "$cors_headers"; die "API CORS preflight did not allow https://paycrivo.com"; }
+rm -f "$cors_headers"
+ok "API CORS preflight allows https://paycrivo.com"
 systemctl --no-pager --lines=0 status "$WEB_SERVICE" || true
 systemctl --no-pager --lines=0 status "$API_SERVICE" || true
 
