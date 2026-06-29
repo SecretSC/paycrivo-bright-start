@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { CoinIcon } from "./CoinIcon";
 import { cn } from "@/lib/utils";
 
@@ -48,7 +48,6 @@ export function PriceChart() {
   const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
   const areaPath = `${linePath} L${points[points.length - 1][0].toFixed(1)},${H - pad} L${points[0][0].toFixed(1)},${H - pad} Z`;
 
-  const up = data[data.length - 1] >= data[0];
   const stats = [
     { label: "24h Change", value: "+2.41%", positive: true },
     { label: "Market Cap", value: "$1.33T" },
