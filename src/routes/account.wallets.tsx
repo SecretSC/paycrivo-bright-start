@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -7,14 +7,12 @@ import { CryptoIcon } from "@/components/CryptoIcon";
 import { getAsset } from "@/data/cryptoAssets";
 import { networksForAsset, validateWalletAddress } from "@/lib/checkout";
 import { addWallet, deleteWallet, loadWallets, setDefaultWallet, type SavedWallet } from "@/lib/wallets";
-import { useHydrated } from "@/hooks/use-hydrated";
 
 export const Route = createFileRoute("/account/wallets")({
   component: WalletsPage,
 });
 
 function WalletsPage() {
-  const hydrated = useHydrated();
   const [wallets, setWallets] = useState<SavedWallet[]>([]);
   const [coin, setCoin] = useState("BTC");
   const [network, setNetwork] = useState(networksForAsset("BTC")[0]);
@@ -22,10 +20,9 @@ function WalletsPage() {
   const [nickname, setNickname] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  // load on first client render
-  if (hydrated && wallets.length === 0 && loadWallets().length > 0) {
+  useEffect(() => {
     setWallets(loadWallets());
-  }
+  }, []);
 
   const networks = networksForAsset(coin);
 
