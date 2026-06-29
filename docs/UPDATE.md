@@ -13,12 +13,14 @@ That's it. The script will:
 
 1. Verify it is operating on PayCrivo (`/var/www/paycrivo.com`) only — it never touches SecretVoIP or any other project.
 2. `git pull` the latest code.
-3. Build the frontend SSR Node server (`/var/www/paycrivo.com` → `.output/server/index.mjs`, Nitro `node-server` preset).
+3. Build the frontend SSR output (`/var/www/paycrivo.com` → `.output/server/_ssr/` + `.output/public`).
 4. Build the backend (`/var/www/paycrivo.com/server`).
 5. Run Prisma migrations (only if a Prisma schema exists).
-6. Restart PayCrivo services only: `paycrivo-web` (SSR frontend), `paycrivo-api` (port **4100**) and `paycrivo-worker`.
-7. Reload Apache.
-8. Print the API service status.
+6. Reinstall the PayCrivo systemd units from `docs/systemd/` so old service files cannot keep pointing at the API.
+7. Restart PayCrivo services only: `paycrivo-web` (SSR frontend), `paycrivo-api` (port **4100**) and `paycrivo-worker`.
+8. Verify `http://127.0.0.1:4000/`, `/login`, and `/buy-crypto` return the PayCrivo HTML app, not the backend JSON 404.
+9. Reload Apache.
+10. Print the web/API service status.
 
 The script uses `set -Eeuo pipefail`, so it **stops immediately on any error** and tells you which step failed. Nothing is deployed half-way silently.
 
@@ -43,7 +45,7 @@ This does everything `update.sh` does, plus:
 |-------------------|---------------------------------------|
 | Project root      | `/var/www/paycrivo.com`               |
 | Frontend (SSR)    | `/var/www/paycrivo.com`               |
-| Frontend SSR entry| `.output/server/index.mjs`            |
+| Frontend SSR      | `.output/server/_ssr/` + `.output/public` |
 | Web service       | `paycrivo-web`                        |
 | Backend folder    | `/var/www/paycrivo.com/server`        |
 | Backend port      | `4100`                                |
@@ -63,5 +65,5 @@ The frontend is a standard Node server. You can also run it by hand:
 ```bash
 npm install
 npm run build
-node scripts/start-web.mjs   # hardened launcher; honours PORT, defaults to 4000
+node scripts/start-web.mjs   # honours PORT, defaults to 4000
 ```

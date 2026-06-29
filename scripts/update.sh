@@ -19,9 +19,11 @@ FRONTEND_DIR="$PROJECT_ROOT"
 SSR_ENTRY="$PROJECT_ROOT/.output/server/index.mjs"
 BACKEND_DIR="$PROJECT_ROOT/server"
 BACKEND_PORT="4100"
+WEB_PORT="4000"
 WEB_SERVICE="paycrivo-web"
 API_SERVICE="paycrivo-api"
 WORKER_SERVICE="paycrivo-worker"
+SYSTEMD_SRC="$PROJECT_ROOT/docs/systemd"
 
 # ---- Pretty output helpers ----
 BOLD="$(tput bold 2>/dev/null || true)"; RESET="$(tput sgr0 2>/dev/null || true)"
@@ -35,6 +37,7 @@ trap 'die "Update failed at step ${STEP}. No services were left half-restarted b
 echo "${BOLD}PayCrivo production update${RESET}"
 echo "Project root : $PROJECT_ROOT"
 echo "Backend port : $BACKEND_PORT"
+echo "Web port     : $WEB_PORT"
 echo "Services     : $WEB_SERVICE, $API_SERVICE, $WORKER_SERVICE"
 
 # ---- Sanity checks: make sure we are operating on PayCrivo only ----
@@ -80,6 +83,26 @@ else
   echo "    (no Prisma schema found, skipping migration)"
 fi
 
+# ---- Reinstall PayCrivo systemd units from the repository ----
+step "Installing current PayCrivo systemd units"
+if [ -d "$SYSTEMD_SRC" ]; then
+  for unit in "$WEB_SERVICE" "$API_SERVICE"; do
+    [ -f "$SYSTEMD_SRC/${unit}.service" ] || die "Missing systemd unit: $SYSTEMD_SRC/${unit}.service"
+    sudo cp "$SYSTEMD_SRC/${unit}.service" "/etc/systemd/system/${unit}.service"
+    ok "Installed ${unit}.service"
+  done
+  if [ -f "$BACKEND_DIR/dist/worker.js" ] && [ -f "$SYSTEMD_SRC/${WORKER_SERVICE}.service" ]; then
+    sudo cp "$SYSTEMD_SRC/${WORKER_SERVICE}.service" "/etc/systemd/system/${WORKER_SERVICE}.service"
+    ok "Installed ${WORKER_SERVICE}.service"
+  else
+    echo "    (worker build not present, leaving $WORKER_SERVICE unchanged/skipped)"
+  fi
+  sudo systemctl daemon-reload
+  ok "systemd reloaded"
+else
+  die "Systemd unit directory not found: $SYSTEMD_SRC"
+fi
+
 # ---- Restart ONLY PayCrivo services ----
 step "Restarting PayCrivo services"
 sudo systemctl restart "$WEB_SERVICE"
@@ -93,6 +116,47 @@ else
   echo "    ($WORKER_SERVICE not installed, skipping)"
 fi
 
+# ---- Verify the web SSR service is serving the app, not the API 404 ----
+step "Verifying frontend SSR routes"
+assert_web_route() {
+  local path="$1"
+  local body
+  local headers
+  local status
+  body="$(mktemp)"
+  headers="$(mktemp)"
+  status="$(curl -sS --max-time 15 -D "$headers" -o "$body" -w '%{http_code}' "http://127.0.0.1:${WEB_PORT}${path}")" || {
+    rm -f "$body" "$headers"
+    die "Web route ${path} did not respond on port ${WEB_PORT}"
+  }
+  if [ "$status" != "200" ]; then
+    echo "    Response body:"
+    head -c 500 "$body" || true
+    echo
+    rm -f "$body" "$headers"
+    die "Web route ${path} returned HTTP ${status}, expected 200"
+  fi
+  if ! grep -qi '^content-type: text/html' "$headers"; then
+    echo "    Response headers:"
+    cat "$headers" || true
+    rm -f "$body" "$headers"
+    die "Web route ${path} did not return HTML"
+  fi
+  if grep -q '"error":"Not found"' "$body"; then
+    rm -f "$body" "$headers"
+    die "Web route ${path} is still returning the backend JSON 404"
+  fi
+  if ! grep -q 'PayCrivo' "$body"; then
+    rm -f "$body" "$headers"
+    die "Web route ${path} did not render the PayCrivo app shell"
+  fi
+  rm -f "$body" "$headers"
+  ok "${path} renders the app"
+}
+assert_web_route "/"
+assert_web_route "/login"
+assert_web_route "/buy-crypto"
+
 # ---- Reload Apache ----
 step "Reloading Apache"
 sudo systemctl reload apache2
@@ -100,6 +164,7 @@ ok "Apache reloaded"
 
 # ---- Health summary ----
 step "Service status"
+systemctl --no-pager --lines=0 status "$WEB_SERVICE" || true
 systemctl --no-pager --lines=0 status "$API_SERVICE" || true
 
 echo

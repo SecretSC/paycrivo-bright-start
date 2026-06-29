@@ -9,8 +9,8 @@ either [DEPLOY-NGINX.md](./DEPLOY-NGINX.md) or [DEPLOY-APACHE.md](./DEPLOY-APACH
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y git curl ufw postgresql postgresql-contrib
 
-# Node.js 20 LTS
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+# Node.js 22 LTS
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt install -y nodejs
 ```
 
@@ -53,18 +53,17 @@ This installs dependencies, builds the frontend, builds the server, runs
 database migrations, and seeds the first admin account.
 
 The frontend build uses the Nitro **`node-server`** preset (configured in
-`vite.config.ts`), so `npm run build` produces a standalone Node server at
-`.output/server/index.mjs`. In production we start it through the hardened
-launcher `scripts/start-web.mjs`, which guarantees the process binds a socket
-and never exits silently (it strips any serverless `__srvxLoader__` path and
-keeps the event loop alive). You can run either:
+`vite.config.ts`) and emits the TanStack Start SSR service under
+`.output/server/_ssr/`. In production PayCrivo starts through
+`scripts/start-web.mjs`, a hardened Node launcher that serves `.output/public`
+assets and dispatches application routes directly to the generated SSR service.
+This avoids generic JSON 404 fallthroughs and guarantees `/`, `/login`, and
+`/buy-crypto` render the app on port 4000.
 
 ```bash
 npm install
 npm run build
-PORT=4000 node scripts/start-web.mjs      # recommended (hardened launcher)
-# or, equivalently, the raw Nitro output:
-PORT=4000 node .output/server/index.mjs
+PORT=4000 node scripts/start-web.mjs
 ```
 
 Cloudflare Workers is **not** the default target. To build for Cloudflare

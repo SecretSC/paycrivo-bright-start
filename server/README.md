@@ -16,7 +16,7 @@ npm install
 npx prisma migrate dev --name init   # first run creates tables
 npm run seed:admin            # creates the first super_admin from ADMIN_EMAIL/ADMIN_PASSWORD
 npm run seed:settings         # seeds default platform settings (optional)
-npm run dev                   # http://localhost:4000
+npm run dev                   # http://localhost:4100
 ```
 
 For production:

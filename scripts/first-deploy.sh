@@ -20,6 +20,7 @@ FRONTEND_DIR="$PROJECT_ROOT"
 SSR_ENTRY="$PROJECT_ROOT/.output/server/index.mjs"
 BACKEND_DIR="$PROJECT_ROOT/server"
 BACKEND_PORT="4100"
+WEB_PORT="4000"
 WEB_SERVICE="paycrivo-web"
 API_SERVICE="paycrivo-api"
 WORKER_SERVICE="paycrivo-worker"
@@ -37,6 +38,7 @@ trap 'die "First deploy failed at step ${STEP}."' ERR
 echo "${BOLD}PayCrivo first deployment${RESET}"
 echo "Project root : $PROJECT_ROOT"
 echo "Backend port : $BACKEND_PORT"
+echo "Web port     : $WEB_PORT"
 
 # ---- Sanity checks ----
 step "Verifying PayCrivo project layout"
@@ -137,6 +139,45 @@ if [ -f "/etc/systemd/system/${WORKER_SERVICE}.service" ]; then
 else
   echo "    ($WORKER_SERVICE not installed, skipping)"
 fi
+
+# ---- Verify frontend SSR routes before handing off to Apache ----
+step "Verifying frontend SSR routes"
+assert_web_route() {
+  local path="$1"
+  local body
+  local headers
+  local status
+  body="$(mktemp)"
+  headers="$(mktemp)"
+  status="$(curl -sS --max-time 15 -D "$headers" -o "$body" -w '%{http_code}' "http://127.0.0.1:${WEB_PORT}${path}")" || {
+    rm -f "$body" "$headers"
+    die "Web route ${path} did not respond on port ${WEB_PORT}"
+  }
+  if [ "$status" != "200" ]; then
+    echo "    Response body:"
+    head -c 500 "$body" || true
+    echo
+    rm -f "$body" "$headers"
+    die "Web route ${path} returned HTTP ${status}, expected 200"
+  fi
+  if ! grep -qi '^content-type: text/html' "$headers"; then
+    rm -f "$body" "$headers"
+    die "Web route ${path} did not return HTML"
+  fi
+  if grep -q '"error":"Not found"' "$body"; then
+    rm -f "$body" "$headers"
+    die "Web route ${path} is returning the backend JSON 404"
+  fi
+  if ! grep -q 'PayCrivo' "$body"; then
+    rm -f "$body" "$headers"
+    die "Web route ${path} did not render the PayCrivo app shell"
+  fi
+  rm -f "$body" "$headers"
+  ok "${path} renders the app"
+}
+assert_web_route "/"
+assert_web_route "/login"
+assert_web_route "/buy-crypto"
 
 # ---- Reload Apache ----
 step "Reloading Apache"
