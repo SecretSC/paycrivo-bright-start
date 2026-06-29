@@ -8,9 +8,11 @@ import { fiats } from "@/lib/paycrivo-data";
 import { getAsset, formatTokenAmount } from "@/data/cryptoAssets";
 import { useQuote, formatUtcTime } from "@/services/marketDataService";
 import { StepLoader } from "@/components/checkout/StepLoader";
+import { useHydrated } from "@/hooks/use-hydrated";
 
 export function BuyWidget() {
   const navigate = useNavigate();
+  const hydrated = useHydrated();
   const [spend, setSpend] = useState("500");
   const [fiat, setFiat] = useState("USD");
   const [coin, setCoin] = useState("BTC");
@@ -76,7 +78,7 @@ export function BuyWidget() {
           <span className="font-bold text-success">−100% PayCrivo fee</span>
         </div>
         <div className="flex items-center justify-between border-t border-border pt-2 text-xs text-muted-foreground">
-          <span>{status === "live" ? "Live rate" : "Estimated rate"} · updated {formatUtcTime(lastUpdated)}</span>
+          <span>{status === "live" ? "Live rate" : "Estimated rate"}{hydrated ? ` · updated ${formatUtcTime(lastUpdated)}` : ""}</span>
         </div>
       </div>
 
