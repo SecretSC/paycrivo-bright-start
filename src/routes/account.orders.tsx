@@ -3,8 +3,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcon";
 import { getAsset } from "@/data/cryptoAssets";
-import type { Order } from "@/lib/checkout";
-import type { ExchangeOrder } from "@/lib/exchange";
+import { useAuth } from "@/lib/auth";
+import { getUserBuyOrders, getUserExchangeOrders } from "@/lib/userData";
 
 export const Route = createFileRoute("/account/orders")({
   component: OrdersPage,
@@ -15,14 +15,16 @@ type Row =
   | { kind: "exchange"; id: string; status: string; coin: string; primary: string; createdAt: string };
 
 function OrdersPage() {
+  const { user } = useAuth();
   const [rows, setRows] = useState<Row[]>([]);
   const [tab, setTab] = useState<"all" | "buy" | "exchange">("all");
   const [query, setQuery] = useState("");
 
   useEffect(() => {
+    if (!user) return;
     try {
-      const buys: Order[] = JSON.parse(localStorage.getItem("paycrivo-orders") ?? "[]");
-      const ex: ExchangeOrder[] = JSON.parse(localStorage.getItem("paycrivo_exchange_orders") ?? "[]");
+      const buys = getUserBuyOrders(user.id, user.email);
+      const ex = getUserExchangeOrders(user.id, user.email);
       const all: Row[] = [
         ...buys.map((o) => ({ kind: "buy" as const, id: o.id, status: o.status, coin: o.coin, primary: `${o.spend} ${o.fiat} → ${o.coin}`, createdAt: o.createdAt })),
         ...ex.map((o) => ({ kind: "exchange" as const, id: o.id, status: o.status, coin: o.receiveCoin, primary: `${o.sendAmount} ${o.sendCoin} → ${o.receiveCoin}`, createdAt: o.createdAt })),
@@ -31,7 +33,7 @@ function OrdersPage() {
     } catch {
       /* ignore */
     }
-  }, []);
+  }, [user]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toUpperCase();
