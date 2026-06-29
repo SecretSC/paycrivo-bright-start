@@ -9,14 +9,29 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SwapRouteImport } from './routes/swap'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as ExchangeRouteImport } from './routes/exchange'
 import { Route as BuyRouteImport } from './routes/buy'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ExchangeIndexRouteImport } from './routes/exchange.index'
 import { Route as OrderOrderIdRouteImport } from './routes/order.$orderId'
+import { Route as ExchangeCheckoutRouteImport } from './routes/exchange.checkout'
+import { Route as ExchangeOrderOrderIdRouteImport } from './routes/exchange.order.$orderId'
 
+const SwapRoute = SwapRouteImport.update({
+  id: '/swap',
+  path: '/swap',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExchangeRoute = ExchangeRouteImport.update({
+  id: '/exchange',
+  path: '/exchange',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BuyRoute = BuyRouteImport.update({
@@ -29,53 +44,125 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExchangeIndexRoute = ExchangeIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ExchangeRoute,
+} as any)
 const OrderOrderIdRoute = OrderOrderIdRouteImport.update({
   id: '/order/$orderId',
   path: '/order/$orderId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExchangeCheckoutRoute = ExchangeCheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => ExchangeRoute,
+} as any)
+const ExchangeOrderOrderIdRoute = ExchangeOrderOrderIdRouteImport.update({
+  id: '/order/$orderId',
+  path: '/order/$orderId',
+  getParentRoute: () => ExchangeRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/buy': typeof BuyRoute
+  '/exchange': typeof ExchangeRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/swap': typeof SwapRoute
+  '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
+  '/exchange/': typeof ExchangeIndexRoute
+  '/exchange/order/$orderId': typeof ExchangeOrderOrderIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/buy': typeof BuyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/swap': typeof SwapRoute
+  '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
+  '/exchange': typeof ExchangeIndexRoute
+  '/exchange/order/$orderId': typeof ExchangeOrderOrderIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/buy': typeof BuyRoute
+  '/exchange': typeof ExchangeRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/swap': typeof SwapRoute
+  '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
+  '/exchange/': typeof ExchangeIndexRoute
+  '/exchange/order/$orderId': typeof ExchangeOrderOrderIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/buy' | '/sitemap.xml' | '/order/$orderId'
+  fullPaths:
+    | '/'
+    | '/buy'
+    | '/exchange'
+    | '/sitemap.xml'
+    | '/swap'
+    | '/exchange/checkout'
+    | '/order/$orderId'
+    | '/exchange/'
+    | '/exchange/order/$orderId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/buy' | '/sitemap.xml' | '/order/$orderId'
-  id: '__root__' | '/' | '/buy' | '/sitemap.xml' | '/order/$orderId'
+  to:
+    | '/'
+    | '/buy'
+    | '/sitemap.xml'
+    | '/swap'
+    | '/exchange/checkout'
+    | '/order/$orderId'
+    | '/exchange'
+    | '/exchange/order/$orderId'
+  id:
+    | '__root__'
+    | '/'
+    | '/buy'
+    | '/exchange'
+    | '/sitemap.xml'
+    | '/swap'
+    | '/exchange/checkout'
+    | '/order/$orderId'
+    | '/exchange/'
+    | '/exchange/order/$orderId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BuyRoute: typeof BuyRoute
+  ExchangeRoute: typeof ExchangeRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SwapRoute: typeof SwapRoute
   OrderOrderIdRoute: typeof OrderOrderIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/swap': {
+      id: '/swap'
+      path: '/swap'
+      fullPath: '/swap'
+      preLoaderRoute: typeof SwapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/exchange': {
+      id: '/exchange'
+      path: '/exchange'
+      fullPath: '/exchange'
+      preLoaderRoute: typeof ExchangeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/buy': {
@@ -92,6 +179,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/exchange/': {
+      id: '/exchange/'
+      path: '/'
+      fullPath: '/exchange/'
+      preLoaderRoute: typeof ExchangeIndexRouteImport
+      parentRoute: typeof ExchangeRoute
+    }
     '/order/$orderId': {
       id: '/order/$orderId'
       path: '/order/$orderId'
@@ -99,13 +193,45 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrderOrderIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/exchange/checkout': {
+      id: '/exchange/checkout'
+      path: '/checkout'
+      fullPath: '/exchange/checkout'
+      preLoaderRoute: typeof ExchangeCheckoutRouteImport
+      parentRoute: typeof ExchangeRoute
+    }
+    '/exchange/order/$orderId': {
+      id: '/exchange/order/$orderId'
+      path: '/order/$orderId'
+      fullPath: '/exchange/order/$orderId'
+      preLoaderRoute: typeof ExchangeOrderOrderIdRouteImport
+      parentRoute: typeof ExchangeRoute
+    }
   }
 }
+
+interface ExchangeRouteChildren {
+  ExchangeCheckoutRoute: typeof ExchangeCheckoutRoute
+  ExchangeIndexRoute: typeof ExchangeIndexRoute
+  ExchangeOrderOrderIdRoute: typeof ExchangeOrderOrderIdRoute
+}
+
+const ExchangeRouteChildren: ExchangeRouteChildren = {
+  ExchangeCheckoutRoute: ExchangeCheckoutRoute,
+  ExchangeIndexRoute: ExchangeIndexRoute,
+  ExchangeOrderOrderIdRoute: ExchangeOrderOrderIdRoute,
+}
+
+const ExchangeRouteWithChildren = ExchangeRoute._addFileChildren(
+  ExchangeRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BuyRoute: BuyRoute,
+  ExchangeRoute: ExchangeRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SwapRoute: SwapRoute,
   OrderOrderIdRoute: OrderOrderIdRoute,
 }
 export const routeTree = rootRouteImport
