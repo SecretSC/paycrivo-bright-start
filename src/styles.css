@@ -234,3 +234,12 @@
 @utility animate-marquee {
   animation: marquee 30s linear infinite;
 }
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.97) translateY(-4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@utility animate-scale-in {
+  animation: scale-in 0.14s ease-out both;
+}
