@@ -36,7 +36,7 @@ const trustBullets = [
   "250+ crypto assets",
   "No hidden PayCrivo fee on first exchange",
   "Secure checkout flow",
-  "No KYC required",
+  "Simple verification",
 ];
 
 const POPULAR_PAIRS: [string, string][] = [
