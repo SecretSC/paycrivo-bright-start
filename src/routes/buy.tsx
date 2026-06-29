@@ -488,7 +488,9 @@ function BuyFlow() {
                   <ReviewRow label="Service fee" value={money(fees.serviceFee)} />
                   <ReviewRow label="Network fee" value={money(fees.networkFee)} />
                   <ReviewRow label="PayCrivo fee" value={money(fees.paycrivoFee)} />
-                  <ReviewRow label="First purchase discount" value={`−${money(fees.discount)}`} success />
+                  {fees.firstPurchase && (
+                    <ReviewRow label="Promotion" value="0% PayCrivo fee applied" success />
+                  )}
                   <div className="mt-2 flex items-center justify-between border-t border-border pt-3">
                     <span className="font-bold text-foreground">Total</span>
                     <span className="font-display text-lg font-bold text-foreground">{money(fees.total)} {state.fiat}</span>
