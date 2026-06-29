@@ -25,6 +25,7 @@ import { Route as ExchangeIndexRouteImport } from './routes/exchange.index'
 import { Route as AccountIndexRouteImport } from './routes/account.index'
 import { Route as OrderOrderIdRouteImport } from './routes/order.$orderId'
 import { Route as ExchangeCheckoutRouteImport } from './routes/exchange.checkout'
+import { Route as AccountSecurityRouteImport } from './routes/account.security'
 import { Route as ExchangeOrderOrderIdRouteImport } from './routes/exchange.order.$orderId'
 import { Route as ApiEmailVerifyCodeRouteImport } from './routes/api/email/verify-code'
 import { Route as ApiEmailSendCodeRouteImport } from './routes/api/email/send-code'
@@ -109,6 +110,11 @@ const ExchangeCheckoutRoute = ExchangeCheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => ExchangeRoute,
 } as any)
+const AccountSecurityRoute = AccountSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => AccountRoute,
+} as any)
 const ExchangeOrderOrderIdRoute = ExchangeOrderOrderIdRouteImport.update({
   id: '/order/$orderId',
   path: '/order/$orderId',
@@ -138,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/swap': typeof SwapRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/account/security': typeof AccountSecurityRoute
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/account/': typeof AccountIndexRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/swap': typeof SwapRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/account/security': typeof AccountSecurityRoute
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/account': typeof AccountIndexRoute
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/swap': typeof SwapRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/account/security': typeof AccountSecurityRoute
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/account/': typeof AccountIndexRoute
@@ -202,6 +211,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/swap'
     | '/verify-email'
+    | '/account/security'
     | '/exchange/checkout'
     | '/order/$orderId'
     | '/account/'
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/swap'
     | '/verify-email'
+    | '/account/security'
     | '/exchange/checkout'
     | '/order/$orderId'
     | '/account'
@@ -242,6 +253,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/swap'
     | '/verify-email'
+    | '/account/security'
     | '/exchange/checkout'
     | '/order/$orderId'
     | '/account/'
@@ -383,6 +395,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExchangeCheckoutRouteImport
       parentRoute: typeof ExchangeRoute
     }
+    '/account/security': {
+      id: '/account/security'
+      path: '/security'
+      fullPath: '/account/security'
+      preLoaderRoute: typeof AccountSecurityRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/exchange/order/$orderId': {
       id: '/exchange/order/$orderId'
       path: '/order/$orderId'
@@ -408,10 +427,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AccountRouteChildren {
+  AccountSecurityRoute: typeof AccountSecurityRoute
   AccountIndexRoute: typeof AccountIndexRoute
 }
 
 const AccountRouteChildren: AccountRouteChildren = {
+  AccountSecurityRoute: AccountSecurityRoute,
   AccountIndexRoute: AccountIndexRoute,
 }
 
