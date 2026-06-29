@@ -23,6 +23,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ExchangeIndexRouteImport } from './routes/exchange.index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AccountIndexRouteImport } from './routes/account.index'
 import { Route as OrderOrderIdRouteImport } from './routes/order.$orderId'
 import { Route as ExchangeCheckoutRouteImport } from './routes/exchange.checkout'
@@ -105,6 +106,11 @@ const ExchangeIndexRoute = ExchangeIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ExchangeRoute,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AccountIndexRoute = AccountIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -164,7 +170,7 @@ const ApiEmailRewardClaimRoute = ApiEmailRewardClaimRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRouteWithChildren
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/buy': typeof BuyRoute
   '/buy-crypto': typeof BuyCryptoRoute
   '/dashboard': typeof DashboardRoute
@@ -182,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/account/': typeof AccountIndexRoute
+  '/admin/': typeof AdminIndexRoute
   '/exchange/': typeof ExchangeIndexRoute
   '/api/email/reward-claim': typeof ApiEmailRewardClaimRoute
   '/api/email/send-code': typeof ApiEmailSendCodeRoute
@@ -190,7 +197,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/buy': typeof BuyRoute
   '/buy-crypto': typeof BuyCryptoRoute
   '/dashboard': typeof DashboardRoute
@@ -207,6 +213,7 @@ export interface FileRoutesByTo {
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/account': typeof AccountIndexRoute
+  '/admin': typeof AdminIndexRoute
   '/exchange': typeof ExchangeIndexRoute
   '/api/email/reward-claim': typeof ApiEmailRewardClaimRoute
   '/api/email/send-code': typeof ApiEmailSendCodeRoute
@@ -217,7 +224,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/account': typeof AccountRouteWithChildren
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/buy': typeof BuyRoute
   '/buy-crypto': typeof BuyCryptoRoute
   '/dashboard': typeof DashboardRoute
@@ -235,6 +242,7 @@ export interface FileRoutesById {
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/account/': typeof AccountIndexRoute
+  '/admin/': typeof AdminIndexRoute
   '/exchange/': typeof ExchangeIndexRoute
   '/api/email/reward-claim': typeof ApiEmailRewardClaimRoute
   '/api/email/send-code': typeof ApiEmailSendCodeRoute
@@ -264,6 +272,7 @@ export interface FileRouteTypes {
     | '/exchange/checkout'
     | '/order/$orderId'
     | '/account/'
+    | '/admin/'
     | '/exchange/'
     | '/api/email/reward-claim'
     | '/api/email/send-code'
@@ -272,7 +281,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/admin'
     | '/buy'
     | '/buy-crypto'
     | '/dashboard'
@@ -289,6 +297,7 @@ export interface FileRouteTypes {
     | '/exchange/checkout'
     | '/order/$orderId'
     | '/account'
+    | '/admin'
     | '/exchange'
     | '/api/email/reward-claim'
     | '/api/email/send-code'
@@ -316,6 +325,7 @@ export interface FileRouteTypes {
     | '/exchange/checkout'
     | '/order/$orderId'
     | '/account/'
+    | '/admin/'
     | '/exchange/'
     | '/api/email/reward-claim'
     | '/api/email/send-code'
@@ -326,7 +336,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRouteWithChildren
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   BuyRoute: typeof BuyRoute
   BuyCryptoRoute: typeof BuyCryptoRoute
   DashboardRoute: typeof DashboardRoute
@@ -443,6 +453,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExchangeIndexRouteImport
       parentRoute: typeof ExchangeRoute
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/account/': {
       id: '/account/'
       path: '/'
@@ -542,6 +559,16 @@ const AccountRouteChildren: AccountRouteChildren = {
 const AccountRouteWithChildren =
   AccountRoute._addFileChildren(AccountRouteChildren)
 
+interface AdminRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface ExchangeRouteChildren {
   ExchangeCheckoutRoute: typeof ExchangeCheckoutRoute
   ExchangeIndexRoute: typeof ExchangeIndexRoute
@@ -561,7 +588,7 @@ const ExchangeRouteWithChildren = ExchangeRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRouteWithChildren,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   BuyRoute: BuyRoute,
   BuyCryptoRoute: BuyCryptoRoute,
   DashboardRoute: DashboardRoute,

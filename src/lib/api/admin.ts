@@ -165,12 +165,18 @@ export const adminApi = {
     );
   },
 
-  async reply(id: string, message: string, senderName = "PayCrivo Support"): Promise<ApiSupportMessage> {
+  async reply(
+    id: string,
+    message: string,
+    opts: { senderName?: string; attachmentUrl?: string; attachmentName?: string } = {},
+  ): Promise<ApiSupportMessage> {
+    const senderName = opts.senderName ?? "PayCrivo Support";
     return withFallback(
       async () => {
+        const text = opts.attachmentName ? `${message ? message + "\n" : ""}📎 ${opts.attachmentName}` : message;
         const { message: m } = await apiFetch<{ message: ApiSupportMessage }>(
           `/api/admin/support/tickets/${encodeURIComponent(id)}/messages`,
-          { method: "POST", body: { message }, auth: "admin" },
+          { method: "POST", body: { message: text }, auth: "admin" },
         );
         return m;
       },
@@ -185,6 +191,8 @@ export const adminApi = {
           senderName,
           message,
           createdAt: new Date().toISOString(),
+          attachmentUrl: opts.attachmentUrl,
+          attachmentName: opts.attachmentName,
         };
         entry.messages.push(m);
         entry.ticket.lastMessageAt = m.createdAt;
