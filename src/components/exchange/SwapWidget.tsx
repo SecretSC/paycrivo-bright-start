@@ -1,4 +1,4 @@
-import { ArrowDownUp, AlertTriangle, ArrowRight } from "lucide-react";
+import { ArrowDownUp, AlertTriangle, ArrowRight, ShieldCheck } from "lucide-react";
 import { AssetPicker } from "@/components/paycrivo/AssetPicker";
 import { CustomSelect, type SelectOption } from "@/components/paycrivo/CustomSelect";
 import { getAsset, formatTokenAmount } from "@/data/cryptoAssets";
