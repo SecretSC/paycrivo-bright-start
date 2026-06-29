@@ -93,12 +93,11 @@ const tables = [
   'support_conversation_events', 'ticket_notes', 'admin_action_logs', 'email_codes', 'settings',
 ];
 try {
-  const rows = await prisma.$queryRawUnsafe(
-    `SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename = ANY($1::text[])`,
-    tables,
-  );
-  const found = new Set(rows.map((r) => r.tablename));
-  const missing = tables.filter((t) => !found.has(t));
+  const missing = [];
+  for (const table of tables) {
+    const rows = await prisma.$queryRawUnsafe(`SELECT to_regclass('public."${table}"') IS NOT NULL AS "exists"`);
+    if (!rows?.[0]?.exists) missing.push(table);
+  }
   if (missing.length) throw new Error(`Missing required table(s): ${missing.join(', ')}`);
 } finally {
   await prisma.$disconnect();
