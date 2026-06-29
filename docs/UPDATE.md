@@ -13,10 +13,10 @@ That's it. The script will:
 
 1. Verify it is operating on PayCrivo (`/var/www/paycrivo.com`) only — it never touches SecretVoIP or any other project.
 2. `git pull` the latest code.
-3. Build the frontend (`/var/www/paycrivo.com/frontend` → `frontend/dist`).
+3. Build the frontend SSR Node server (`/var/www/paycrivo.com` → `.output/server/index.mjs`, Nitro `node-server` preset).
 4. Build the backend (`/var/www/paycrivo.com/server`).
 5. Run Prisma migrations (only if a Prisma schema exists).
-6. Restart PayCrivo services only: `paycrivo-api` (port **4100**) and `paycrivo-worker`.
+6. Restart PayCrivo services only: `paycrivo-web` (SSR frontend), `paycrivo-api` (port **4100**) and `paycrivo-worker`.
 7. Reload Apache.
 8. Print the API service status.
 
