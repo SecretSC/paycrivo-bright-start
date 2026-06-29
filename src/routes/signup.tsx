@@ -14,7 +14,10 @@ export const Route = createFileRoute("/signup")({
     meta: [
       { title: "Create your PayCrivo account" },
       { name: "description", content: "Sign up for PayCrivo to buy and exchange crypto with transparent fees." },
+      { property: "og:title", content: "Create your PayCrivo account" },
+      { property: "og:url", content: "https://paycrivo.com/signup" },
     ],
+    links: [{ rel: "canonical", href: "https://paycrivo.com/signup" }],
   }),
   component: SignupPage,
 });
