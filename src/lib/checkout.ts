@@ -139,6 +139,9 @@ export type CheckoutState = {
   network: string;
   saveWallet: boolean;
   riskAck: boolean;
+  walletOwnership: "none" | "confirmed" | "manual";
+  destinationTag: string;
+  networkRiskAck: boolean;
 };
 
 export const defaultCheckout: CheckoutState = {
@@ -162,6 +165,9 @@ export const defaultCheckout: CheckoutState = {
   network: "",
   saveWallet: false,
   riskAck: false,
+  walletOwnership: "none",
+  destinationTag: "",
+  networkRiskAck: false,
 };
 
 export const DRAFT_KEY = "paycrivo-checkout-draft";
