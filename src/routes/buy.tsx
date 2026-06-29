@@ -195,20 +195,13 @@ function BuyFlow() {
     setErrors((e) => ({ ...e, country: "", phone: "" }));
   };
 
-  const connectWallet = () => {
-    setConnecting(true);
-    setTimeout(() => {
-      setConnecting(false);
+  const handleWalletStatus = (s: WalletConnectStatus) => {
+    setWalletStatus(s);
+    if (s === "verified") {
       set("walletOwnership", "confirmed");
       setErrors((e) => ({ ...e, ownership: "" }));
-      toast.success("Wallet ownership confirmed");
-    }, 1400);
-  };
-
-  const cannotConnect = () => {
-    set("walletOwnership", "manual");
-    setErrors((e) => ({ ...e, ownership: "" }));
-    toast("Marked for manual review");
+      toast.success("Wallet ownership verified.");
+    }
   };
 
   const confirmOrder = () => {
