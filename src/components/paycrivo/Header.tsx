@@ -5,7 +5,7 @@ import { Logo } from "./Logo";
 
 const navLinks: { label: string; to?: string; href?: string }[] = [
   { label: "Buy Crypto", to: "/buy" },
-  { label: "Swap Crypto", href: "#" },
+  { label: "Swap Crypto", to: "/exchange" },
   { label: "Prices", href: "#" },
   { label: "Learn", href: "#" },
 ];
