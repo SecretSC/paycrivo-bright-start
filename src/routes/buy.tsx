@@ -291,7 +291,7 @@ function BuyFlow() {
             )}
 
             {state.step === 2 && (
-              <Section title="Your details" subtitle="These details should match your identity document.">
+              <Section title="Your details" subtitle="We use these details to process and protect your order.">
                 <div className="space-y-4">
                   <Field label="First name" error={errors.firstName}>
                     <input value={state.firstName} onChange={(e) => set("firstName", e.target.value.replace(/[0-9]/g, ""))} className={inputCls(errors.firstName)} />
@@ -336,7 +336,7 @@ function BuyFlow() {
                   </Field>
                 </div>
                 <CheckRow checked={state.detailsConfirmed} onChange={(v) => set("detailsConfirmed", v)} error={errors.detailsConfirmed}>
-                  I confirm these details are correct and match my identity document.
+                  I confirm these details are correct.
                 </CheckRow>
               </Section>
             )}
@@ -661,12 +661,12 @@ export function CheckoutHeader() {
 }
 
 function ProgressBar({ step }: { step: number }) {
-  const pct = ((step + 1) / STEPS.length) * 100;
+  const pct = ((step + 1) / TOTAL_STEPS) * 100;
   return (
     <div className="border-b border-border bg-card/50">
       <div className="mx-auto max-w-[600px] px-4 py-3 sm:px-6">
         <div className="mb-2 flex items-center justify-between text-xs font-semibold">
-          <span className="text-foreground">Step {step + 1} of {STEPS.length} · {STEPS[step]}</span>
+          <span className="text-foreground">Step {step + 1} of {TOTAL_STEPS} · {STEPS[step]}</span>
           <span className="text-muted-foreground">{Math.round(pct)}%</span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
