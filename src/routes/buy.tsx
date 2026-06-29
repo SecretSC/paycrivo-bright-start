@@ -28,6 +28,7 @@ import {
 import { useQuote, formatUtcTime } from "@/services/marketDataService";
 import { AddressAutocomplete } from "@/components/checkout/AddressAutocomplete";
 import { StepLoader, type LoaderLabel } from "@/components/checkout/StepLoader";
+import { WalletConnect, type WalletConnectStatus } from "@/components/wallet/WalletConnect";
 import { cn } from "@/lib/utils";
 import { OtpVerify } from "@/components/auth/OtpVerify";
 import { recordEvent } from "@/lib/liveLog";
