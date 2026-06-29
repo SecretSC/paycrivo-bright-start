@@ -14,6 +14,10 @@ import type {
   AdminTicketNote,
   AdminCustomerInfo,
   AdminDashboardStats,
+  ApiUser,
+  ApiOrder,
+  ApiRewardClaim,
+  ApiWallet,
 } from "./types";
 
 const LOCAL_TICKETS = "paycrivo_support_tickets";
