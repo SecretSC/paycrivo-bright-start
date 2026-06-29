@@ -277,13 +277,15 @@ function BuyFlow() {
 
                 <div className="space-y-2 rounded-2xl bg-surface p-4 text-sm">
                   <Row label="Exchange rate" value={`1 ${state.coin} = ${money(price)}`} />
-                  <Row label="Service fee (1%)" value={money(fees.serviceFee)} />
+                  <Row label="Service fee" value={money(fees.serviceFee)} />
                   <Row label="Network fee" value={money(fees.networkFee)} />
                   <Row label="PayCrivo fee" value={money(fees.paycrivoFee)} />
-                  <div className="flex items-center justify-between border-t border-border pt-2">
-                    <span className="font-medium text-success">First purchase discount</span>
-                    <span className="font-bold text-success">−{money(fees.discount)}</span>
-                  </div>
+                  {fees.firstPurchase && (
+                    <div className="flex items-center gap-1.5 border-t border-border pt-2 text-success">
+                      <ShieldCheck className="size-3.5 shrink-0" />
+                      <span className="font-semibold">First purchase includes 0% PayCrivo fee</span>
+                    </div>
+                  )}
                 </div>
               </Section>
             )}
