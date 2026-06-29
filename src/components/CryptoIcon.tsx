@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 // Locally bundled SVG logos (instant, same-origin, never a broken remote image).
 const localIcons = import.meta.glob(
@@ -46,6 +46,15 @@ export function CryptoIcon({
   const [loaded, setLoaded] = useState(false);
   const src = sources[idx];
   const exhausted = idx >= sources.length;
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  // Reset load state when the source changes, and immediately mark loaded for
+  // images that are already complete (data URIs / cached) where onLoad won't fire.
+  useEffect(() => {
+    setLoaded(false);
+    const el = imgRef.current;
+    if (el && el.complete && el.naturalWidth > 0) setLoaded(true);
+  }, [src]);
 
   const ticker = sym.replace(/[^A-Z0-9]/gi, "").slice(0, 4);
   const fontScale = ticker.length >= 4 ? 0.3 : ticker.length === 3 ? 0.34 : 0.42;
@@ -71,6 +80,7 @@ export function CryptoIcon({
       )}
       {src && !exhausted && (
         <img
+          ref={imgRef}
           src={src}
           alt={`${sym} logo`}
           width={size}
