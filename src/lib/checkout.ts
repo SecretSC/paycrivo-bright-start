@@ -1,16 +1,24 @@
 import { getAsset, type CryptoAsset } from "@/data/cryptoAssets";
 import { fiats } from "@/lib/paycrivo-data";
 
-export type PaymentMethodDef = { id: string; name: string; desc: string };
+export type PaymentStatus = "available" | "staging" | "coming";
+export type PaymentMethodDef = {
+  id: string;
+  name: string;
+  desc: string;
+  speed: string;
+  status: PaymentStatus;
+  icon: "card" | "apple" | "google" | "bank" | "sepa" | "mobilepay" | "pix";
+};
 
 export const paymentMethods: PaymentMethodDef[] = [
-  { id: "card", name: "Credit / Debit Card", desc: "Visa, Mastercard · Instant" },
-  { id: "apple", name: "Apple Pay", desc: "Instant checkout" },
-  { id: "google", name: "Google Pay", desc: "Instant checkout" },
-  { id: "bank", name: "Bank Transfer", desc: "1–2 business days" },
-  { id: "sepa", name: "SEPA Transfer", desc: "Euro area · low fee" },
-  { id: "mobilepay", name: "MobilePay (placeholder)", desc: "Nordics · coming soon" },
-  { id: "pix", name: "PIX (placeholder)", desc: "Brazil · coming soon" },
+  { id: "card", name: "Credit / Debit Card", desc: "Visa, Mastercard", speed: "Instant", status: "available", icon: "card" },
+  { id: "apple", name: "Apple Pay", desc: "Instant checkout", speed: "Instant", status: "staging", icon: "apple" },
+  { id: "google", name: "Google Pay", desc: "Instant checkout", speed: "Instant", status: "staging", icon: "google" },
+  { id: "bank", name: "Bank Transfer", desc: "Standard transfer", speed: "1–2 business days", status: "available", icon: "bank" },
+  { id: "sepa", name: "SEPA Transfer", desc: "Euro area · low fee", speed: "Same day", status: "available", icon: "sepa" },
+  { id: "mobilepay", name: "MobilePay", desc: "Denmark", speed: "Instant", status: "coming", icon: "mobilepay" },
+  { id: "pix", name: "PIX", desc: "Brazil", speed: "Instant", status: "coming", icon: "pix" },
 ];
 
 export const getPaymentMethod = (id: string) =>
@@ -41,7 +49,12 @@ export type FeeBreakdown = {
   total: number;
 };
 
-export function computeFees(amount: number, asset: CryptoAsset, firstPurchase = true): FeeBreakdown {
+export function computeFees(
+  amount: number,
+  asset: CryptoAsset,
+  firstPurchase = true,
+  priceUsd?: number,
+): FeeBreakdown {
   const safe = Number.isFinite(amount) && amount > 0 ? amount : 0;
   const serviceFee = safe * 0.01;
   const networkFee = 1.99;
@@ -50,7 +63,8 @@ export function computeFees(amount: number, asset: CryptoAsset, firstPurchase = 
   const paycrivoFee = basePaycrivo - discount;
   const totalFees = serviceFee + networkFee + paycrivoFee;
   const net = Math.max(safe - totalFees, 0);
-  const receive = asset.mockPriceUsd > 0 ? net / asset.mockPriceUsd : 0;
+  const unitPrice = priceUsd && priceUsd > 0 ? priceUsd : asset.mockPriceUsd;
+  const receive = unitPrice > 0 ? net / unitPrice : 0;
   return {
     amount: safe,
     serviceFee,
@@ -125,6 +139,9 @@ export type CheckoutState = {
   network: string;
   saveWallet: boolean;
   riskAck: boolean;
+  walletOwnership: "none" | "confirmed" | "manual";
+  destinationTag: string;
+  networkRiskAck: boolean;
 };
 
 export const defaultCheckout: CheckoutState = {
@@ -148,6 +165,9 @@ export const defaultCheckout: CheckoutState = {
   network: "",
   saveWallet: false,
   riskAck: false,
+  walletOwnership: "none",
+  destinationTag: "",
+  networkRiskAck: false,
 };
 
 export const DRAFT_KEY = "paycrivo-checkout-draft";
@@ -192,6 +212,8 @@ export type Order = {
   receive: number;
   fees: FeeBreakdown;
   email: string;
+  walletOwnership?: "none" | "confirmed" | "manual";
+  destinationTag?: string;
 };
 
 export function generateOrderId(): string {

@@ -27,19 +27,19 @@ export const cryptos: Coin[] = [
   { symbol: "UNI", name: "Uniswap", color: "#ff007a", price: 7.91, change24h: -3.12 },
 ];
 
-export type Fiat = { code: string; name: string; symbol: string; flag: string };
+export type Fiat = { code: string; name: string; symbol: string; flag: string; popular?: boolean };
 
 export const fiats: Fiat[] = [
-  { code: "USD", name: "US Dollar", symbol: "$", flag: "🇺🇸" },
-  { code: "EUR", name: "Euro", symbol: "€", flag: "🇪🇺" },
-  { code: "GBP", name: "British Pound", symbol: "£", flag: "🇬🇧" },
-  { code: "DKK", name: "Danish Krone", symbol: "kr", flag: "🇩🇰" },
-  { code: "NOK", name: "Norwegian Krone", symbol: "kr", flag: "🇳🇴" },
-  { code: "SEK", name: "Swedish Krona", symbol: "kr", flag: "🇸🇪" },
-  { code: "PLN", name: "Polish Zloty", symbol: "zł", flag: "🇵🇱" },
-  { code: "CAD", name: "Canadian Dollar", symbol: "$", flag: "🇨🇦" },
-  { code: "AUD", name: "Australian Dollar", symbol: "$", flag: "🇦🇺" },
-  { code: "CHF", name: "Swiss Franc", symbol: "Fr", flag: "🇨🇭" },
+  { code: "USD", name: "United States Dollar", symbol: "$", flag: "🇺🇸", popular: true },
+  { code: "EUR", name: "Euro", symbol: "€", flag: "🇪🇺", popular: true },
+  { code: "GBP", name: "British Pound", symbol: "£", flag: "🇬🇧", popular: true },
+  { code: "DKK", name: "Danish Krone", symbol: "kr", flag: "🇩🇰", popular: true },
+  { code: "NOK", name: "Norwegian Krone", symbol: "kr", flag: "🇳🇴", popular: true },
+  { code: "SEK", name: "Swedish Krona", symbol: "kr", flag: "🇸🇪", popular: true },
+  { code: "CAD", name: "Canadian Dollar", symbol: "$", flag: "🇨🇦", popular: true },
+  { code: "AUD", name: "Australian Dollar", symbol: "$", flag: "🇦🇺", popular: true },
+  { code: "CHF", name: "Swiss Franc", symbol: "Fr", flag: "🇨🇭", popular: true },
+  { code: "PLN", name: "Polish Zloty", symbol: "zł", flag: "🇵🇱", popular: true },
   { code: "AED", name: "UAE Dirham", symbol: "د.إ", flag: "🇦🇪" },
   { code: "TRY", name: "Turkish Lira", symbol: "₺", flag: "🇹🇷" },
   { code: "BRL", name: "Brazilian Real", symbol: "R$", flag: "🇧🇷" },

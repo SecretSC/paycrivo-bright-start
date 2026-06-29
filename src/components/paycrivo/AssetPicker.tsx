@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Search, Star, X } from "lucide-react";
-import { CoinIcon } from "./CoinIcon";
+import { CryptoIcon } from "@/components/CryptoIcon";
 import {
   orderedAssets,
   pinnedAssets,
@@ -8,6 +8,7 @@ import {
   formatUsd,
   type CryptoAsset,
 } from "@/data/cryptoAssets";
+import { usePrices } from "@/services/priceService";
 import { cn } from "@/lib/utils";
 
 const RECENT_KEY = "paycrivo-recent-assets";
@@ -25,12 +26,16 @@ function AssetRow({
   asset,
   active,
   onSelect,
+  price,
+  change,
 }: {
   asset: CryptoAsset;
   active: boolean;
   onSelect: () => void;
+  price: number;
+  change: number;
 }) {
-  const up = asset.mockChange24h >= 0;
+  const up = change >= 0;
   return (
     <button
       type="button"
@@ -42,7 +47,7 @@ function AssetRow({
         active ? "bg-accent" : "hover:bg-secondary",
       )}
     >
-      <CoinIcon symbol={asset.symbol} color={asset.iconColor} size={34} />
+      <CryptoIcon symbol={asset.symbol} color={asset.iconColor} size={34} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="truncate text-sm font-bold text-foreground">{asset.name}</span>
@@ -70,10 +75,10 @@ function AssetRow({
         </div>
       </div>
       <div className="shrink-0 text-right">
-        <div className="text-sm font-bold text-foreground">${formatUsd(asset.mockPriceUsd)}</div>
+        <div className="text-sm font-bold text-foreground">${formatUsd(price)}</div>
         <div className={cn("text-xs font-semibold", up ? "text-success" : "text-destructive")}>
           {up ? "+" : ""}
-          {asset.mockChange24h.toFixed(2)}%
+          {change.toFixed(2)}%
         </div>
       </div>
       <span className="grid size-5 shrink-0 place-items-center">
@@ -99,6 +104,9 @@ export function AssetPicker({
   const [recent, setRecent] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const selected = getAsset(value) ?? orderedAssets[0];
+  const snap = usePrices();
+  const px = (s: string) => snap.prices[s]?.price ?? getAsset(s)?.mockPriceUsd ?? 0;
+  const ch = (s: string) => snap.prices[s]?.change24h ?? getAsset(s)?.mockChange24h ?? 0;
 
   useEffect(() => {
     if (!open) return;
@@ -150,7 +158,7 @@ export function AssetPicker({
         )}
         aria-haspopup="dialog"
       >
-        <CoinIcon symbol={selected.symbol} color={selected.iconColor} size={compact ? 24 : 28} />
+        <CryptoIcon symbol={selected.symbol} color={selected.iconColor} size={compact ? 24 : 28} />
         <span className="min-w-0">
           <span className="block truncate text-sm font-bold text-foreground">{selected.symbol}</span>
           {!compact && (
@@ -209,6 +217,8 @@ export function AssetPicker({
                       asset={a}
                       active={a.symbol === value}
                       onSelect={() => pick(a.symbol)}
+                      price={px(a.symbol)}
+                      change={ch(a.symbol)}
                     />
                   ))}
                 </Section>
@@ -222,6 +232,8 @@ export function AssetPicker({
                       asset={a}
                       active={a.symbol === value}
                       onSelect={() => pick(a.symbol)}
+                      price={px(a.symbol)}
+                      change={ch(a.symbol)}
                     />
                   ))}
                 </Section>
@@ -239,6 +251,8 @@ export function AssetPicker({
                       asset={a}
                       active={a.symbol === value}
                       onSelect={() => pick(a.symbol)}
+                      price={px(a.symbol)}
+                      change={ch(a.symbol)}
                     />
                   ))
                 )}

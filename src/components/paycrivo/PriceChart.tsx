@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { ArrowUpRight } from "lucide-react";
-import { CoinIcon } from "./CoinIcon";
+import { CryptoIcon } from "@/components/CryptoIcon";
+import { usePrices } from "@/services/priceService";
+import { formatUsd } from "@/data/cryptoAssets";
 import { cn } from "@/lib/utils";
 
 const ranges = ["1H", "24H", "1W", "1M", "1Y"] as const;
@@ -31,6 +33,9 @@ function series(range: Range): number[] {
 export function PriceChart() {
   const [range, setRange] = useState<Range>("24H");
   const data = useMemo(() => series(range), [range]);
+  const snap = usePrices();
+  const btc = snap.prices["BTC"] ?? { price: 59000, change24h: 2.41 };
+  const up = btc.change24h >= 0;
 
   const W = 720;
   const H = 280;
@@ -49,11 +54,11 @@ export function PriceChart() {
   const areaPath = `${linePath} L${points[points.length - 1][0].toFixed(1)},${H - pad} L${points[0][0].toFixed(1)},${H - pad} Z`;
 
   const stats = [
-    { label: "24h Change", value: "+2.41%", positive: true },
-    { label: "Market Cap", value: "$1.33T" },
+    { label: "24h Change", value: `${up ? "+" : ""}${btc.change24h.toFixed(2)}%`, positive: up },
+    { label: "Market Cap", value: `$${(btc.price * 19.7e6 / 1e12).toFixed(2)}T` },
     { label: "24h Volume", value: "$38.4B" },
-    { label: "24h High", value: "$68,120" },
-    { label: "24h Low", value: "$65,940" },
+    { label: "24h High", value: `$${formatUsd(btc.price * 1.018)}` },
+    { label: "24h Low", value: `$${formatUsd(btc.price * 0.982)}` },
   ];
 
   return (
@@ -61,7 +66,7 @@ export function PriceChart() {
       <div className="rounded-3xl border border-border bg-card p-5 shadow-soft sm:p-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-center gap-3">
-            <CoinIcon symbol="BTC" color="#f7931a" size={48} />
+            <CryptoIcon symbol="BTC" color="#f7931a" size={48} />
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="font-display text-xl font-bold text-foreground">Bitcoin</h2>
@@ -70,9 +75,9 @@ export function PriceChart() {
                 </span>
               </div>
               <div className="mt-1 flex items-center gap-2">
-                <span className="text-2xl font-extrabold text-foreground">$67,432.18</span>
-                <span className="inline-flex items-center gap-0.5 text-sm font-semibold text-success">
-                  <ArrowUpRight className="size-4" /> 2.41%
+                <span className="text-2xl font-extrabold text-foreground">${formatUsd(btc.price)}</span>
+                <span className={cn("inline-flex items-center gap-0.5 text-sm font-semibold", up ? "text-success" : "text-destructive")}>
+                  <ArrowUpRight className={cn("size-4", !up && "rotate-90")} /> {Math.abs(btc.change24h).toFixed(2)}%
                 </span>
               </div>
             </div>

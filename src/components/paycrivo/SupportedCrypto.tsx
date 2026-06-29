@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { ArrowDownRight, ArrowUpRight, Search, X } from "lucide-react";
-import { CoinIcon } from "./CoinIcon";
+import { CryptoIcon } from "@/components/CryptoIcon";
 import { orderedAssets, formatUsd, type CryptoAsset } from "@/data/cryptoAssets";
+import { usePrices } from "@/services/priceService";
 import { cn } from "@/lib/utils";
 
 type Filter =
@@ -40,12 +41,12 @@ function matches(a: CryptoAsset, f: Filter) {
   }
 }
 
-function AssetCard({ c }: { c: CryptoAsset }) {
-  const up = c.mockChange24h >= 0;
+function AssetCard({ c, price, change }: { c: CryptoAsset; price: number; change: number }) {
+  const up = change >= 0;
   return (
     <div className="group flex flex-col items-start rounded-2xl border border-border bg-card p-4 text-left transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-soft">
       <div className="flex w-full items-center justify-between">
-        <CoinIcon symbol={c.symbol} color={c.iconColor} size={36} />
+        <CryptoIcon symbol={c.symbol} color={c.iconColor} size={36} />
         {c.isPopular && (
           <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent-foreground">
             Popular
@@ -55,7 +56,7 @@ function AssetCard({ c }: { c: CryptoAsset }) {
       <div className="mt-3 text-sm font-bold text-foreground">{c.name}</div>
       <div className="text-xs text-muted-foreground">{c.symbol}</div>
       <div className="mt-2 flex w-full items-center justify-between">
-        <span className="text-xs font-semibold text-foreground">${formatUsd(c.mockPriceUsd)}</span>
+        <span className="text-xs font-semibold text-foreground">${formatUsd(price)}</span>
         <span
           className={cn(
             "flex items-center gap-0.5 text-xs font-semibold",
@@ -63,7 +64,7 @@ function AssetCard({ c }: { c: CryptoAsset }) {
           )}
         >
           {up ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
-          {Math.abs(c.mockChange24h).toFixed(1)}%
+          {Math.abs(change).toFixed(1)}%
         </span>
       </div>
     </div>
@@ -75,6 +76,9 @@ export function SupportedCrypto() {
   const [query, setQuery] = useState("");
   const [showAll, setShowAll] = useState(false);
   const [modal, setModal] = useState(false);
+  const snap = usePrices();
+  const px = (s: string, m: number) => snap.prices[s]?.price ?? m;
+  const ch = (s: string, m: number) => snap.prices[s]?.change24h ?? m;
 
   const q = query.trim().toLowerCase();
   const list = useMemo(() => {
@@ -138,7 +142,7 @@ export function SupportedCrypto() {
       {/* grid */}
       <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {visible.map((c) => (
-          <AssetCard key={c.symbol} c={c} />
+          <AssetCard key={c.symbol} c={c} price={px(c.symbol, c.mockPriceUsd)} change={ch(c.symbol, c.mockChange24h)} />
         ))}
       </div>
 
@@ -183,7 +187,7 @@ export function SupportedCrypto() {
             <div className="flex-1 overflow-y-auto p-4">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                 {orderedAssets.map((c) => (
-                  <AssetCard key={`modal-${c.symbol}`} c={c} />
+                  <AssetCard key={`modal-${c.symbol}`} c={c} price={px(c.symbol, c.mockPriceUsd)} change={ch(c.symbol, c.mockChange24h)} />
                 ))}
               </div>
             </div>
