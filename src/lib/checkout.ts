@@ -24,6 +24,7 @@ export type FeeBreakdown = {
   networkFee: number;
   paycrivoFee: number;
   discount: number;
+  firstPurchase: boolean;
   totalFees: number;
   net: number;
   receive: number;
@@ -38,11 +39,13 @@ export function computeFees(
   networkFeeFiat = 1.99,
 ): FeeBreakdown {
   const safe = Number.isFinite(amount) && amount > 0 ? amount : 0;
-  const serviceFee = safe * 0.01;
   const networkFee = networkFeeFiat;
-  const basePaycrivo = safe * 0.005;
-  const discount = firstPurchase ? basePaycrivo : 0;
-  const paycrivoFee = basePaycrivo - discount;
+  // On the first purchase both the service fee and the PayCrivo fee are waived.
+  // We never surface the waived amount to the customer — the totals already
+  // reflect the promotional 0% fee.
+  const serviceFee = firstPurchase ? 0 : safe * 0.01;
+  const paycrivoFee = firstPurchase ? 0 : safe * 0.005;
+  const discount = 0;
   const totalFees = serviceFee + networkFee + paycrivoFee;
   const net = Math.max(safe - totalFees, 0);
   const unitPrice = priceFiat && priceFiat > 0 ? priceFiat : asset.mockPriceUsd;
@@ -53,6 +56,7 @@ export function computeFees(
     networkFee,
     paycrivoFee,
     discount,
+    firstPurchase,
     totalFees,
     net,
     receive,
