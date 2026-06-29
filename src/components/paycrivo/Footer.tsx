@@ -19,7 +19,7 @@ export function Footer() {
               own wallet.
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
-              {["PCI DSS", "ISO 27001", "GDPR"].map((b) => (
+              {["Secure account access", "Email verification", "Transparent fees", "Clear order tracking"].map((b) => (
                 <span
                   key={b}
                   className="rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-semibold text-muted-foreground"
