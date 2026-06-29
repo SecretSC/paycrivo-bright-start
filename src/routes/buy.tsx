@@ -4,7 +4,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import {
   ArrowLeft, ArrowRight, Check, ChevronDown, ClipboardPaste, Copy, Info, Loader2, QrCode,
-  ScanFace, ShieldCheck, FileCheck2, Eye, Smartphone, Wallet, AlertTriangle, X,
+  ShieldCheck, Wallet, AlertTriangle,
 } from "lucide-react";
 import { Logo } from "@/components/paycrivo/Logo";
 import { AssetPicker } from "@/components/paycrivo/AssetPicker";
@@ -571,96 +571,6 @@ function networkHelp(symbol: string, network: string): string {
   if (n.includes("xrp")) return "XRP addresses start with r. Some wallets also require a destination tag.";
   if (n.includes("tron")) return "Tron addresses start with T and are 34 characters long.";
   return `Double-check your ${symbol} address matches the ${network} network before continuing.`;
-}
-
-/* ---------- Verification step ---------- */
-function VerificationStep({ onPreview }: { onPreview: () => void }) {
-  const stages = ["Not started", "Document", "Face check", "Review", "Complete"];
-  return (
-    <Section title="Verify your identity" subtitle="PayCrivo uses identity checks to help protect customers and prevent misuse.">
-      <div className="rounded-3xl border border-border bg-gradient-to-b from-surface to-card p-6">
-        <div className="flex justify-center">
-          <div className="grid size-16 place-items-center rounded-2xl bg-accent text-accent-foreground shadow-soft">
-            <ShieldCheck className="size-8" />
-          </div>
-        </div>
-
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
-          <VerifyCard icon={<FileCheck2 className="size-5" />} title="Document scan" desc="Passport, driver license, or national ID" />
-          <VerifyCard icon={<ScanFace className="size-5" />} title="Face check" desc="Quick liveness check on your phone" />
-          <VerifyCard icon={<Eye className="size-5" />} title="Review" desc="Automatic approval or manual review" />
-        </div>
-
-        {/* status bar */}
-        <div className="mt-6 flex items-center gap-1.5">
-          {stages.map((s, i) => (
-            <div key={s} className="flex flex-1 flex-col items-center gap-1.5">
-              <div className={cn("h-1.5 w-full rounded-full", i === 0 ? "bg-primary" : "bg-secondary")} />
-              <span className="text-center text-[10px] font-medium text-muted-foreground">{s}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
-        <div className="rounded-2xl border border-border bg-card p-5">
-          <div className="text-sm font-bold text-foreground">Use your phone to continue verification</div>
-          <p className="mt-1 text-xs text-muted-foreground">Scan the code with your phone camera. QR expires in 15 minutes.</p>
-          <button type="button" onClick={onPreview}
-            className="mt-4 inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-primary/40">
-            <Smartphone className="size-4" /> Preview mobile KYC
-          </button>
-        </div>
-        <div className="grid size-32 place-items-center self-center justify-self-center rounded-2xl border border-border bg-surface">
-          <QrCode className="size-20 text-foreground/80" />
-        </div>
-      </div>
-
-      <p className="flex items-start gap-2 rounded-xl bg-secondary px-3 py-2.5 text-xs text-muted-foreground">
-        <Info className="mt-0.5 size-3.5 shrink-0" /> Your information is encrypted and used only to verify your identity.
-      </p>
-    </Section>
-  );
-}
-
-function KycPreviewModal({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-foreground/50 p-4 backdrop-blur-sm">
-      <div className="animate-scale-in w-full max-w-sm rounded-3xl border border-border bg-popover p-6 shadow-elegant">
-        <div className="flex items-center justify-between">
-          <h3 className="font-display text-base font-bold text-foreground">Mobile KYC preview</h3>
-          <button onClick={onClose} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="Close">
-            <X className="size-5" />
-          </button>
-        </div>
-        {/* phone mockup */}
-        <div className="mx-auto mt-5 w-48 rounded-[2rem] border-4 border-foreground/80 bg-background p-2 shadow-elegant">
-          <div className="relative overflow-hidden rounded-[1.4rem] bg-gradient-to-b from-secondary to-card p-3">
-            <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-foreground/30" />
-            {/* document frame */}
-            <div className="rounded-xl border-2 border-dashed border-primary/60 p-3">
-              <div className="flex items-center gap-2">
-                <div className="size-8 rounded bg-primary/30" />
-                <div className="flex-1 space-y-1">
-                  <div className="h-1.5 w-full rounded bg-foreground/20" />
-                  <div className="h-1.5 w-2/3 rounded bg-foreground/20" />
-                </div>
-              </div>
-            </div>
-            {/* face circle overlay */}
-            <div className="mx-auto mt-4 grid size-20 place-items-center rounded-full border-2 border-primary/70">
-              <ScanFace className="size-9 text-primary" />
-            </div>
-            <p className="mt-2 text-center text-[10px] font-medium text-muted-foreground">Look left, then right →</p>
-          </div>
-        </div>
-        <p className="mt-4 text-center text-xs text-muted-foreground">Visual preview of the mobile verification experience.</p>
-        <button onClick={onClose} className="bg-gradient-primary mt-4 w-full rounded-2xl py-3 text-sm font-bold text-primary-foreground">
-          Close preview
-        </button>
-      </div>
-    </div>
-  );
 }
 
 function OwnershipBadge({ status }: { status: CheckoutState["walletOwnership"] }) {
