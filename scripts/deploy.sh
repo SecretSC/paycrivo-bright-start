@@ -15,13 +15,15 @@ FRONTEND_DIR="$ROOT"
 
 echo "==> PayCrivo deploy starting in $ROOT (frontend: $FRONTEND_DIR)"
 
-# --- Frontend (TanStack Start SSR -> Node server via Nitro node-server preset) ---
+# --- Frontend (TanStack Start SSR -> Node server launcher) ---
 echo "==> Building frontend SSR server"
 cd "$FRONTEND_DIR"
 npm install
 npm run build
 [ -f "$FRONTEND_DIR/.output/server/index.mjs" ] || \
   echo "   (warning: .output/server/index.mjs not found — check Nitro preset is node-server)"
+[ -f "$FRONTEND_DIR/.output/server/_ssr/ssr.mjs" ] || \
+  { echo "   error: .output/server/_ssr/ssr.mjs not found — TanStack SSR routes were not emitted"; exit 1; }
 
 # --- Server ---
 echo "==> Building server"
@@ -39,5 +41,5 @@ npm run seed:settings || echo "   (settings already seeded, continuing)"
 
 cd "$ROOT"
 echo "==> Done. Configure systemd (docs/systemd) + Apache, then start:"
-echo "    - paycrivo-web (SSR frontend: node .output/server/index.mjs)"
+echo "    - paycrivo-web (SSR frontend: node scripts/start-web.mjs)"
 echo "    - paycrivo-api (Express API on port 4100)"

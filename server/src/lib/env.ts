@@ -8,7 +8,7 @@ function req(name: string, fallback?: string): string {
 }
 
 export const env = {
-  port: Number(process.env.PORT ?? 4000),
+  port: Number(process.env.PORT ?? 4100),
   nodeEnv: process.env.NODE_ENV ?? "development",
   corsOrigins: (process.env.CORS_ORIGINS ?? "http://localhost:8080")
     .split(",")
