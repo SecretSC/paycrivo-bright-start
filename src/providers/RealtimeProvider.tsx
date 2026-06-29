@@ -86,7 +86,7 @@ export function RealtimeProvider({
 function useRealtimeTransport(): RealtimeTransport {
   const ctx = useContext(RealtimeContext);
   // Allow use outside a provider by falling back to a private polling transport.
-  const fallback = useRef<RealtimeTransport>();
+  const fallback = useRef<RealtimeTransport | undefined>(undefined);
   if (ctx) return ctx.transport;
   if (!fallback.current) fallback.current = createPollingTransport();
   return fallback.current;
