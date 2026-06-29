@@ -265,6 +265,7 @@ function SupportPanel({
   user,
   meta,
   promptText,
+  online,
   stage,
   setStage,
   ticket,
@@ -277,6 +278,7 @@ function SupportPanel({
   user: ReturnType<typeof useAuth>["user"];
   meta: SafeMeta;
   promptText: string;
+  online: boolean;
   stage: Stage;
   setStage: (s: Stage) => void;
   ticket: ApiSupportTicket | null;
@@ -290,13 +292,19 @@ function SupportPanel({
     <>
       <header className="flex items-center justify-between gap-2 border-b border-border bg-gradient-to-br from-primary to-primary-glow px-4 py-3 text-primary-foreground">
         <div className="flex min-w-0 items-center gap-2.5">
-          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary-foreground/15">
+          <span className="relative grid size-9 shrink-0 place-items-center rounded-full bg-primary-foreground/15">
             <Headset className="size-4.5" />
+            <span
+              className={cn(
+                "absolute -bottom-0.5 -right-0.5 size-3 rounded-full ring-2 ring-primary",
+                online ? "bg-emerald-400" : "bg-muted-foreground",
+              )}
+            />
           </span>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold">PayCrivo Support</p>
             <p className="truncate text-xs text-primary-foreground/80">
-              {isBackendConfigured() ? "We typically reply quickly" : "Demo mode • responses simulated"}
+              {online ? "Typically replies within a few minutes" : "Offline · we'll reply by email"}
             </p>
           </div>
         </div>
@@ -321,26 +329,28 @@ function SupportPanel({
       </header>
 
       {stage === "welcome" && (
-        <WelcomeScreen promptText={promptText} onStart={() => setStage("form")} />
+        <WelcomeScreen promptText={promptText} online={online} onStart={() => setStage("form")} />
       )}
       {stage === "form" && (
         <DetailsForm user={user} meta={meta} onCreated={onTicketCreated} onBack={() => setStage("welcome")} />
       )}
       {stage === "chat" && ticket && (
-        <Conversation ticket={ticket} messages={messages} onSend={onSend} />
+        <Conversation ticket={ticket} messages={messages} online={online} onSend={onSend} />
       )}
     </>
   );
 }
 
-function WelcomeScreen({ promptText, onStart }: { promptText: string; onStart: () => void }) {
+function WelcomeScreen({ promptText, online, onStart }: { promptText: string; online: boolean; onStart: () => void }) {
   return (
     <div className="flex flex-1 flex-col justify-between overflow-y-auto p-5">
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-foreground">Hi there 👋</h3>
+        <h3 className="text-lg font-semibold text-foreground">Hi 👋 Welcome to PayCrivo Support</h3>
         <p className="text-sm text-muted-foreground">{promptText}</p>
         <p className="text-sm text-muted-foreground">
-          Tell us a bit about what you need and a PayCrivo support agent will help you out.
+          {online
+            ? "Tell us a bit about what you need and a PayCrivo support agent will help you out."
+            : "Our team is offline right now. Leave us a message and we'll reply by email."}
         </p>
       </div>
       <div className="space-y-3">
@@ -351,7 +361,7 @@ function WelcomeScreen({ promptText, onStart }: { promptText: string; onStart: (
           </span>
         </div>
         <Button onClick={onStart} className="w-full">
-          Start a conversation
+          {online ? "Start a conversation" : "Leave a message"}
         </Button>
       </div>
     </div>
