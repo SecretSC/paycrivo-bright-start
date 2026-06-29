@@ -21,6 +21,7 @@ import { formatUtcTime } from "@/services/priceService";
 import { validateWallet, detectAddressKind } from "@/utils/walletValidation";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { cn } from "@/lib/utils";
+import { OtpVerify } from "@/components/auth/OtpVerify";
 
 export const Route = createFileRoute("/exchange/checkout")({
   head: () => ({ meta: [{ title: "Exchange checkout — PayCrivo" }] }),
@@ -48,6 +49,8 @@ function ExchangeCheckout() {
   const [loader, setLoader] = useState<string | null>(null);
   const [checkingDeposit, setCheckingDeposit] = useState(false);
   const [connecting, setConnecting] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [otpOpen, setOtpOpen] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
 
   const set = <K extends keyof ExchangeState>(key: K, value: ExchangeState[K]) =>
@@ -108,8 +111,7 @@ function ExchangeCheckout() {
     return Object.keys(e).length === 0;
   };
 
-  const next = () => {
-    if (!validateStep(state.step)) return;
+  const proceed = () => {
     const label = STEP_LOADER[state.step] ?? "Loading…";
     setLoader(label);
     window.setTimeout(() => {
@@ -122,8 +124,16 @@ function ExchangeCheckout() {
       });
     }, 2200);
   };
+  const next = () => {
+    if (!validateStep(state.step)) return;
+    if (state.step === 1 && !emailVerified) {
+      setOtpOpen(true);
+      return;
+    }
+    proceed();
+  };
 
-  const back = () => { setErrors({}); set("step", Math.max(state.step - 1, 0)); };
+  const back = () => { setErrors({}); setOtpOpen(false); set("step", Math.max(state.step - 1, 0)); };
 
   const connectWallet = () => {
     setConnecting(true);
