@@ -54,12 +54,17 @@ database migrations, and seeds the first admin account.
 
 The frontend build uses the Nitro **`node-server`** preset (configured in
 `vite.config.ts`), so `npm run build` produces a standalone Node server at
-`.output/server/index.mjs`. You can run it directly:
+`.output/server/index.mjs`. In production we start it through the hardened
+launcher `scripts/start-web.mjs`, which guarantees the process binds a socket
+and never exits silently (it strips any serverless `__srvxLoader__` path and
+keeps the event loop alive). You can run either:
 
 ```bash
 npm install
 npm run build
-PORT=4000 node .output/server/index.mjs   # persistent HTTP server on :4000
+PORT=4000 node scripts/start-web.mjs      # recommended (hardened launcher)
+# or, equivalently, the raw Nitro output:
+PORT=4000 node .output/server/index.mjs
 ```
 
 Cloudflare Workers is **not** the default target. To build for Cloudflare
@@ -81,8 +86,9 @@ After=network.target
 Type=simple
 WorkingDirectory=/var/www/paycrivo.com
 Environment=PORT=4000
+Environment=HOST=127.0.0.1
 Environment=NODE_ENV=production
-ExecStart=/usr/bin/node .output/server/index.mjs
+ExecStart=/usr/bin/node scripts/start-web.mjs
 Restart=always
 RestartSec=5
 User=www-data
