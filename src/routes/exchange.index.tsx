@@ -225,7 +225,7 @@ function PairCard({ from, to, onExchange }: { from: string; to: string; onExchan
 const FAQ_ITEMS = [
   { q: "How does crypto exchange work?", a: "You choose a pair, enter your receiving wallet, send the source crypto to the provided deposit address, and PayCrivo delivers the target asset to your wallet." },
   { q: "Do I need an account?", a: "No account is required to start an exchange." },
-  { q: "Do I need KYC for exchange?", a: "No KYC is required for the exchange flow." },
+  { q: "Is verification required for an exchange?", a: "The exchange flow uses a simple, fast verification so you can get started in minutes." },
   { q: "How are rates calculated?", a: "Rates are derived from live market prices for both assets, refreshed every 10 seconds, minus any applicable network fee and PayCrivo spread." },
   { q: "What happens if I choose the wrong network?", a: "Sending to the wrong network can result in lost funds. PayCrivo validates your receiving address against the selected network and asks you to confirm network risk before continuing." },
   { q: "Can I track my exchange order?", a: "Yes. Every exchange generates an order with a status timeline you can revisit at any time." },
