@@ -1,5 +1,5 @@
 import { fiats } from "@/lib/paycrivo-data";
-import { FiatBadge } from "./FiatBadge";
+import { FlagIcon } from "@/components/FlagIcon";
 
 export function SupportedFiat() {
   return (
@@ -15,7 +15,7 @@ export function SupportedFiat() {
               key={f.code}
               className="flex items-center gap-2.5 rounded-2xl border border-border bg-card p-3.5 transition-colors hover:border-primary/40"
             >
-              <FiatBadge symbol={f.symbol} size={36} />
+              <FlagIcon code={f.country} size={32} />
               <div className="min-w-0">
                 <div className="text-sm font-bold text-foreground">{f.code}</div>
                 <div className="truncate text-xs text-muted-foreground">{f.name}</div>
