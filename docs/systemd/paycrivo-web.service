@@ -18,8 +18,11 @@ Type=simple
 WorkingDirectory=/var/www/paycrivo.com
 # SSR server port (reverse-proxied by Apache). Change if 4000 is taken.
 Environment=PORT=4000
+Environment=HOST=127.0.0.1
 Environment=NODE_ENV=production
-ExecStart=/usr/bin/node .output/server/index.mjs
+# Use the hardened launcher (scripts/start-web.mjs) instead of running the Nitro
+# output directly. It guarantees the process binds a socket and never exits 0.
+ExecStart=/usr/bin/node scripts/start-web.mjs
 Restart=always
 RestartSec=5
 User=www-data
