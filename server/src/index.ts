@@ -6,6 +6,7 @@ import { env } from "./lib/env.js";
 import { notFound, errorHandler } from "./middleware/error.js";
 import { authRouter } from "./routes/auth.js";
 import { emailRouter } from "./routes/email.js";
+import { settingsRouter } from "./routes/settings.js";
 import { ordersRouter } from "./routes/orders.js";
 import { walletsRouter } from "./routes/wallets.js";
 import { supportRouter } from "./routes/support.js";
@@ -43,6 +44,7 @@ app.get("/health", (_req, res) => res.json({ ok: true, service: "paycrivo-backen
 // Customer API
 app.use("/api/auth", authRouter);
 app.use("/api/email", emailRouter);
+app.use("/api/settings", settingsRouter);
 app.use("/api/orders", ordersRouter);
 app.use("/api/wallets", walletsRouter);
 app.use("/api/support", supportRouter);
