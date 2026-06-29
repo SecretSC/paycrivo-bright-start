@@ -78,6 +78,7 @@ export type ExchangeState = {
   wallet: string;
   destinationTag: string;
   networkRiskAck: boolean;
+  walletOwnership: "none" | "confirmed" | "manual";
   depositConfirmed: boolean;
   riskAck: boolean;
   reservedUntil: number; // ms timestamp the rate is held until
@@ -95,6 +96,7 @@ export const defaultExchange: ExchangeState = {
   wallet: "",
   destinationTag: "",
   networkRiskAck: false,
+  walletOwnership: "none",
   depositConfirmed: false,
   riskAck: false,
   reservedUntil: 0,
@@ -104,7 +106,12 @@ export function loadExchangeDraft(): ExchangeState | null {
   try {
     const raw = localStorage.getItem(EXCHANGE_DRAFT_KEY);
     if (!raw) return null;
-    return { ...defaultExchange, ...(JSON.parse(raw) as Partial<ExchangeState>) };
+    const parsed = JSON.parse(raw) as Partial<ExchangeState>;
+    // Migrate older drafts that predate the wallet-ownership step.
+    const migrated = !("walletOwnership" in parsed);
+    let step = parsed.step ?? 0;
+    if (migrated && step >= 3) step += 1; // shift Send crypto/Review past inserted Ownership step
+    return { ...defaultExchange, ...parsed, step, walletOwnership: parsed.walletOwnership ?? "none" };
   } catch {
     return null;
   }
@@ -142,6 +149,7 @@ export type ExchangeOrder = {
   email: string;
   depositAddress: string;
   depositConfirmed: boolean;
+  walletOwnership?: "none" | "confirmed" | "manual";
   reservedUntil: number;
 };
 
