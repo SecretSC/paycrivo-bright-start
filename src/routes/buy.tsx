@@ -29,6 +29,7 @@ import { useQuote, formatUtcTime } from "@/services/marketDataService";
 import { AddressAutocomplete } from "@/components/checkout/AddressAutocomplete";
 import { StepLoader, type LoaderLabel } from "@/components/checkout/StepLoader";
 import { cn } from "@/lib/utils";
+import { OtpVerify } from "@/components/auth/OtpVerify";
 
 const searchSchema = z.object({
   spend: z.coerce.string().optional(),
@@ -75,6 +76,8 @@ function BuyFlow() {
   const [createdId, setCreatedId] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [loader, setLoader] = useState<LoaderLabel | null>(null);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [otpOpen, setOtpOpen] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
 
   const set = <K extends keyof CheckoutState>(key: K, value: CheckoutState[K]) =>
@@ -154,8 +157,7 @@ function BuyFlow() {
     return Object.keys(e).length === 0;
   };
 
-  const next = () => {
-    if (!validateStep(state.step)) return;
+  const proceed = () => {
     const label = STEP_LOADER[state.step] ?? "Loading…";
     setLoader(label);
     window.setTimeout(() => {
@@ -163,8 +165,18 @@ function BuyFlow() {
       set("step", Math.min(state.step + 1, REVIEW));
     }, 2200);
   };
+  const next = () => {
+    if (!validateStep(state.step)) return;
+    // The email step requires verifying the address with a 4-digit code.
+    if (state.step === 1 && !emailVerified) {
+      setOtpOpen(true);
+      return;
+    }
+    proceed();
+  };
   const back = () => {
     setErrors({});
+    setOtpOpen(false);
     set("step", Math.max(state.step - 1, 0));
   };
 
@@ -278,16 +290,35 @@ function BuyFlow() {
               </Section>
             )}
 
-            {state.step === 1 && (
-              <Section title="Continue with your email" subtitle="We'll use this to send your order updates.">
+            {state.step === 1 && !otpOpen && (
+              <Section title="Verify your email" subtitle="We sent a 4-digit code so we can send your purchase updates.">
                 <Field label="Email address" error={errors.email}>
-                  <input type="email" value={state.email} onChange={(e) => set("email", e.target.value)}
+                  <input type="email" value={state.email}
+                    onChange={(e) => { set("email", e.target.value); setEmailVerified(false); }}
                     placeholder="you@email.com" className={inputCls(errors.email)} />
                 </Field>
                 <CheckRow checked={state.agreeTerms} onChange={(v) => set("agreeTerms", v)} error={errors.agreeTerms}>
                   I agree to the Terms, Privacy Policy, and Risk Disclosure.
                 </CheckRow>
+                {emailVerified && (
+                  <p className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-success">
+                    <Check className="size-4" /> Email verified
+                  </p>
+                )}
               </Section>
+            )}
+            {state.step === 1 && otpOpen && (
+              <OtpVerify
+                email={state.email.trim().toLowerCase()}
+                purpose="buy_checkout"
+                title="Verify your email"
+                subtitle={`We sent a 4-digit code to ${state.email} so we can send your purchase updates.`}
+                onVerified={() => {
+                  setEmailVerified(true);
+                  setOtpOpen(false);
+                  proceed();
+                }}
+              />
             )}
 
             {state.step === 2 && (
@@ -497,7 +528,13 @@ function BuyFlow() {
           </div>
 
           {/* actions */}
-          {state.step !== OWNERSHIP || state.walletOwnership !== "none" ? (
+          {state.step === 1 && otpOpen ? (
+            <div className="mt-6">
+              <button onClick={back} className="rounded-2xl border border-border px-6 py-3.5 text-sm font-bold text-foreground transition-colors hover:bg-secondary">
+                Back
+              </button>
+            </div>
+          ) : state.step !== OWNERSHIP || state.walletOwnership !== "none" ? (
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
               {state.step > 0 && (
                 <button onClick={back} className="rounded-2xl border border-border px-6 py-3.5 text-sm font-bold text-foreground transition-colors hover:bg-secondary">

@@ -21,6 +21,7 @@ import { formatUtcTime } from "@/services/priceService";
 import { validateWallet, detectAddressKind } from "@/utils/walletValidation";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { cn } from "@/lib/utils";
+import { OtpVerify } from "@/components/auth/OtpVerify";
 
 export const Route = createFileRoute("/exchange/checkout")({
   head: () => ({ meta: [{ title: "Exchange checkout — PayCrivo" }] }),
@@ -48,6 +49,8 @@ function ExchangeCheckout() {
   const [loader, setLoader] = useState<string | null>(null);
   const [checkingDeposit, setCheckingDeposit] = useState(false);
   const [connecting, setConnecting] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [otpOpen, setOtpOpen] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
 
   const set = <K extends keyof ExchangeState>(key: K, value: ExchangeState[K]) =>
@@ -108,8 +111,7 @@ function ExchangeCheckout() {
     return Object.keys(e).length === 0;
   };
 
-  const next = () => {
-    if (!validateStep(state.step)) return;
+  const proceed = () => {
     const label = STEP_LOADER[state.step] ?? "Loading…";
     setLoader(label);
     window.setTimeout(() => {
@@ -122,8 +124,16 @@ function ExchangeCheckout() {
       });
     }, 2200);
   };
+  const next = () => {
+    if (!validateStep(state.step)) return;
+    if (state.step === 1 && !emailVerified) {
+      setOtpOpen(true);
+      return;
+    }
+    proceed();
+  };
 
-  const back = () => { setErrors({}); set("step", Math.max(state.step - 1, 0)); };
+  const back = () => { setErrors({}); setOtpOpen(false); set("step", Math.max(state.step - 1, 0)); };
 
   const connectWallet = () => {
     setConnecting(true);
@@ -196,16 +206,35 @@ function ExchangeCheckout() {
               </div>
             )}
 
-            {state.step === 1 && (
-              <Section title="Where should we send order updates?" subtitle="We'll use this email to show order updates and recovery details.">
+            {state.step === 1 && !otpOpen && (
+              <Section title="Verify your email" subtitle="We sent a 4-digit code so we can send your exchange updates.">
                 <Field label="Email address" error={errors.email}>
-                  <input type="email" value={state.email} onChange={(e) => set("email", e.target.value)}
+                  <input type="email" value={state.email}
+                    onChange={(e) => { set("email", e.target.value); setEmailVerified(false); }}
                     placeholder="you@email.com" className={inputCls(errors.email)} />
                 </Field>
                 <CheckRow checked={state.agreeTerms} onChange={(v) => set("agreeTerms", v)} error={errors.agreeTerms}>
                   I agree to the Terms, Privacy Policy, and Risk Disclosure.
                 </CheckRow>
+                {emailVerified && (
+                  <p className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-success">
+                    <Check className="size-4" /> Email verified
+                  </p>
+                )}
               </Section>
+            )}
+            {state.step === 1 && otpOpen && (
+              <OtpVerify
+                email={state.email.trim().toLowerCase()}
+                purpose="exchange_checkout"
+                title="Verify your email"
+                subtitle={`We sent a 4-digit code to ${state.email} so we can send your exchange updates.`}
+                onVerified={() => {
+                  setEmailVerified(true);
+                  setOtpOpen(false);
+                  proceed();
+                }}
+              />
             )}
 
             {state.step === 2 && (
@@ -360,7 +389,11 @@ function ExchangeCheckout() {
 
         {/* Footer action */}
         <div className="mt-5">
-          {state.step === REVIEW ? (
+          {state.step === 1 && otpOpen ? (
+            <button onClick={back} className="rounded-2xl border border-border px-6 py-3.5 text-sm font-bold text-foreground transition-colors hover:bg-secondary">
+              Back
+            </button>
+          ) : state.step === REVIEW ? (
             <button onClick={createOrder}
               className="bg-gradient-primary flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5">
               Create exchange order <ArrowRight className="size-4" />
