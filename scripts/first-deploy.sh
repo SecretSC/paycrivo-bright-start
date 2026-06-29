@@ -15,10 +15,12 @@ set -Eeuo pipefail
 
 # ---- Fixed PayCrivo paths ----
 PROJECT_ROOT="/var/www/paycrivo.com"
-FRONTEND_DIR="$PROJECT_ROOT/frontend"
-FRONTEND_DIST="$PROJECT_ROOT/frontend/dist"
+# The TanStack Start app lives at the project root and builds an SSR Node server.
+FRONTEND_DIR="$PROJECT_ROOT"
+SSR_ENTRY="$PROJECT_ROOT/.output/server/index.mjs"
 BACKEND_DIR="$PROJECT_ROOT/server"
 BACKEND_PORT="4100"
+WEB_SERVICE="paycrivo-web"
 API_SERVICE="paycrivo-api"
 WORKER_SERVICE="paycrivo-worker"
 SYSTEMD_SRC="$PROJECT_ROOT/docs/systemd"
@@ -56,14 +58,14 @@ else
   ok "Backend .env present"
 fi
 
-# ---- Frontend build ----
-step "Building frontend ($FRONTEND_DIR)"
+# ---- Frontend build (TanStack Start SSR -> Node server) ----
+step "Building frontend SSR server ($FRONTEND_DIR)"
 [ -d "$FRONTEND_DIR" ] || die "Frontend folder not found: $FRONTEND_DIR"
 cd "$FRONTEND_DIR"
 npm install
 npm run build
-[ -d "$FRONTEND_DIST" ] || die "Build did not produce dist: $FRONTEND_DIST"
-ok "Frontend built -> $FRONTEND_DIST"
+[ -f "$SSR_ENTRY" ] || die "Build did not produce SSR server: $SSR_ENTRY (check Nitro preset is node-server)"
+ok "Frontend SSR server built -> $SSR_ENTRY"
 
 # ---- Backend build ----
 step "Building backend ($BACKEND_DIR)"
@@ -90,7 +92,7 @@ fi
 # ---- Install systemd services ----
 step "Installing systemd services"
 if [ -d "$SYSTEMD_SRC" ]; then
-  for unit in "$API_SERVICE" "$WORKER_SERVICE"; do
+  for unit in "$WEB_SERVICE" "$API_SERVICE" "$WORKER_SERVICE"; do
     if [ -f "$SYSTEMD_SRC/${unit}.service" ]; then
       sudo cp "$SYSTEMD_SRC/${unit}.service" "/etc/systemd/system/${unit}.service"
       ok "Installed ${unit}.service"
@@ -103,6 +105,8 @@ fi
 
 # ---- Enable + start ONLY PayCrivo services ----
 step "Enabling and starting PayCrivo services"
+sudo systemctl enable --now "$WEB_SERVICE"
+ok "Started $WEB_SERVICE (SSR frontend)"
 sudo systemctl enable --now "$API_SERVICE"
 ok "Started $API_SERVICE (port $BACKEND_PORT)"
 if [ -f "/etc/systemd/system/${WORKER_SERVICE}.service" ]; then
@@ -123,6 +127,6 @@ fi
 
 echo
 echo "${GREEN}${BOLD}✓ PayCrivo first deployment complete.${RESET}"
-echo "  Frontend: $FRONTEND_DIST"
+echo "  Frontend: $SSR_ENTRY ($WEB_SERVICE)"
 echo "  API:      http://127.0.0.1:${BACKEND_PORT} ($API_SERVICE)"
 echo "  Updates:  bash scripts/update.sh"

@@ -6,10 +6,27 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+// Production deployment target: a standard Node.js server (Debian + Apache reverse proxy).
+//
+// We force the Nitro `node-server` preset so `npm run build` always produces
+// `.output/server/index.mjs` that starts a persistent HTTP server listening on
+// process.env.PORT. Cloudflare Workers is NOT the default target.
+//
+// Override at build time if you ever need a different target, e.g.:
+//   NITRO_PRESET=cloudflare-module npm run build
+//
+// Note: inside the Lovable preview sandbox the config package always uses the
+// cloudflare-module preset for the live preview; this `preset` only takes effect
+// for real production builds (e.g. on your VPS), which is exactly what we want.
+const nitroPreset = process.env.NITRO_PRESET ?? "node-server";
+
 export default defineConfig({
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+  },
+  nitro: {
+    preset: nitroPreset,
   },
 });
