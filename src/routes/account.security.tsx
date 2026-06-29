@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { BadgeCheck, MailCheck, Monitor } from "lucide-react";
+import { BadgeCheck, Clock, MailCheck, Monitor } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
+import { isPasswordValid, PASSWORD_ERROR } from "@/lib/password";
+import { PasswordChecklist } from "@/components/auth/PasswordChecklist";
 
 export const Route = createFileRoute("/account/security")({
   component: SecurityPage,
 });
 
 function SecurityPage() {
-  const { changePassword, logout } = useAuth();
+  const { changePassword, logout, lastLogin } = useAuth();
   const navigate = useNavigate();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
@@ -18,8 +20,8 @@ function SecurityPage() {
 
   const submit = () => {
     setError(null);
-    if (next.length < 8 || !/[a-z]/.test(next) || !/[A-Z]/.test(next) || !/[0-9]/.test(next)) {
-      setError("New password needs 8+ chars with upper, lower case and a number.");
+    if (!isPasswordValid(next)) {
+      setError(PASSWORD_ERROR);
       return;
     }
     if (next !== confirm) {
@@ -50,6 +52,7 @@ function SecurityPage() {
         <div className="mt-5 space-y-4">
           <input type="password" placeholder="Current password" value={current} onChange={(e) => setCurrent(e.target.value)} className={inp} />
           <input type="password" placeholder="New password" value={next} onChange={(e) => setNext(e.target.value)} className={inp} />
+          <PasswordChecklist value={next} />
           <input type="password" placeholder="Confirm new password" value={confirm} onChange={(e) => setConfirm(e.target.value)} className={inp} />
           {error && <p className="text-sm text-destructive">{error}</p>}
           <button onClick={submit} className="bg-gradient-primary rounded-2xl px-6 py-3 text-sm font-bold text-primary-foreground shadow-soft">Update password</button>
@@ -66,10 +69,22 @@ function SecurityPage() {
           </div>
           <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success">Active</span>
         </div>
+        <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+          <Clock className="size-3.5" /> Last login · {lastLogin ? new Date(lastLogin).toLocaleString() : "—"}
+        </div>
         <button onClick={() => { logout(); navigate({ to: "/login" }); }}
           className="mt-4 rounded-2xl border border-border px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary">
           Sign out of all sessions
         </button>
+      </div>
+
+      <div className="rounded-3xl border border-border bg-card p-6 shadow-elegant sm:p-8">
+        <h2 className="font-display text-lg font-bold text-foreground">Security activity</h2>
+        <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+          <li className="flex items-center gap-2"><BadgeCheck className="size-4 text-success" /> Email verified</li>
+          <li className="flex items-center gap-2"><MailCheck className="size-4 text-success" /> Email code verification enabled</li>
+          <li className="flex items-center gap-2"><Clock className="size-4" /> Last sign-in · {lastLogin ? new Date(lastLogin).toLocaleString() : "—"}</li>
+        </ul>
       </div>
     </div>
   );
