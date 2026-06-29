@@ -8,6 +8,9 @@ import { loadDraft, type Order } from "@/lib/checkout";
 import { loadExchangeDraft, type ExchangeOrder } from "@/lib/exchange";
 import { loadWallets, type SavedWallet } from "@/lib/wallets";
 import { CryptoIcon } from "@/components/CryptoIcon";
+import { getAsset } from "@/data/cryptoAssets";
+
+const iconColor = (symbol: string) => getAsset(symbol)?.iconColor ?? "#8b5cf6";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — PayCrivo" }] }),
@@ -91,7 +94,7 @@ function Dashboard() {
               {orders.slice(0, 4).map((o) => (
                 <Link key={o.id} to="/order/$orderId" params={{ orderId: o.id }}
                   className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3.5 hover:border-primary/40">
-                  <CryptoIcon symbol={o.coin} size={32} />
+                  <CryptoIcon symbol={o.coin} color={iconColor(o.coin)} size={32} />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-foreground">Buy {o.coin}</p>
                     <p className="truncate text-xs text-muted-foreground">{o.id} · {o.status}</p>
@@ -102,7 +105,7 @@ function Dashboard() {
               {exchangeOrders.slice(0, 3).map((o) => (
                 <Link key={o.id} to="/exchange/order/$orderId" params={{ orderId: o.id }}
                   className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3.5 hover:border-primary/40">
-                  <CryptoIcon symbol={o.receiveCoin} size={32} />
+                  <CryptoIcon symbol={o.receiveCoin} color={iconColor(o.receiveCoin)} size={32} />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-foreground">{o.sendCoin} → {o.receiveCoin}</p>
                     <p className="truncate text-xs text-muted-foreground">{o.id} · {o.status}</p>
@@ -123,7 +126,7 @@ function Dashboard() {
               )}
               {wallets.slice(0, 4).map((w) => (
                 <div key={w.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3.5">
-                  <CryptoIcon symbol={w.coin} size={28} />
+                  <CryptoIcon symbol={w.coin} color={iconColor(w.coin)} size={28} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-foreground">{w.nickname || w.coin}</p>
                     <p className="truncate text-xs text-muted-foreground">{w.address}</p>
