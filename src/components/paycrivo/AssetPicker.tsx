@@ -104,6 +104,9 @@ export function AssetPicker({
   const [recent, setRecent] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const selected = getAsset(value) ?? orderedAssets[0];
+  const snap = usePrices();
+  const px = (s: string) => snap.prices[s]?.price ?? getAsset(s)?.mockPriceUsd ?? 0;
+  const ch = (s: string) => snap.prices[s]?.change24h ?? getAsset(s)?.mockChange24h ?? 0;
 
   useEffect(() => {
     if (!open) return;
@@ -155,7 +158,7 @@ export function AssetPicker({
         )}
         aria-haspopup="dialog"
       >
-        <CoinIcon symbol={selected.symbol} color={selected.iconColor} size={compact ? 24 : 28} />
+        <CryptoIcon symbol={selected.symbol} color={selected.iconColor} size={compact ? 24 : 28} />
         <span className="min-w-0">
           <span className="block truncate text-sm font-bold text-foreground">{selected.symbol}</span>
           {!compact && (
@@ -214,6 +217,8 @@ export function AssetPicker({
                       asset={a}
                       active={a.symbol === value}
                       onSelect={() => pick(a.symbol)}
+                      price={px(a.symbol)}
+                      change={ch(a.symbol)}
                     />
                   ))}
                 </Section>
@@ -227,6 +232,8 @@ export function AssetPicker({
                       asset={a}
                       active={a.symbol === value}
                       onSelect={() => pick(a.symbol)}
+                      price={px(a.symbol)}
+                      change={ch(a.symbol)}
                     />
                   ))}
                 </Section>
@@ -244,6 +251,8 @@ export function AssetPicker({
                       asset={a}
                       active={a.symbol === value}
                       onSelect={() => pick(a.symbol)}
+                      price={px(a.symbol)}
+                      change={ch(a.symbol)}
                     />
                   ))
                 )}
