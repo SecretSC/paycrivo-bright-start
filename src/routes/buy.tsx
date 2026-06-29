@@ -76,7 +76,7 @@ function BuyFlow() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [confirming, setConfirming] = useState(false);
   const [createdId, setCreatedId] = useState<string | null>(null);
-  const [connecting, setConnecting] = useState(false);
+  const [walletStatus, setWalletStatus] = useState<WalletConnectStatus>("idle");
   const [loader, setLoader] = useState<LoaderLabel | null>(null);
   const [emailVerified, setEmailVerified] = useState(false);
   const [otpOpen, setOtpOpen] = useState(false);
