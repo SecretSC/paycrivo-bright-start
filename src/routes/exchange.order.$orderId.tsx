@@ -52,6 +52,11 @@ function ExchangeOrderPage() {
   const timeline = [
     { label: "Pair selected", status: "complete" as const },
     { label: "Receiving wallet added", status: "complete" as const },
+    {
+      label: "Wallet ownership",
+      status: order.walletOwnership === "confirmed" ? ("complete" as const) : ("staging" as const),
+      note: order.walletOwnership === "manual" ? "Manual review required" : "Confirmed",
+    },
     { label: "Deposit instruction generated", status: "complete" as const },
     { label: "Deposit detected", status: depositDone ? ("staging" as const) : ("pending" as const) },
     { label: "Exchange processing", status: "pending" as const },

@@ -508,6 +508,9 @@ function SummaryAccordion({ state, className }: { state: ExchangeState; classNam
           <SRow label="You receive (est.)" value={`${formatTokenAmount(quote.netReceive)} ${receiveAsset.symbol}`} />
           <SRow label="Receive network" value={state.receiveNetwork} />
           {state.wallet && <SRow label="Receiving wallet" value={`${state.wallet.slice(0, 6)}…${state.wallet.slice(-4)}`} />}
+          {state.walletOwnership !== "none" && (
+            <SRow label="Wallet ownership" value={state.walletOwnership === "confirmed" ? "Confirmed" : "Manual review required"} />
+          )}
           <SRow label="Exchange rate" value={`1 ${sendAsset.symbol} ≈ ${formatTokenAmount(quote.rate)} ${receiveAsset.symbol}`} />
           <SRow label="PayCrivo fee" value="0% (first exchange)" />
           <SRow label="Network fee (est.)" value={`${formatTokenAmount(quote.networkFee)} ${receiveAsset.symbol}`} />
