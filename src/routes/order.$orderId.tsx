@@ -51,8 +51,8 @@ function OrderStatusPage() {
 
   const timeline = [
     { label: "Order created", status: "complete" as const },
-    { label: "Verification", status: "staging" as const },
-    { label: "Payment", status: "pending" as const, note: "not integrated" },
+    { label: "Verification", status: "pending" as const },
+    { label: "Payment", status: "pending" as const },
     { label: "Processing", status: "pending" as const },
     { label: "Crypto delivery", status: "pending" as const },
   ];
@@ -120,11 +120,11 @@ function OrderStatusPage() {
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
-              <button onClick={() => toast("Receipt download is a placeholder in staging")}
+              <button onClick={() => toast("Receipt download coming soon")}
                 className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-border px-6 py-3 text-sm font-bold text-foreground hover:bg-secondary">
                 <Download className="size-4" /> Download receipt
               </button>
-              <button onClick={() => toast("Order cancellation is a placeholder in staging")}
+              <button onClick={() => toast("Contact support to cancel this order")}
                 className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-destructive/40 px-6 py-3 text-sm font-bold text-destructive hover:bg-destructive/10">
                 <XCircle className="size-4" /> Cancel order
               </button>
