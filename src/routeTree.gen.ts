@@ -13,6 +13,7 @@ import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as SwapRouteImport } from './routes/swap'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as ExchangeRouteImport } from './routes/exchange'
 import { Route as BuyCryptoRouteImport } from './routes/buy-crypto'
 import { Route as BuyRouteImport } from './routes/buy'
@@ -42,6 +43,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExchangeRoute = ExchangeRouteImport.update({
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/buy': typeof BuyRoute
   '/buy-crypto': typeof BuyCryptoRoute
   '/exchange': typeof ExchangeRouteWithChildren
+  '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/swap': typeof SwapRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/buy': typeof BuyRoute
   '/buy-crypto': typeof BuyCryptoRoute
+  '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/swap': typeof SwapRoute
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/buy': typeof BuyRoute
   '/buy-crypto': typeof BuyCryptoRoute
   '/exchange': typeof ExchangeRouteWithChildren
+  '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/swap': typeof SwapRoute
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/buy'
     | '/buy-crypto'
     | '/exchange'
+    | '/login'
     | '/signup'
     | '/sitemap.xml'
     | '/swap'
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
     | '/'
     | '/buy'
     | '/buy-crypto'
+    | '/login'
     | '/signup'
     | '/sitemap.xml'
     | '/swap'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '/buy'
     | '/buy-crypto'
     | '/exchange'
+    | '/login'
     | '/signup'
     | '/sitemap.xml'
     | '/swap'
@@ -198,6 +210,7 @@ export interface RootRouteChildren {
   BuyRoute: typeof BuyRoute
   BuyCryptoRoute: typeof BuyCryptoRoute
   ExchangeRoute: typeof ExchangeRouteWithChildren
+  LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SwapRoute: typeof SwapRoute
@@ -235,6 +248,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/exchange': {
@@ -331,6 +351,7 @@ const rootRouteChildren: RootRouteChildren = {
   BuyRoute: BuyRoute,
   BuyCryptoRoute: BuyCryptoRoute,
   ExchangeRoute: ExchangeRouteWithChildren,
+  LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SwapRoute: SwapRoute,
