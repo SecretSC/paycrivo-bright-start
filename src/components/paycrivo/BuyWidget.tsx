@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { ArrowRight, Lock, ShieldCheck } from "lucide-react";
 import { CoinIcon } from "./CoinIcon";
+import { FiatBadge } from "./FiatBadge";
 import { CustomSelect, type SelectOption } from "./CustomSelect";
 import { cryptos, fiats, paymentMethods, formatPrice } from "@/lib/paycrivo-data";
 
@@ -14,7 +15,7 @@ export function BuyWidget() {
     value: f.code,
     label: f.code,
     sub: f.name,
-    leading: <span className="text-lg leading-none">{f.flag}</span>,
+    leading: <FiatBadge symbol={f.symbol} />,
   }));
 
   const coinOpts: SelectOption[] = cryptos.map((c) => ({
