@@ -289,7 +289,12 @@ function ExchangeCheckout() {
               className="bg-gradient-primary flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5">
               Create exchange order <ArrowRight className="size-4" />
             </button>
-          ) : state.step === 3 ? null : (
+          ) : state.step === 3 ? (
+            <button onClick={next} disabled={!state.depositConfirmed}
+              className="bg-gradient-primary flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50">
+              Continue <ArrowRight className="size-4" />
+            </button>
+          ) : (
             <button onClick={next}
               className="bg-gradient-primary flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5">
               Continue <ArrowRight className="size-4" />

@@ -17,6 +17,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ExchangeIndexRouteImport } from './routes/exchange.index'
 import { Route as OrderOrderIdRouteImport } from './routes/order.$orderId'
 import { Route as ExchangeCheckoutRouteImport } from './routes/exchange.checkout'
+import { Route as ExchangeOrderOrderIdRouteImport } from './routes/exchange.order.$orderId'
 
 const SwapRoute = SwapRouteImport.update({
   id: '/swap',
@@ -58,6 +59,11 @@ const ExchangeCheckoutRoute = ExchangeCheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => ExchangeRoute,
 } as any)
+const ExchangeOrderOrderIdRoute = ExchangeOrderOrderIdRouteImport.update({
+  id: '/order/$orderId',
+  path: '/order/$orderId',
+  getParentRoute: () => ExchangeRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/exchange/': typeof ExchangeIndexRoute
+  '/exchange/order/$orderId': typeof ExchangeOrderOrderIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/exchange': typeof ExchangeIndexRoute
+  '/exchange/order/$orderId': typeof ExchangeOrderOrderIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/exchange/': typeof ExchangeIndexRoute
+  '/exchange/order/$orderId': typeof ExchangeOrderOrderIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/exchange/checkout'
     | '/order/$orderId'
     | '/exchange/'
+    | '/exchange/order/$orderId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/exchange/checkout'
     | '/order/$orderId'
     | '/exchange'
+    | '/exchange/order/$orderId'
   id:
     | '__root__'
     | '/'
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/exchange/checkout'
     | '/order/$orderId'
     | '/exchange/'
+    | '/exchange/order/$orderId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -188,17 +200,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExchangeCheckoutRouteImport
       parentRoute: typeof ExchangeRoute
     }
+    '/exchange/order/$orderId': {
+      id: '/exchange/order/$orderId'
+      path: '/order/$orderId'
+      fullPath: '/exchange/order/$orderId'
+      preLoaderRoute: typeof ExchangeOrderOrderIdRouteImport
+      parentRoute: typeof ExchangeRoute
+    }
   }
 }
 
 interface ExchangeRouteChildren {
   ExchangeCheckoutRoute: typeof ExchangeCheckoutRoute
   ExchangeIndexRoute: typeof ExchangeIndexRoute
+  ExchangeOrderOrderIdRoute: typeof ExchangeOrderOrderIdRoute
 }
 
 const ExchangeRouteChildren: ExchangeRouteChildren = {
   ExchangeCheckoutRoute: ExchangeCheckoutRoute,
   ExchangeIndexRoute: ExchangeIndexRoute,
+  ExchangeOrderOrderIdRoute: ExchangeOrderOrderIdRoute,
 }
 
 const ExchangeRouteWithChildren = ExchangeRoute._addFileChildren(
