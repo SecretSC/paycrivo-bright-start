@@ -1,33 +1,104 @@
 #!/usr/bin/env bash
-# PayCrivo production update: pull, rebuild, migrate, restart services.
-# Run from the project root: bash scripts/update.sh
-set -euo pipefail
+#
+# PayCrivo — Production Update Script
+# -----------------------------------
+# Deploys the latest Lovable/GitHub changes with one command.
+#
+#   cd /var/www/paycrivo.com
+#   bash scripts/update.sh
+#
+# Safe by design: stops on any error, prints every step, and only
+# touches PayCrivo. It will NOT affect SecretVoIP or any other project.
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$ROOT"
+set -Eeuo pipefail
 
-FRONTEND_DIR="$ROOT"
-[ -d "$ROOT/frontend" ] && FRONTEND_DIR="$ROOT/frontend"
+# ---- Fixed PayCrivo paths (do not point these at other projects) ----
+PROJECT_ROOT="/var/www/paycrivo.com"
+FRONTEND_DIR="$PROJECT_ROOT/frontend"
+FRONTEND_DIST="$PROJECT_ROOT/frontend/dist"
+BACKEND_DIR="$PROJECT_ROOT/server"
+BACKEND_PORT="4100"
+API_SERVICE="paycrivo-api"
+WORKER_SERVICE="paycrivo-worker"
 
-echo "==> Pulling latest code"
+# ---- Pretty output helpers ----
+BOLD="$(tput bold 2>/dev/null || true)"; RESET="$(tput sgr0 2>/dev/null || true)"
+GREEN="$(tput setaf 2 2>/dev/null || true)"; BLUE="$(tput setaf 4 2>/dev/null || true)"; RED="$(tput setaf 1 2>/dev/null || true)"
+STEP=0
+step() { STEP=$((STEP+1)); echo; echo "${BOLD}${BLUE}==> [${STEP}] $*${RESET}"; }
+ok()   { echo "${GREEN}    ✓ $*${RESET}"; }
+die()  { echo "${RED}${BOLD}ERROR: $*${RESET}" >&2; exit 1; }
+trap 'die "Update failed at step ${STEP}. No services were left half-restarted beyond this point."' ERR
+
+echo "${BOLD}PayCrivo production update${RESET}"
+echo "Project root : $PROJECT_ROOT"
+echo "Backend port : $BACKEND_PORT"
+echo "Services     : $API_SERVICE, $WORKER_SERVICE"
+
+# ---- Sanity checks: make sure we are operating on PayCrivo only ----
+step "Verifying PayCrivo project layout"
+[ -d "$PROJECT_ROOT" ] || die "Project root not found: $PROJECT_ROOT"
+[ -d "$PROJECT_ROOT/.git" ] || die "Not a git repository: $PROJECT_ROOT"
+cd "$PROJECT_ROOT"
+ok "Confirmed PayCrivo at $PROJECT_ROOT"
+
+# ---- Pull latest code ----
+step "Pulling latest code from GitHub"
 git pull --ff-only
+ok "Code up to date"
 
-echo "==> Rebuilding frontend ($FRONTEND_DIR)"
+# ---- Frontend build ----
+step "Building frontend ($FRONTEND_DIR)"
+[ -d "$FRONTEND_DIR" ] || die "Frontend folder not found: $FRONTEND_DIR"
 cd "$FRONTEND_DIR"
 npm install
 npm run build
+[ -d "$FRONTEND_DIST" ] || die "Build did not produce dist: $FRONTEND_DIST"
+ok "Frontend built -> $FRONTEND_DIST"
 
-echo "==> Rebuilding server"
-cd "$ROOT/server"
+# ---- Backend build ----
+step "Building backend ($BACKEND_DIR)"
+[ -d "$BACKEND_DIR" ] || die "Backend folder not found: $BACKEND_DIR"
+cd "$BACKEND_DIR"
 npm install
-npm run prisma:generate
-npm run build
-npm run migrate
-cd "$ROOT"
+if npm run | grep -qE '^[[:space:]]*build'; then
+  npm run build
+  ok "Backend built"
+else
+  echo "    (no build script defined, skipping)"
+fi
 
-echo "==> Restarting services"
-sudo systemctl restart paycrivo-api
-sudo systemctl restart paycrivo-worker 2>/dev/null || true
-sudo systemctl reload apache2 2>/dev/null || true
+# ---- Prisma migration (only if Prisma is present) ----
+step "Running database migration (Prisma, if present)"
+if [ -d "$BACKEND_DIR/prisma" ] || [ -f "$BACKEND_DIR/prisma/schema.prisma" ]; then
+  npx prisma generate
+  npx prisma migrate deploy
+  ok "Prisma migrations applied"
+else
+  echo "    (no Prisma schema found, skipping migration)"
+fi
 
-echo "==> Update complete."
+# ---- Restart ONLY PayCrivo services ----
+step "Restarting PayCrivo services"
+sudo systemctl restart "$API_SERVICE"
+ok "Restarted $API_SERVICE (port $BACKEND_PORT)"
+if systemctl list-unit-files | grep -q "^${WORKER_SERVICE}\.service"; then
+  sudo systemctl restart "$WORKER_SERVICE"
+  ok "Restarted $WORKER_SERVICE"
+else
+  echo "    ($WORKER_SERVICE not installed, skipping)"
+fi
+
+# ---- Reload Apache ----
+step "Reloading Apache"
+sudo systemctl reload apache2
+ok "Apache reloaded"
+
+# ---- Health summary ----
+step "Service status"
+systemctl --no-pager --lines=0 status "$API_SERVICE" || true
+
+echo
+echo "${GREEN}${BOLD}✓ PayCrivo update complete.${RESET}"
+echo "  Frontend: $FRONTEND_DIST"
+echo "  API:      http://127.0.0.1:${BACKEND_PORT} ($API_SERVICE)"
