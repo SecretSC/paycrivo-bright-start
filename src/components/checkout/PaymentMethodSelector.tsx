@@ -7,19 +7,19 @@ function MethodIcon({ icon }: { icon: PaymentMethodDef["icon"] }) {
   const base = "grid size-9 shrink-0 place-items-center rounded-xl border border-border bg-surface";
   switch (icon) {
     case "apple":
-      return <span className={cn(base, "font-bold text-foreground")}></span>;
-    case "google":
       return <span className={cn(base, "text-[10px] font-bold tracking-tight text-foreground")}>Pay</span>;
+    case "google":
+      return <span className={cn(base, "text-[10px] font-bold tracking-tight text-foreground")}>GPay</span>;
     case "bank":
-      return <span className={base}><Building2 className="size-4.5 text-primary" /></span>;
+      return <span className={base}><Building2 className="size-[18px] text-primary" /></span>;
     case "sepa":
-      return <span className={base}><Landmark className="size-4.5 text-primary" /></span>;
+      return <span className={base}><Landmark className="size-[18px] text-primary" /></span>;
     case "mobilepay":
-      return <span className={cn(base, "bg-[#5a78ff]/15")}><Smartphone className="size-4.5 text-[#5a78ff]" /></span>;
+      return <span className={cn(base, "bg-[#5a78ff]/15")}><Smartphone className="size-[18px] text-[#5a78ff]" /></span>;
     case "pix":
       return <span className={cn(base, "bg-[#32bcad]/15 text-xs font-bold text-[#1ba39c]")}>PIX</span>;
     default:
-      return <span className={base}><CreditCard className="size-4.5 text-primary" /></span>;
+      return <span className={base}><CreditCard className="size-[18px] text-primary" /></span>;
   }
 }
 
