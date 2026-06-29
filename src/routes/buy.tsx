@@ -514,12 +514,16 @@ function BuyFlow() {
             <ShieldCheck className="size-3.5" /> No real payment is processed in staging.
           </p>
           </div>
-        </div>
 
-        <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
-          <OrderSummary spend={state.spend} fiat={state.fiat} coin={state.coin} method={state.method}
-            network={state.step >= 4 ? state.network : undefined} wallet={state.step >= 4 ? state.wallet : undefined} />
-        </aside>
+          {/* Compact receipt-style summary accordion under the form */}
+          <SummaryAccordion
+            className="mt-5"
+            spend={state.spend} fiat={state.fiat} coin={state.coin} method={state.method}
+            network={state.step >= 4 ? state.network : undefined}
+            wallet={state.step >= 4 ? state.wallet : undefined}
+            ownership={state.step >= 5 ? state.walletOwnership : undefined}
+          />
+        </div>
       </div>
 
       {kycPreview && <KycPreviewModal onClose={() => setKycPreview(false)} />}
