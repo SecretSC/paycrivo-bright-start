@@ -389,7 +389,11 @@ function ExchangeCheckout() {
 
         {/* Footer action */}
         <div className="mt-5">
-          {state.step === REVIEW ? (
+          {state.step === 1 && otpOpen ? (
+            <button onClick={back} className="rounded-2xl border border-border px-6 py-3.5 text-sm font-bold text-foreground transition-colors hover:bg-secondary">
+              Back
+            </button>
+          ) : state.step === REVIEW ? (
             <button onClick={createOrder}
               className="bg-gradient-primary flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5">
               Create exchange order <ArrowRight className="size-4" />
