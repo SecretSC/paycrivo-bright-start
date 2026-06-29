@@ -528,7 +528,13 @@ function BuyFlow() {
           </div>
 
           {/* actions */}
-          {state.step !== OWNERSHIP || state.walletOwnership !== "none" ? (
+          {state.step === 1 && otpOpen ? (
+            <div className="mt-6">
+              <button onClick={back} className="rounded-2xl border border-border px-6 py-3.5 text-sm font-bold text-foreground transition-colors hover:bg-secondary">
+                Back
+              </button>
+            </div>
+          ) : state.step !== OWNERSHIP || state.walletOwnership !== "none" ? (
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
               {state.step > 0 && (
                 <button onClick={back} className="rounded-2xl border border-border px-6 py-3.5 text-sm font-bold text-foreground transition-colors hover:bg-secondary">
