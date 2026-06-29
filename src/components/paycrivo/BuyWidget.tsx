@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Info, Lock, ShieldCheck } from "lucide-react";
-import { FiatBadge } from "./FiatBadge";
+import { FiatSelector } from "./FiatSelector";
 import { AssetPicker } from "./AssetPicker";
-import { CustomSelect, type SelectOption } from "./CustomSelect";
+import { PaymentMethodSelector } from "@/components/checkout/PaymentMethodSelector";
 import { fiats } from "@/lib/paycrivo-data";
 import { getAsset, formatUsd, formatTokenAmount } from "@/data/cryptoAssets";
-import { paymentMethods, computeFees } from "@/lib/checkout";
+import { computeFees } from "@/lib/checkout";
+import { usePrices } from "@/services/priceService";
 
 export function BuyWidget() {
   const navigate = useNavigate();
@@ -14,30 +15,18 @@ export function BuyWidget() {
   const [fiat, setFiat] = useState("USD");
   const [coin, setCoin] = useState("BTC");
   const [method, setMethod] = useState("card");
-
-  const fiatOpts: SelectOption[] = fiats.map((f) => ({
-    value: f.code,
-    label: f.code,
-    sub: f.name,
-    leading: <FiatBadge symbol={f.symbol} />,
-  }));
-
-  const methodOpts: SelectOption[] = paymentMethods.map((m) => ({
-    value: m.id,
-    label: m.name,
-    sub: m.desc,
-  }));
+  const snap = usePrices();
 
   const selectedCoin = getAsset(coin)!;
   const selectedFiat = fiats.find((f) => f.code === fiat)!;
+  const price = snap.prices[coin]?.price ?? selectedCoin.mockPriceUsd;
 
-  const calc = useMemo(() => {
-    return computeFees(parseFloat(spend) || 0, selectedCoin, true);
-  }, [spend, selectedCoin]);
+  const calc = useMemo(
+    () => computeFees(parseFloat(spend) || 0, selectedCoin, true, price),
+    [spend, selectedCoin, price],
+  );
 
-  const goToCheckout = () => {
-    navigate({ to: "/buy", search: { spend, fiat, coin, method } });
-  };
+  const goToCheckout = () => navigate({ to: "/buy", search: { spend, fiat, coin, method } });
 
   return (
     <div className="w-full max-w-md rounded-3xl border border-border bg-card p-5 shadow-elegant sm:p-6" id="buy">
@@ -48,71 +37,48 @@ export function BuyWidget() {
         </span>
       </div>
 
-      {/* You Spend */}
-      <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        You Spend
-      </label>
+      <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">You Spend</label>
       <div className="flex items-center gap-2 rounded-2xl border border-border bg-surface p-2 transition-colors focus-within:border-primary/50">
         <div className="flex flex-1 items-center pl-2">
           <span className="mr-1 text-lg font-bold text-muted-foreground">{selectedFiat.symbol}</span>
           <input
-            inputMode="decimal"
-            value={spend}
+            inputMode="decimal" value={spend}
             onChange={(e) => setSpend(e.target.value.replace(/[^0-9.]/g, ""))}
             className="w-full bg-transparent text-2xl font-bold text-foreground outline-none"
             aria-label="Amount to spend"
           />
         </div>
-        <CustomSelect
-          className="w-32 shrink-0"
-          options={fiatOpts}
-          value={fiat}
-          onChange={setFiat}
-          align="right"
-          compact
-          searchable
-          searchPlaceholder="Search currency…"
-        />
+        <FiatSelector className="w-32 shrink-0" value={fiat} onChange={setFiat} compact />
       </div>
 
-      {/* arrow */}
       <div className="my-2 flex justify-center">
         <div className="grid size-9 place-items-center rounded-full border border-border bg-card text-primary shadow-sm">
           <ArrowRight className="size-4 rotate-90" />
         </div>
       </div>
 
-      {/* You Receive */}
-      <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        You Receive
-      </label>
+      <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">You Receive</label>
       <div className="flex items-center gap-2 rounded-2xl border border-border bg-surface p-2">
         <div className="flex flex-1 items-center pl-2">
-          <span className="w-full truncate text-2xl font-bold text-foreground">
-            {formatTokenAmount(calc.receive)}
-          </span>
+          <span className="w-full truncate text-2xl font-bold text-foreground">{formatTokenAmount(calc.receive)}</span>
         </div>
         <AssetPicker value={coin} onChange={setCoin} className="w-36 shrink-0" compact />
       </div>
 
-      {/* Payment method */}
-      <label className="mb-2 mt-4 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        Payment Method
-      </label>
-      <CustomSelect options={methodOpts} value={method} onChange={setMethod} />
+      <label className="mb-2 mt-4 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Payment Method</label>
+      <PaymentMethodSelector value={method} onChange={setMethod} />
 
-      {/* Fee breakdown */}
       <div className="mt-4 space-y-2 rounded-2xl bg-surface p-4 text-sm">
-        <Row
-          label="Exchange rate"
-          value={`1 ${coin} = ${selectedFiat.symbol}${formatUsd(selectedCoin.mockPriceUsd)}`}
-        />
+        <Row label="Exchange rate" value={`1 ${coin} = ${selectedFiat.symbol}${formatUsd(price)}`} />
         <Row label="Service fee (1%)" value={`${selectedFiat.symbol}${calc.serviceFee.toFixed(2)}`} />
         <Row label="Network fee" value={`${selectedFiat.symbol}${calc.networkFee.toFixed(2)}`} />
         <Row label="PayCrivo fee" value={`${selectedFiat.symbol}${calc.paycrivoFee.toFixed(2)}`} />
         <div className="flex items-center justify-between border-t border-border pt-2">
           <span className="font-medium text-success">First purchase discount</span>
           <span className="font-bold text-success">−100% PayCrivo fee</span>
+        </div>
+        <div className="flex items-center justify-between border-t border-border pt-2 text-xs text-muted-foreground">
+          <span>{snap.status === "live" ? "Live price" : "Price estimate"}</span>
         </div>
       </div>
 
