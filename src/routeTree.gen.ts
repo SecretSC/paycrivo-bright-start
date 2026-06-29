@@ -18,6 +18,8 @@ import { Route as ExchangeIndexRouteImport } from './routes/exchange.index'
 import { Route as OrderOrderIdRouteImport } from './routes/order.$orderId'
 import { Route as ExchangeCheckoutRouteImport } from './routes/exchange.checkout'
 import { Route as ExchangeOrderOrderIdRouteImport } from './routes/exchange.order.$orderId'
+import { Route as ApiEmailVerifyCodeRouteImport } from './routes/api/email/verify-code'
+import { Route as ApiEmailSendCodeRouteImport } from './routes/api/email/send-code'
 
 const SwapRoute = SwapRouteImport.update({
   id: '/swap',
@@ -64,6 +66,16 @@ const ExchangeOrderOrderIdRoute = ExchangeOrderOrderIdRouteImport.update({
   path: '/order/$orderId',
   getParentRoute: () => ExchangeRoute,
 } as any)
+const ApiEmailVerifyCodeRoute = ApiEmailVerifyCodeRouteImport.update({
+  id: '/api/email/verify-code',
+  path: '/api/email/verify-code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEmailSendCodeRoute = ApiEmailSendCodeRouteImport.update({
+  id: '/api/email/send-code',
+  path: '/api/email/send-code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -74,6 +86,8 @@ export interface FileRoutesByFullPath {
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/exchange/': typeof ExchangeIndexRoute
+  '/api/email/send-code': typeof ApiEmailSendCodeRoute
+  '/api/email/verify-code': typeof ApiEmailVerifyCodeRoute
   '/exchange/order/$orderId': typeof ExchangeOrderOrderIdRoute
 }
 export interface FileRoutesByTo {
@@ -84,6 +98,8 @@ export interface FileRoutesByTo {
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/exchange': typeof ExchangeIndexRoute
+  '/api/email/send-code': typeof ApiEmailSendCodeRoute
+  '/api/email/verify-code': typeof ApiEmailVerifyCodeRoute
   '/exchange/order/$orderId': typeof ExchangeOrderOrderIdRoute
 }
 export interface FileRoutesById {
@@ -96,6 +112,8 @@ export interface FileRoutesById {
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/exchange/': typeof ExchangeIndexRoute
+  '/api/email/send-code': typeof ApiEmailSendCodeRoute
+  '/api/email/verify-code': typeof ApiEmailVerifyCodeRoute
   '/exchange/order/$orderId': typeof ExchangeOrderOrderIdRoute
 }
 export interface FileRouteTypes {
@@ -109,6 +127,8 @@ export interface FileRouteTypes {
     | '/exchange/checkout'
     | '/order/$orderId'
     | '/exchange/'
+    | '/api/email/send-code'
+    | '/api/email/verify-code'
     | '/exchange/order/$orderId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -119,6 +139,8 @@ export interface FileRouteTypes {
     | '/exchange/checkout'
     | '/order/$orderId'
     | '/exchange'
+    | '/api/email/send-code'
+    | '/api/email/verify-code'
     | '/exchange/order/$orderId'
   id:
     | '__root__'
@@ -130,6 +152,8 @@ export interface FileRouteTypes {
     | '/exchange/checkout'
     | '/order/$orderId'
     | '/exchange/'
+    | '/api/email/send-code'
+    | '/api/email/verify-code'
     | '/exchange/order/$orderId'
   fileRoutesById: FileRoutesById
 }
@@ -140,6 +164,8 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SwapRoute: typeof SwapRoute
   OrderOrderIdRoute: typeof OrderOrderIdRoute
+  ApiEmailSendCodeRoute: typeof ApiEmailSendCodeRoute
+  ApiEmailVerifyCodeRoute: typeof ApiEmailVerifyCodeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -207,6 +233,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExchangeOrderOrderIdRouteImport
       parentRoute: typeof ExchangeRoute
     }
+    '/api/email/verify-code': {
+      id: '/api/email/verify-code'
+      path: '/api/email/verify-code'
+      fullPath: '/api/email/verify-code'
+      preLoaderRoute: typeof ApiEmailVerifyCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/email/send-code': {
+      id: '/api/email/send-code'
+      path: '/api/email/send-code'
+      fullPath: '/api/email/send-code'
+      preLoaderRoute: typeof ApiEmailSendCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -233,6 +273,8 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SwapRoute: SwapRoute,
   OrderOrderIdRoute: OrderOrderIdRoute,
+  ApiEmailSendCodeRoute: ApiEmailSendCodeRoute,
+  ApiEmailVerifyCodeRoute: ApiEmailVerifyCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
