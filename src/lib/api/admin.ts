@@ -135,7 +135,7 @@ export const adminApi = {
   },
 
   async getTicket(id: string, meId = "local-admin"): Promise<AdminTicketDetail> {
-    return withFallback(
+    return withFallback<AdminTicketDetail>(
       async () => {
         const { ticket, order } = await apiFetch<{ ticket: ApiSupportTicket & { messages: ApiSupportMessage[]; notes: AdminTicketNote[] }; order: unknown }>(
           `/api/admin/support/tickets/${encodeURIComponent(id)}`,
