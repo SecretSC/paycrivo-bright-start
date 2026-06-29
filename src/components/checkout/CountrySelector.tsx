@@ -76,7 +76,7 @@ export function CountrySelector({
         )}
         aria-haspopup="dialog"
       >
-        {selected ? <Flag flag={selected.flag} /> : null}
+        {selected ? <FlagIcon code={selected.code} size={26} /> : null}
         <span className={cn("min-w-0 flex-1 truncate text-sm font-medium", selected ? "text-foreground" : "text-muted-foreground")}>
           {selected ? `${selected.name} ${selected.dial}` : "Select country"}
         </span>
