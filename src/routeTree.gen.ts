@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as SwapRouteImport } from './routes/swap'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
@@ -23,6 +24,11 @@ import { Route as ExchangeOrderOrderIdRouteImport } from './routes/exchange.orde
 import { Route as ApiEmailVerifyCodeRouteImport } from './routes/api/email/verify-code'
 import { Route as ApiEmailSendCodeRouteImport } from './routes/api/email/send-code'
 
+const VerifyEmailRoute = VerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SwapRoute = SwapRouteImport.update({
   id: '/swap',
   path: '/swap',
@@ -97,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/swap': typeof SwapRoute
+  '/verify-email': typeof VerifyEmailRoute
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/exchange/': typeof ExchangeIndexRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/swap': typeof SwapRoute
+  '/verify-email': typeof VerifyEmailRoute
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/exchange': typeof ExchangeIndexRoute
@@ -127,6 +135,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/swap': typeof SwapRoute
+  '/verify-email': typeof VerifyEmailRoute
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/exchange/': typeof ExchangeIndexRoute
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/swap'
+    | '/verify-email'
     | '/exchange/checkout'
     | '/order/$orderId'
     | '/exchange/'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/swap'
+    | '/verify-email'
     | '/exchange/checkout'
     | '/order/$orderId'
     | '/exchange'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/swap'
+    | '/verify-email'
     | '/exchange/checkout'
     | '/order/$orderId'
     | '/exchange/'
@@ -189,6 +201,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SwapRoute: typeof SwapRoute
+  VerifyEmailRoute: typeof VerifyEmailRoute
   OrderOrderIdRoute: typeof OrderOrderIdRoute
   ApiEmailSendCodeRoute: typeof ApiEmailSendCodeRoute
   ApiEmailVerifyCodeRoute: typeof ApiEmailVerifyCodeRoute
@@ -196,6 +209,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/verify-email': {
+      id: '/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof VerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/swap': {
       id: '/swap'
       path: '/swap'
@@ -314,6 +334,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SwapRoute: SwapRoute,
+  VerifyEmailRoute: VerifyEmailRoute,
   OrderOrderIdRoute: OrderOrderIdRoute,
   ApiEmailSendCodeRoute: ApiEmailSendCodeRoute,
   ApiEmailVerifyCodeRoute: ApiEmailVerifyCodeRoute,
