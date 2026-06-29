@@ -52,7 +52,52 @@ bash scripts/deploy.sh
 This installs dependencies, builds the frontend, builds the server, runs
 database migrations, and seeds the first admin account.
 
-## 6. Run the API as a service
+The frontend build uses the Nitro **`node-server`** preset (configured in
+`vite.config.ts`), so `npm run build` produces a standalone Node server at
+`.output/server/index.mjs`. You can run it directly:
+
+```bash
+npm install
+npm run build
+PORT=4000 node .output/server/index.mjs   # persistent HTTP server on :4000
+```
+
+Cloudflare Workers is **not** the default target. To build for Cloudflare
+anyway, set `NITRO_PRESET=cloudflare-module npm run build`.
+
+## 6. Run the web (SSR) + API as services
+
+### Frontend SSR server — `paycrivo-web`
+
+Create `/etc/systemd/system/paycrivo-web.service` (or copy from
+`docs/systemd/paycrivo-web.service`):
+
+```ini
+[Unit]
+Description=PayCrivo Web (TanStack Start SSR)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/paycrivo.com
+Environment=PORT=4000
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node .output/server/index.mjs
+Restart=always
+RestartSec=5
+User=www-data
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now paycrivo-web
+sudo systemctl status paycrivo-web
+```
+
+### Express API service
 
 Create `/etc/systemd/system/paycrivo-api.service`:
 
@@ -92,6 +137,7 @@ sudo ufw allow 'WWW Full'   # 80 + 443
 sudo ufw enable
 ```
 
-The frontend's static files are served from `/var/www/paycrivo.com/frontend/dist`
-by Nginx or Apache (next guide). The API stays internal on `127.0.0.1:4100`
-and is reverse-proxied at `api.paycrivo.com`.
+The frontend runs as the `paycrivo-web` Node SSR server on `127.0.0.1:4000`
+and is reverse-proxied by Nginx or Apache at `paycrivo.com` (next guide). The
+Express API stays internal on `127.0.0.1:4100` and is reverse-proxied at
+`api.paycrivo.com`.
