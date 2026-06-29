@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ShieldCheck } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcon";
 import { getAsset, getPaymentMethod } from "@/lib/checkout";
 import { formatTokenAmount } from "@/data/cryptoAssets";
@@ -20,7 +20,7 @@ export function OrderSummary({
   const asset = getAsset(coin)!;
   const { fees, priceFiat, status, lastUpdated, money } = useQuote(spend, coin, fiat);
   const [showFees, setShowFees] = useState(false);
-  const totalFees = fees.serviceFee + fees.networkFee + fees.paycrivoFee - fees.discount;
+  const totalFees = fees.totalFees;
 
   return (
     <div className="rounded-2xl border border-border bg-card p-4 shadow-soft">
@@ -60,13 +60,15 @@ export function OrderSummary({
         </button>
         {showFees && (
           <div className="space-y-1 rounded-lg bg-surface px-2.5 py-2">
-            <Row label="Service fee (1%)" value={money(fees.serviceFee)} small />
+            <Row label="Service fee" value={money(fees.serviceFee)} small />
             <Row label="Network fee" value={money(fees.networkFee)} small />
             <Row label="PayCrivo fee" value={money(fees.paycrivoFee)} small />
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-medium text-success">First purchase discount</span>
-              <span className="font-bold text-success">−{money(fees.discount)}</span>
-            </div>
+            {fees.firstPurchase && (
+              <div className="flex items-center gap-1.5 pt-0.5 text-xs text-success">
+                <ShieldCheck className="size-3 shrink-0" />
+                <span className="font-semibold">First purchase includes 0% PayCrivo fee</span>
+              </div>
+            )}
           </div>
         )}
       </div>
