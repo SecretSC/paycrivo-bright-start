@@ -206,16 +206,35 @@ function ExchangeCheckout() {
               </div>
             )}
 
-            {state.step === 1 && (
-              <Section title="Where should we send order updates?" subtitle="We'll use this email to show order updates and recovery details.">
+            {state.step === 1 && !otpOpen && (
+              <Section title="Verify your email" subtitle="We sent a 4-digit code so we can send your exchange updates.">
                 <Field label="Email address" error={errors.email}>
-                  <input type="email" value={state.email} onChange={(e) => set("email", e.target.value)}
+                  <input type="email" value={state.email}
+                    onChange={(e) => { set("email", e.target.value); setEmailVerified(false); }}
                     placeholder="you@email.com" className={inputCls(errors.email)} />
                 </Field>
                 <CheckRow checked={state.agreeTerms} onChange={(v) => set("agreeTerms", v)} error={errors.agreeTerms}>
                   I agree to the Terms, Privacy Policy, and Risk Disclosure.
                 </CheckRow>
+                {emailVerified && (
+                  <p className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-success">
+                    <Check className="size-4" /> Email verified
+                  </p>
+                )}
               </Section>
+            )}
+            {state.step === 1 && otpOpen && (
+              <OtpVerify
+                email={state.email.trim().toLowerCase()}
+                purpose="exchange_checkout"
+                title="Verify your email"
+                subtitle={`We sent a 4-digit code to ${state.email} so we can send your exchange updates.`}
+                onVerified={() => {
+                  setEmailVerified(true);
+                  setOtpOpen(false);
+                  proceed();
+                }}
+              />
             )}
 
             {state.step === 2 && (
