@@ -3,10 +3,11 @@ import { useEffect, useState } from "react";
 type Theme = "light" | "dark";
 
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>("light");
+  const [theme, setTheme] = useState<Theme>("dark");
 
   useEffect(() => {
-    const stored = (localStorage.getItem("paycrivo-theme") as Theme | null) ?? "light";
+    // Default new visitors to dark mode; respect a saved preference if present.
+    const stored = (localStorage.getItem("paycrivo-theme") as Theme | null) ?? "dark";
     setTheme(stored);
     document.documentElement.classList.toggle("dark", stored === "dark");
   }, []);
