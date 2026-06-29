@@ -17,24 +17,27 @@ runs database migrations, and restarts the services.
 cd /var/www/paycrivo.com
 git pull
 
-# Frontend
+# Frontend (served from /var/www/paycrivo.com/frontend/dist)
+cd frontend
 npm install
 npm run build
 
-# Server
-cd server
+# Server (API on 127.0.0.1:4100)
+cd ../server
 npm install
 npm run build
 npm run migrate
-cd ..
 
-# Restart services
+# Restart services + reload Apache
 sudo systemctl restart paycrivo-api
 sudo systemctl restart paycrivo-worker   # only if a worker service is installed
-
-# Reload the web server
-sudo systemctl reload apache2   # or: sudo systemctl reload nginx
+sudo systemctl reload apache2
 ```
+
+> If your checkout keeps the frontend at the repository root instead of a
+> `frontend/` subfolder, run the frontend `npm` commands from the root and
+> point Apache's DocumentRoot at the build output there. `scripts/update.sh`
+> auto-detects either layout.
 
 ## Rollback
 

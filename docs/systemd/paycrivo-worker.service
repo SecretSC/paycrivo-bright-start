@@ -1,0 +1,23 @@
+# PayCrivo background worker — systemd unit (optional)
+# Install to: /etc/systemd/system/paycrivo-worker.service
+# Then: sudo systemctl daemon-reload && sudo systemctl enable --now paycrivo-worker
+#
+# The worker is optional. Enable it only once server/dist/worker.js exists
+# (background jobs such as queued email retries or housekeeping).
+
+[Unit]
+Description=PayCrivo Worker
+After=network.target postgresql.service paycrivo-api.service
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/paycrivo.com/server
+EnvironmentFile=/var/www/paycrivo.com/server/.env
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node dist/worker.js
+Restart=always
+RestartSec=5
+User=www-data
+
+[Install]
+WantedBy=multi-user.target

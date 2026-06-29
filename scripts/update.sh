@@ -6,10 +6,14 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+FRONTEND_DIR="$ROOT"
+[ -d "$ROOT/frontend" ] && FRONTEND_DIR="$ROOT/frontend"
+
 echo "==> Pulling latest code"
 git pull --ff-only
 
-echo "==> Rebuilding frontend"
+echo "==> Rebuilding frontend ($FRONTEND_DIR)"
+cd "$FRONTEND_DIR"
 npm install
 npm run build
 
@@ -24,12 +28,6 @@ cd "$ROOT"
 echo "==> Restarting services"
 sudo systemctl restart paycrivo-api
 sudo systemctl restart paycrivo-worker 2>/dev/null || true
-
-# Reload whichever web server is installed
-if systemctl is-active --quiet apache2; then
-  sudo systemctl reload apache2
-elif systemctl is-active --quiet nginx; then
-  sudo systemctl reload nginx
-fi
+sudo systemctl reload apache2 2>/dev/null || true
 
 echo "==> Update complete."

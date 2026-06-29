@@ -92,6 +92,6 @@ sudo ufw allow 'WWW Full'   # 80 + 443
 sudo ufw enable
 ```
 
-The frontend's static files are served from `/var/www/paycrivo.com/dist`
-by Nginx or Apache (next guide). The API stays internal on `127.0.0.1:4000`
+The frontend's static files are served from `/var/www/paycrivo.com/frontend/dist`
+by Nginx or Apache (next guide). The API stays internal on `127.0.0.1:4100`
 and is reverse-proxied at `api.paycrivo.com`.

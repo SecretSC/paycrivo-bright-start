@@ -1,20 +1,48 @@
-export function Logo() {
+import logoWordmark from "@/assets/paycrivo-logo.png";
+import logoMark from "@/assets/paycrivo-mark.png";
+
+interface LogoProps {
+  /** Render only the "P" mark icon instead of the full wordmark. */
+  markOnly?: boolean;
+  /** Render as a plain element (no link). */
+  asLink?: boolean;
+  /** Extra classes for the wrapper. */
+  className?: string;
+  /** Tailwind height classes for the image. */
+  imgClassName?: string;
+}
+
+export function Logo({
+  markOnly = false,
+  asLink = true,
+  className = "",
+  imgClassName,
+}: LogoProps = {}) {
+  const src = markOnly ? logoMark : logoWordmark;
+  const sizing =
+    imgClassName ??
+    (markOnly
+      ? "h-9 w-auto"
+      : "h-8 w-auto sm:h-9 max-w-[150px] sm:max-w-[180px]");
+
+  const img = (
+    <img
+      src={src}
+      alt="PayCrivo"
+      className={`${sizing} select-none object-contain`}
+      draggable={false}
+      width={markOnly ? 36 : 180}
+      height={36}
+    />
+  );
+
+  if (!asLink) {
+    return <span className={`inline-flex items-center ${className}`}>{img}</span>;
+  }
+
   return (
-    <a href="/" className="flex items-center gap-2.5">
-      <span className="bg-gradient-primary grid size-9 place-items-center rounded-xl text-primary-foreground shadow-glow">
-        <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden>
-          <path
-            d="M6 19V5h6a4.5 4.5 0 0 1 0 9H8"
-            stroke="currentColor"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </span>
-      <span className="font-display text-xl font-extrabold tracking-tight text-foreground">
-        Pay<span className="text-gradient">Crivo</span>
-      </span>
+    <a href="/" className={`inline-flex items-center ${className}`} aria-label="PayCrivo home">
+      {img}
     </a>
   );
 }

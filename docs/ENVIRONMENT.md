@@ -17,7 +17,7 @@ must rebuild (`npm run build`) after changing them.
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `PORT` | Yes | Port the API listens on (default `4000`) |
+| `PORT` | Yes | Port the API listens on (default `4100`) |
 | `NODE_ENV` | Yes | `production` |
 | `CORS_ORIGINS` | Yes | Comma-separated allowed frontend origins |
 | `DATABASE_URL` | Yes | PostgreSQL connection string |

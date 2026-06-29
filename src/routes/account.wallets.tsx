@@ -8,6 +8,7 @@ import { getAsset } from "@/data/cryptoAssets";
 import { networksForAsset, validateWalletAddress } from "@/lib/checkout";
 import { addWallet, deleteWallet, loadWallets, setDefaultWallet, type SavedWallet } from "@/lib/wallets";
 import { useAuth } from "@/lib/auth";
+import { WalletConnect, type WalletConnectStatus } from "@/components/wallet/WalletConnect";
 
 export const Route = createFileRoute("/account/wallets")({
   component: WalletsPage,
@@ -21,6 +22,7 @@ function WalletsPage() {
   const [address, setAddress] = useState("");
   const [nickname, setNickname] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [ownership, setOwnership] = useState<WalletConnectStatus>("idle");
 
   useEffect(() => {
     if (user) setWallets(loadWallets(user.id));
@@ -33,8 +35,10 @@ function WalletsPage() {
     setError(null);
     const err = validateWalletAddress(address, network);
     if (err) { setError(err); return; }
+    if (ownership !== "verified") { setError("Please confirm wallet ownership first."); return; }
     setWallets(addWallet(user.id, { coin, network, address: address.trim(), nickname: nickname.trim() }));
     setAddress(""); setNickname("");
+    setOwnership("idle");
     toast.success("Wallet saved");
   };
 
@@ -63,6 +67,10 @@ function WalletsPage() {
           <input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="e.g. My Ledger" className={inp} />
         </div>
         {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+        <div className="mt-5">
+          <label className={lbl}>Confirm wallet ownership</label>
+          <WalletConnect coin={coin} network={network} status={ownership} onStatusChange={setOwnership} />
+        </div>
         <button onClick={add} className="bg-gradient-primary mt-5 inline-flex items-center gap-2 rounded-2xl px-6 py-3 text-sm font-bold text-primary-foreground shadow-soft">
           <Plus className="size-4" /> Add wallet
         </button>

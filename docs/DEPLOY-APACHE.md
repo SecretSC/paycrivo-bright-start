@@ -1,7 +1,7 @@
 # Deploy with Apache
 
 Assumes you completed [DEPLOY-DEBIAN.md](./DEPLOY-DEBIAN.md) and the API runs on
-`127.0.0.1:4000`.
+`127.0.0.1:4100`.
 
 ## 1. Install Apache + modules
 
@@ -19,9 +19,9 @@ sudo systemctl restart apache2
 <VirtualHost *:80>
     ServerName paycrivo.com
     ServerAlias www.paycrivo.com
-    DocumentRoot /var/www/paycrivo.com/dist
+    DocumentRoot /var/www/paycrivo.com/frontend/dist
 
-    <Directory /var/www/paycrivo.com/dist>
+    <Directory /var/www/paycrivo.com/frontend/dist>
         Options -Indexes +FollowSymLinks
         AllowOverride All
         Require all granted
@@ -50,8 +50,8 @@ sudo systemctl restart apache2
 <VirtualHost *:80>
     ServerName api.paycrivo.com
     ProxyPreserveHost On
-    ProxyPass / http://127.0.0.1:4000/
-    ProxyPassReverse / http://127.0.0.1:4000/
+    ProxyPass / http://127.0.0.1:4100/
+    ProxyPassReverse / http://127.0.0.1:4100/
     RequestHeader set X-Forwarded-Proto "http"
 </VirtualHost>
 ```

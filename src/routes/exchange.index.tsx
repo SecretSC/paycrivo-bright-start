@@ -30,7 +30,7 @@ export const Route = createFileRoute("/exchange/")({
 });
 
 const trustBullets = [
-  "No account required for preview",
+  "No account required",
   "Transparent exchange rate",
   "Network-aware wallet checks",
   "250+ crypto assets",
@@ -154,7 +154,7 @@ function ExchangeLanding() {
             {[
               { icon: <ShieldCheck className="size-5" />, t: "Transparent rates", d: "See the exchange rate and fees before you commit." },
               { icon: <Network className="size-5" />, t: "Network-aware validation", d: "We check that your wallet matches the selected network." },
-              { icon: <Lock className="size-5" />, t: "Streamlined swap flow", d: "Identity verification is not part of this prototype exchange flow." },
+              { icon: <Lock className="size-5" />, t: "Streamlined swap flow", d: "Identity verification is not required for the exchange flow." },
               { icon: <FileCheck2 className="size-5" />, t: "Clear order tracking", d: "Follow every step from deposit to delivery." },
               { icon: <Layers className="size-5" />, t: "250+ supported assets", d: "Swap across major coins, stablecoins, and more." },
               { icon: <Wallet className="size-5" />, t: "Mobile-friendly checkout", d: "A clean, compact flow that works on any device." },
@@ -178,7 +178,7 @@ function ExchangeLanding() {
         <section className="mx-auto max-w-3xl px-4 pb-20 text-center sm:px-6">
           <div className="rounded-3xl border border-border bg-card p-8 shadow-elegant">
             <h2 className="font-display text-2xl font-bold text-foreground">Ready to swap?</h2>
-            <p className="mt-2 text-muted-foreground">Start an exchange in seconds — no account required for preview.</p>
+            <p className="mt-2 text-muted-foreground">Start an exchange in seconds — no account required.</p>
             <button onClick={() => startExchange()}
               className="bg-gradient-primary mt-6 inline-flex items-center gap-2 rounded-2xl px-7 py-3.5 text-sm font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5">
               Exchange now <ArrowRight className="size-4" />
@@ -224,8 +224,8 @@ function PairCard({ from, to, onExchange }: { from: string; to: string; onExchan
 
 const FAQ_ITEMS = [
   { q: "How does crypto exchange work?", a: "You choose a pair, enter your receiving wallet, send the source crypto to the provided deposit address, and PayCrivo delivers the target asset to your wallet." },
-  { q: "Do I need an account?", a: "No account is required to preview and start an exchange in this prototype." },
-  { q: "Do I need KYC for exchange?", a: "No KYC is required for the exchange flow in this prototype." },
+  { q: "Do I need an account?", a: "No account is required to start an exchange." },
+  { q: "Do I need KYC for exchange?", a: "No KYC is required for the exchange flow." },
   { q: "How are rates calculated?", a: "Rates are derived from live market prices for both assets, refreshed every 10 seconds, minus any applicable network fee and PayCrivo spread." },
   { q: "What happens if I choose the wrong network?", a: "Sending to the wrong network can result in lost funds. PayCrivo validates your receiving address against the selected network and asks you to confirm network risk before continuing." },
   { q: "Can I track my exchange order?", a: "Yes. Every exchange generates an order with a status timeline you can revisit at any time." },

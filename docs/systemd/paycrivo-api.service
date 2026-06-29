@@ -1,0 +1,22 @@
+# PayCrivo API — systemd unit
+# Install to: /etc/systemd/system/paycrivo-api.service
+# Then: sudo systemctl daemon-reload && sudo systemctl enable --now paycrivo-api
+
+[Unit]
+Description=PayCrivo API
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/paycrivo.com/server
+EnvironmentFile=/var/www/paycrivo.com/server/.env
+# API listens on 127.0.0.1:4100 (reverse-proxied by Apache at api.paycrivo.com)
+Environment=PORT=4100
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node dist/index.js
+Restart=always
+RestartSec=5
+User=www-data
+
+[Install]
+WantedBy=multi-user.target

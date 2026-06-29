@@ -7,6 +7,7 @@ import { countries } from "@/data/countries";
 import { useAuth } from "@/lib/auth";
 import { isPasswordValid, PASSWORD_ERROR } from "@/lib/password";
 import { PasswordChecklist } from "@/components/auth/PasswordChecklist";
+import { Logo } from "@/components/paycrivo/Logo";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -73,6 +74,7 @@ function SignupPage() {
   return (
     <PageChrome>
       <main className="mx-auto flex max-w-md flex-col px-4 py-12 sm:py-16">
+        <Logo asLink imgClassName="h-9 w-auto max-w-[170px] mb-6" />
         <h1 className="font-display text-2xl font-bold text-foreground">Create your account</h1>
         <p className="mt-1.5 text-sm text-muted-foreground">Join PayCrivo to buy and exchange crypto.</p>
 

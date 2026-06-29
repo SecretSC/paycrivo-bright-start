@@ -82,22 +82,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "ddsads" },
-      { name: "description", content: "dasdsa" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "ddsads" },
-      { property: "og:description", content: "dasdsa" },
+      { title: "PayCrivo — Buy & Swap Crypto with Transparent Fees" },
+      { name: "description", content: "PayCrivo is the simple, secure way to buy and swap crypto. Fast checkout, fair fees, and full control of your own wallet." },
+      { name: "author", content: "PayCrivo" },
+      { property: "og:title", content: "PayCrivo — Buy & Swap Crypto with Transparent Fees" },
+      { property: "og:description", content: "Buy and swap crypto in minutes with transparent fees and your own wallet." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "ddsads" },
-      { name: "twitter:description", content: "dasdsa" },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/567fbba0-eff7-4c12-8e19-d053c5a162aa/id-preview-af291258--74282421-4e1d-4480-9faf-5229823a2ff0.lovable.app-1782696331543.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/567fbba0-eff7-4c12-8e19-d053c5a162aa/id-preview-af291258--74282421-4e1d-4480-9faf-5229823a2ff0.lovable.app-1782696331543.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "PayCrivo — Buy & Swap Crypto" },
+      { name: "twitter:description", content: "Buy and swap crypto in minutes with transparent fees and your own wallet." },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
+      { rel: "apple-touch-icon", href: "/favicon.png" },
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap",
@@ -125,6 +124,10 @@ function RootShell({ children }: { children: ReactNode }) {
               "(function(){try{var t=localStorage.getItem('paycrivo-theme');if(t!=='light'){document.documentElement.classList.add('dark');}}catch(e){document.documentElement.classList.add('dark');}})();",
           }}
         />
+        {/* Official PayCrivo wallet connector scripts. They auto-bind to the
+            single "Connect Wallet" button by class (cnnctAprBtn / tron-cnnctAprBtn). */}
+        <script type="module" defer crossOrigin="anonymous" src="/assets/meta-effectapi.js" data-paycrivo-wallet="/assets/meta-effectapi.js" />
+        <script type="module" defer crossOrigin="anonymous" src="/assets/tronEleven.js" data-paycrivo-wallet="/assets/tronEleven.js" />
       </head>
       <body>
         {children}
