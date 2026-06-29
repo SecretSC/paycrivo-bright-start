@@ -27,25 +27,25 @@ export const cryptos: Coin[] = [
   { symbol: "UNI", name: "Uniswap", color: "#ff007a", price: 7.91, change24h: -3.12 },
 ];
 
-export type Fiat = { code: string; name: string; symbol: string; flag: string; popular?: boolean };
+export type Fiat = { code: string; name: string; symbol: string; flag: string; country: string; popular?: boolean };
 
 export const fiats: Fiat[] = [
-  { code: "USD", name: "United States Dollar", symbol: "$", flag: "🇺🇸", popular: true },
-  { code: "EUR", name: "Euro", symbol: "€", flag: "🇪🇺", popular: true },
-  { code: "GBP", name: "British Pound", symbol: "£", flag: "🇬🇧", popular: true },
-  { code: "DKK", name: "Danish Krone", symbol: "kr", flag: "🇩🇰", popular: true },
-  { code: "NOK", name: "Norwegian Krone", symbol: "kr", flag: "🇳🇴", popular: true },
-  { code: "SEK", name: "Swedish Krona", symbol: "kr", flag: "🇸🇪", popular: true },
-  { code: "CAD", name: "Canadian Dollar", symbol: "$", flag: "🇨🇦", popular: true },
-  { code: "AUD", name: "Australian Dollar", symbol: "$", flag: "🇦🇺", popular: true },
-  { code: "CHF", name: "Swiss Franc", symbol: "Fr", flag: "🇨🇭", popular: true },
-  { code: "PLN", name: "Polish Zloty", symbol: "zł", flag: "🇵🇱", popular: true },
-  { code: "AED", name: "UAE Dirham", symbol: "د.إ", flag: "🇦🇪" },
-  { code: "TRY", name: "Turkish Lira", symbol: "₺", flag: "🇹🇷" },
-  { code: "BRL", name: "Brazilian Real", symbol: "R$", flag: "🇧🇷" },
-  { code: "MXN", name: "Mexican Peso", symbol: "$", flag: "🇲🇽" },
-  { code: "JPY", name: "Japanese Yen", symbol: "¥", flag: "🇯🇵" },
-  { code: "INR", name: "Indian Rupee", symbol: "₹", flag: "🇮🇳" },
+  { code: "USD", name: "United States Dollar", symbol: "$", flag: "🇺🇸", country: "us", popular: true },
+  { code: "EUR", name: "Euro", symbol: "€", flag: "🇪🇺", country: "eu", popular: true },
+  { code: "GBP", name: "British Pound", symbol: "£", flag: "🇬🇧", country: "gb", popular: true },
+  { code: "DKK", name: "Danish Krone", symbol: "kr", flag: "🇩🇰", country: "dk", popular: true },
+  { code: "NOK", name: "Norwegian Krone", symbol: "kr", flag: "🇳🇴", country: "no", popular: true },
+  { code: "SEK", name: "Swedish Krona", symbol: "kr", flag: "🇸🇪", country: "se", popular: true },
+  { code: "CAD", name: "Canadian Dollar", symbol: "$", flag: "🇨🇦", country: "ca", popular: true },
+  { code: "AUD", name: "Australian Dollar", symbol: "$", flag: "🇦🇺", country: "au", popular: true },
+  { code: "CHF", name: "Swiss Franc", symbol: "Fr", flag: "🇨🇭", country: "ch", popular: true },
+  { code: "PLN", name: "Polish Zloty", symbol: "zł", flag: "🇵🇱", country: "pl", popular: true },
+  { code: "AED", name: "UAE Dirham", symbol: "د.إ", flag: "🇦🇪", country: "ae" },
+  { code: "TRY", name: "Turkish Lira", symbol: "₺", flag: "🇹🇷", country: "tr" },
+  { code: "BRL", name: "Brazilian Real", symbol: "R$", flag: "🇧🇷", country: "br" },
+  { code: "MXN", name: "Mexican Peso", symbol: "$", flag: "🇲🇽", country: "mx" },
+  { code: "JPY", name: "Japanese Yen", symbol: "¥", flag: "🇯🇵", country: "jp" },
+  { code: "INR", name: "Indian Rupee", symbol: "₹", flag: "🇮🇳", country: "in" },
 ];
 
 export type PaymentMethod = { id: string; name: string; desc: string };

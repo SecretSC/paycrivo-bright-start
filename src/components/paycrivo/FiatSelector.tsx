@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Search, X } from "lucide-react";
 import { fiats, type Fiat } from "@/lib/paycrivo-data";
 import { cn } from "@/lib/utils";
+import { FlagIcon } from "@/components/FlagIcon";
 
 const RECENT_KEY = "paycrivo-recent-fiat";
 
@@ -12,17 +13,6 @@ function readRecent(): string[] {
   } catch {
     return [];
   }
-}
-
-function Flag({ flag }: { flag: string }) {
-  return (
-    <span
-      className="grid size-7 shrink-0 place-items-center overflow-hidden rounded-full border border-border bg-secondary text-base leading-none"
-      aria-hidden
-    >
-      {flag}
-    </span>
-  );
 }
 
 function Row({ f, active, onSelect }: { f: Fiat; active: boolean; onSelect: () => void }) {
@@ -37,7 +27,7 @@ function Row({ f, active, onSelect }: { f: Fiat; active: boolean; onSelect: () =
         active ? "bg-accent" : "hover:bg-secondary",
       )}
     >
-      <Flag flag={f.flag} />
+      <FlagIcon code={f.country} size={28} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="text-sm font-bold text-foreground">{f.code}</span>
@@ -120,7 +110,7 @@ export function FiatSelector({
         )}
         aria-haspopup="dialog"
       >
-        <Flag flag={selected.flag} />
+        <FlagIcon code={selected.country} size={compact ? 22 : 26} />
         <span className="min-w-0">
           <span className="block truncate text-sm font-bold text-foreground">{selected.code}</span>
           {!compact && <span className="block truncate text-xs text-muted-foreground">{selected.name}</span>}

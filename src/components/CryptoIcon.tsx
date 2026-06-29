@@ -1,68 +1,101 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-// Symbols with recognizable brand icons in the open-source spothq icon set.
-const BRAND_ICONS = new Set([
-  "BTC","ETH","SOL","XRP","USDT","USDC","BNB","DOGE","TRX","ADA","LTC","AVAX","LINK","DOT",
-  "MATIC","BCH","XLM","SHIB","UNI","ETC","ATOM","NEAR","FIL","ICP","HBAR","VET","ALGO","AAVE",
-  "MKR","CRV","COMP","SUSHI","SNX","GRT","SAND","MANA","AXS","ENJ","CHZ","BAT","ZIL","IOTA",
-  "QNT","OKB","CRO","CAKE","1INCH","EOS","DASH","ZEC","XMR","WAVES","NEO","THETA","FLOW",
-  "EGLD","KAVA","ROSE","CELO","LRC","ANKR","STORJ","REN","ZRX","BAL","YFI","RUNE","KSM",
-  "FTM","APE","GALA","FET","RNDR","OCEAN","AGIX","STX","HNT","AR","DCR","RVN","DGB","SC","ONT",
-  "ICX","LSK","NMR","BAND","UMA","KNC","BNT","REQ","OGN","CVC","ELF","HOT","DENT","BTT","JST",
-]);
+// Locally bundled SVG logos (instant, same-origin, never a broken remote image).
+const localIcons = import.meta.glob(
+  "/node_modules/cryptocurrency-icons/svg/color/*.svg",
+  { eager: true, query: "?url", import: "default" },
+) as Record<string, string>;
 
-// Symbols whose live icon lives under a different/legacy ticker.
-const ICON_ALIAS: Record<string, string> = { POL: "matic", RNDR: "rndr" };
-
-function iconUrl(symbol: string) {
-  const slug = (ICON_ALIAS[symbol] ?? symbol).toLowerCase();
-  return `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@1.0.0/svg/color/${slug}.svg`;
+function localUrl(slug: string): string | undefined {
+  return localIcons[`/node_modules/cryptocurrency-icons/svg/color/${slug}.svg`];
 }
+
+// Some assets share a logo with a legacy/related ticker in the bundled set.
+const SLUG_ALIAS: Record<string, string> = {
+  POL: "matic",
+  RNDR: "rndr",
+  WETH: "eth",
+};
+
+// Newer assets missing from the bundled set — served from a reliable CDN.
+const remoteUrl = (slug: string) =>
+  `https://assets.coincap.io/assets/icons/${slug}@2x.png`;
 
 export function CryptoIcon({
   symbol,
   color,
-  size = 28,
+  size = 32,
 }: {
   symbol: string;
   color: string;
   size?: number;
 }) {
-  const [failed, setFailed] = useState(false);
-  const hasBrand = (BRAND_ICONS.has(symbol) || symbol in ICON_ALIAS) && !failed;
+  const sym = (symbol || "").toUpperCase();
+  const slug = (SLUG_ALIAS[sym] ?? sym).toLowerCase();
 
-  if (hasBrand) {
-    return (
-      <img
-        src={iconUrl(symbol)}
-        alt={`${symbol} icon`}
-        width={size}
-        height={size}
-        loading="lazy"
-        onError={() => setFailed(true)}
-        className="shrink-0 rounded-full"
-        style={{ width: size, height: size }}
-      />
-    );
-  }
+  // Ordered candidate sources: bundled SVG first, then CDN.
+  const sources = useMemo(() => {
+    const out: string[] = [];
+    const l = localUrl(slug);
+    if (l) out.push(l);
+    if (slug) out.push(remoteUrl(slug));
+    return out;
+  }, [slug]);
 
-  // Polished ticker badge fallback for less-known / mock assets.
-  const ticker = symbol.replace(/[^A-Z0-9]/gi, "").slice(0, 4);
+  const [idx, setIdx] = useState(0);
+  const [loaded, setLoaded] = useState(false);
+  const src = sources[idx];
+  const exhausted = idx >= sources.length;
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  // Reset load state when the source changes, and immediately mark loaded for
+  // images that are already complete (data URIs / cached) where onLoad won't fire.
+  useEffect(() => {
+    setLoaded(false);
+    const el = imgRef.current;
+    if (el && el.complete && el.naturalWidth > 0) setLoaded(true);
+  }, [src]);
+
+  const ticker = sym.replace(/[^A-Z0-9]/gi, "").slice(0, 4);
   const fontScale = ticker.length >= 4 ? 0.3 : ticker.length === 3 ? 0.34 : 0.42;
+
   return (
     <span
-      className="inline-flex shrink-0 items-center justify-center rounded-full font-bold uppercase text-white"
-      style={{
-        width: size,
-        height: size,
-        background: `linear-gradient(135deg, ${color}, ${color}cc)`,
-        fontSize: size * fontScale,
-        letterSpacing: "-0.02em",
-        boxShadow: `0 4px 12px -4px ${color}80`,
-      }}
+      className="relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full"
+      style={{ width: size, height: size }}
       aria-hidden
     >
-      {ticker}
+      {/* Always-present polished badge base: shows while loading or if all sources fail. */}
+      {(!loaded || exhausted) && (
+        <span
+          className="absolute inset-0 inline-flex items-center justify-center font-bold uppercase text-white"
+          style={{
+            background: `linear-gradient(135deg, ${color}, ${color}cc)`,
+            fontSize: size * fontScale,
+            letterSpacing: "-0.02em",
+          }}
+        >
+          {ticker}
+        </span>
+      )}
+      {src && !exhausted && (
+        <img
+          ref={imgRef}
+          src={src}
+          alt={`${sym} logo`}
+          width={size}
+          height={size}
+          loading="eager"
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          onError={() => {
+            setLoaded(false);
+            setIdx((i) => i + 1);
+          }}
+          className="absolute inset-0 h-full w-full object-contain"
+          style={{ opacity: loaded ? 1 : 0 }}
+        />
+      )}
     </span>
   );
 }

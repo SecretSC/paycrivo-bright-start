@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import {
-  ArrowLeft, ArrowRight, Check, ClipboardPaste, Copy, Info, Loader2, QrCode,
+  ArrowLeft, ArrowRight, Check, ChevronDown, ClipboardPaste, Copy, Info, Loader2, QrCode,
   ScanFace, ShieldCheck, FileCheck2, Eye, Smartphone, Wallet, AlertTriangle, X,
 } from "lucide-react";
 import { Logo } from "@/components/paycrivo/Logo";
@@ -218,7 +218,7 @@ function BuyFlow() {
       <div ref={topRef} />
       <ProgressBar step={state.step} />
 
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_380px]">
+      <div className="mx-auto grid max-w-5xl items-start gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_330px]">
         <div className="min-w-0">
           <button
             onClick={() => (state.step === 0 ? navigate({ to: "/" }) : back())}
@@ -227,6 +227,15 @@ function BuyFlow() {
             <ArrowLeft className="size-4" /> {state.step === 0 ? "Back to homepage" : "Back"}
           </button>
 
+          {/* Mobile order summary accordion */}
+          <div className="mb-5 lg:hidden">
+            <MobileSummary
+              spend={state.spend} fiat={state.fiat} coin={state.coin} method={state.method}
+              network={state.step >= 4 ? state.network : undefined} wallet={state.step >= 4 ? state.wallet : undefined}
+            />
+          </div>
+
+          <div className="rounded-3xl border border-border bg-card p-5 shadow-soft sm:p-7">
           <div key={state.step} className="animate-step-in">
             {state.step === 0 && (
               <Section title="Buy crypto" subtitle="Choose how much you'd like to spend.">
@@ -283,8 +292,8 @@ function BuyFlow() {
             )}
 
             {state.step === 2 && (
-              <Section title="Your details" subtitle="To complete purchases, your details may need to match your identity document.">
-                <div className="grid gap-4 sm:grid-cols-2">
+              <Section title="Your details" subtitle="These details should match your identity document.">
+                <div className="space-y-4">
                   <Field label="First name" error={errors.firstName}>
                     <input value={state.firstName} onChange={(e) => set("firstName", e.target.value.replace(/[0-9]/g, ""))} className={inputCls(errors.firstName)} />
                   </Field>
@@ -305,11 +314,11 @@ function BuyFlow() {
                       className={inputCls(errors.phone)}
                     />
                   </Field>
-                  <Field label="City" error={errors.city}>
-                    <input value={state.city} onChange={(e) => set("city", e.target.value)} className={inputCls(errors.city)} />
-                  </Field>
                   <Field label="Address" error={errors.address}>
                     <input value={state.address} onChange={(e) => set("address", e.target.value)} className={inputCls(errors.address)} />
+                  </Field>
+                  <Field label="City" error={errors.city}>
+                    <input value={state.city} onChange={(e) => set("city", e.target.value)} className={inputCls(errors.city)} />
                   </Field>
                   <Field label="Postal code" error={errors.postal}>
                     <input value={state.postal} onChange={(e) => set("postal", e.target.value)} className={inputCls(errors.postal)} />
@@ -512,9 +521,10 @@ function BuyFlow() {
           <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted-foreground sm:justify-start">
             <ShieldCheck className="size-3.5" /> No real payment is processed in staging.
           </p>
+          </div>
         </div>
 
-        <aside className="lg:sticky lg:top-24 lg:self-start">
+        <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
           <OrderSummary spend={state.spend} fiat={state.fiat} coin={state.coin} method={state.method}
             network={state.step >= 4 ? state.network : undefined} wallet={state.step >= 4 ? state.wallet : undefined} />
         </aside>
@@ -719,7 +729,7 @@ function ProgressBar({ step }: { step: number }) {
   const pct = ((step + 1) / STEPS.length) * 100;
   return (
     <div className="border-b border-border bg-card/50">
-      <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6">
+      <div className="mx-auto max-w-5xl px-4 py-3 sm:px-6">
         <div className="mb-2 flex items-center justify-between text-xs font-semibold">
           <span className="text-foreground">Step {step + 1} of {STEPS.length} · {STEPS[step]}</span>
           <span className="text-muted-foreground">{Math.round(pct)}%</span>
@@ -727,18 +737,41 @@ function ProgressBar({ step }: { step: number }) {
         <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
           <div className="bg-gradient-primary h-full rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
         </div>
-        <div className="mt-3 hidden items-center justify-between md:flex">
-          {STEPS.map((label, i) => (
-            <div key={label} className={cn("flex items-center gap-1.5 text-xs font-medium", i <= step ? "text-foreground" : "text-muted-foreground")}>
-              <span className={cn("grid size-5 place-items-center rounded-full text-[10px] font-bold",
-                i < step ? "bg-primary text-primary-foreground" : i === step ? "bg-accent text-accent-foreground" : "bg-secondary text-muted-foreground")}>
-                {i < step ? <Check className="size-3" /> : i + 1}
-              </span>
-              {label}
-            </div>
-          ))}
-        </div>
       </div>
+    </div>
+  );
+}
+
+function MobileSummary({
+  spend, fiat, coin, method, network, wallet,
+}: {
+  spend: string; fiat: string; coin: string; method: string; network?: string; wallet?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const asset = getAsset(coin)!;
+  const fiatInfo = fiatByCode(fiat);
+  const priceSnap = usePrices();
+  const price = getPrice(coin);
+  void priceSnap;
+  const fees = computeFees(parseFloat(spend) || 0, asset, true, price);
+  return (
+    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
+      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center gap-3 p-3 text-left">
+        <CryptoIcon symbol={asset.symbol} color={asset.iconColor} size={32} />
+        <div className="min-w-0 flex-1">
+          <div className="text-xs text-muted-foreground">Order total</div>
+          <div className="text-sm font-bold text-foreground">{fiatInfo.symbol}{fees.total.toFixed(2)} {fiat}</div>
+        </div>
+        <span className="text-right text-xs text-muted-foreground">
+          {formatTokenAmount(fees.receive)} {asset.symbol}
+        </span>
+        <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", open && "rotate-180")} />
+      </button>
+      {open && (
+        <div className="border-t border-border p-3">
+          <OrderSummary spend={spend} fiat={fiat} coin={coin} method={method} network={network} wallet={wallet} />
+        </div>
+      )}
     </div>
   );
 }
