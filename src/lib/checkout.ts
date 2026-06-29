@@ -1,28 +1,9 @@
 import { getAsset, type CryptoAsset } from "@/data/cryptoAssets";
 import { fiats } from "@/lib/paycrivo-data";
-
-export type PaymentStatus = "available" | "staging" | "coming";
-export type PaymentMethodDef = {
-  id: string;
-  name: string;
-  desc: string;
-  speed: string;
-  status: PaymentStatus;
-  icon: "card" | "apple" | "google" | "bank" | "sepa" | "mobilepay" | "pix";
-};
-
-export const paymentMethods: PaymentMethodDef[] = [
-  { id: "card", name: "Credit / Debit Card", desc: "Visa, Mastercard", speed: "Instant", status: "available", icon: "card" },
-  { id: "apple", name: "Apple Pay", desc: "Instant checkout", speed: "Instant", status: "staging", icon: "apple" },
-  { id: "google", name: "Google Pay", desc: "Instant checkout", speed: "Instant", status: "staging", icon: "google" },
-  { id: "bank", name: "Bank Transfer", desc: "Standard transfer", speed: "1–2 business days", status: "available", icon: "bank" },
-  { id: "sepa", name: "SEPA Transfer", desc: "Euro area · low fee", speed: "Same day", status: "available", icon: "sepa" },
-  { id: "mobilepay", name: "MobilePay", desc: "Denmark", speed: "Instant", status: "coming", icon: "mobilepay" },
-  { id: "pix", name: "PIX", desc: "Brazil", speed: "Instant", status: "coming", icon: "pix" },
-];
-
-export const getPaymentMethod = (id: string) =>
-  paymentMethods.find((m) => m.id === id) ?? paymentMethods[0];
+export {
+  PAYMENT_METHODS, paymentMethodsForFiat, getPaymentMethod,
+  type PaymentMethodDef, type PaymentMethodIcon,
+} from "@/data/paymentMethods";
 
 // Approx USD value per fiat unit, used only for min/max validation in staging.
 const fiatToUsd: Record<string, number> = {
@@ -53,17 +34,18 @@ export function computeFees(
   amount: number,
   asset: CryptoAsset,
   firstPurchase = true,
-  priceUsd?: number,
+  priceFiat?: number,
+  networkFeeFiat = 1.99,
 ): FeeBreakdown {
   const safe = Number.isFinite(amount) && amount > 0 ? amount : 0;
   const serviceFee = safe * 0.01;
-  const networkFee = 1.99;
+  const networkFee = networkFeeFiat;
   const basePaycrivo = safe * 0.005;
   const discount = firstPurchase ? basePaycrivo : 0;
   const paycrivoFee = basePaycrivo - discount;
   const totalFees = serviceFee + networkFee + paycrivoFee;
   const net = Math.max(safe - totalFees, 0);
-  const unitPrice = priceUsd && priceUsd > 0 ? priceUsd : asset.mockPriceUsd;
+  const unitPrice = priceFiat && priceFiat > 0 ? priceFiat : asset.mockPriceUsd;
   const receive = unitPrice > 0 ? net / unitPrice : 0;
   return {
     amount: safe,

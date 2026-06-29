@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcon";
-import { computeFees, fiatByCode, getAsset, getPaymentMethod } from "@/lib/checkout";
-import { formatTokenAmount, formatUsd } from "@/data/cryptoAssets";
-import { usePrices, formatUtcTime } from "@/services/priceService";
+import { getAsset, getPaymentMethod } from "@/lib/checkout";
+import { formatTokenAmount } from "@/data/cryptoAssets";
+import { useQuote, formatUtcTime } from "@/services/marketDataService";
 import { cn } from "@/lib/utils";
 
 export function OrderSummary({
@@ -18,12 +18,7 @@ export function OrderSummary({
   ownership?: "none" | "confirmed" | "manual";
 }) {
   const asset = getAsset(coin)!;
-  const fiatInfo = fiatByCode(fiat);
-  const snap = usePrices();
-  const price = snap.prices[coin]?.price ?? asset.mockPriceUsd;
-  const fees = computeFees(parseFloat(spend) || 0, asset, true, price);
-  const sym = fiatInfo.symbol;
-  const money = (n: number) => `${sym}${n.toFixed(2)}`;
+  const { fees, priceFiat, status, lastUpdated, money } = useQuote(spend, coin, fiat);
   const [showFees, setShowFees] = useState(false);
   const totalFees = fees.serviceFee + fees.networkFee + fees.paycrivoFee - fees.discount;
 
@@ -45,7 +40,7 @@ export function OrderSummary({
 
       <div className="mt-3 space-y-1.5 text-[13px]">
         <Row label="You spend" value={`${money(fees.amount)} ${fiat}`} />
-        <Row label="Rate" value={`1 ${coin} = ${sym}${formatUsd(price)}`} />
+        <Row label="Rate" value={`1 ${coin} = ${money(priceFiat)}`} />
         <Row label="Payment" value={getPaymentMethod(method).name} />
         {wallet && <Row label="Wallet" value={`${wallet.slice(0, 6)}…${wallet.slice(-4)}`} />}
         {ownership && ownership !== "none" && (
@@ -81,7 +76,7 @@ export function OrderSummary({
         <span className="text-base font-bold text-foreground">{money(fees.total)} {fiat}</span>
       </div>
       <p className="mt-2 text-[11px] text-muted-foreground">
-        {snap.status === "live" ? "Live price" : "Price estimate"} · updated {formatUtcTime(snap.lastUpdated)}
+        {status === "live" ? "Live rate" : "Estimated rate"} · updated {formatUtcTime(lastUpdated)}
       </p>
     </div>
   );

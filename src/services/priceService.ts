@@ -63,7 +63,7 @@ function ensureStarted() {
   if (started || typeof window === "undefined") return;
   started = true;
   fetchLive();
-  setInterval(fetchLive, 60_000);
+  setInterval(fetchLive, 10_000);
 }
 
 export function getPrice(symbol: string): number {
