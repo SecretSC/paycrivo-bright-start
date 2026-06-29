@@ -851,7 +851,7 @@ export function Timeline({ items, className }: { items: TLItem[]; className?: st
             <div className="pb-4">
               <div className="text-sm font-semibold text-foreground">{it.label}</div>
               <div className="text-xs text-muted-foreground">
-                {it.status === "complete" ? "Complete" : it.status === "staging" ? "Staging" : it.note ?? "Pending"}
+                {it.status === "complete" ? "Complete" : it.status === "staging" ? "In progress" : it.note ?? "Pending"}
               </div>
             </div>
           </div>

@@ -157,7 +157,7 @@ function ExchangeCheckout() {
       setCheckingDeposit(false);
       set("depositConfirmed", true);
       setErrors((e) => ({ ...e, deposit: "" }));
-      toast.success("Deposit detected in staging");
+      toast.success("Deposit detected");
     }, 2800);
   };
 
@@ -373,7 +373,7 @@ function ExchangeCheckout() {
                     <ReviewRow label="PayCrivo fee" value="0% (first exchange)" />
                     <ReviewRow label="Network fee (est.)" value={`${formatTokenAmount(quote.networkFee)} ${receiveAsset.symbol}`} />
                     <ReviewRow label="Estimated time" value="5–30 min" />
-                    <ReviewRow label="Deposit status" value={state.depositConfirmed ? "Detected in staging" : "Awaiting deposit"} success={state.depositConfirmed} />
+                    <ReviewRow label="Deposit status" value={state.depositConfirmed ? "Detected" : "Awaiting deposit"} success={state.depositConfirmed} />
                   </div>
                 </div>
                 <CheckRow checked={state.riskAck} onChange={(v) => set("riskAck", v)} error={errors.riskAck}>
@@ -458,7 +458,7 @@ function SendCryptoStep({
         <div className="mt-3 grid size-28 place-items-center rounded-xl border border-border bg-surface">
           <QrCode className="size-16 text-foreground/80" />
         </div>
-        <p className="mt-3 text-xs text-muted-foreground">Prototype deposit address for staging.</p>
+        <p className="mt-3 text-xs text-muted-foreground">Send only the exact amount shown to this address.</p>
       </div>
 
       <RateTimer until={state.reservedUntil} />
@@ -466,7 +466,7 @@ function SendCryptoStep({
       <div className={cn("flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold",
         state.depositConfirmed ? "bg-success/10 text-success" : "bg-accent/40 text-accent-foreground")}>
         {state.depositConfirmed ? <Check className="size-4" /> : <Loader2 className={cn("size-4", checking && "animate-spin")} />}
-        {state.depositConfirmed ? "Deposit detected in staging" : checking ? "Checking network…" : "Waiting for deposit"}
+        {state.depositConfirmed ? "Deposit detected" : checking ? "Checking network…" : "Waiting for deposit"}
       </div>
 
       {error && <p className="text-xs font-medium text-destructive">{error}</p>}
