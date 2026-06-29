@@ -254,6 +254,16 @@
   animation: step-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+@keyframes support-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-primary) 55%, transparent); }
+  70% { box-shadow: 0 0 0 14px color-mix(in oklch, var(--color-primary) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-primary) 0%, transparent); }
+}
+
+@utility animate-support-pulse {
+  animation: support-pulse 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
 /* Premium custom scrollbar for dropdowns / modals */
 @utility scrollbar-custom {
   scrollbar-width: thin;
