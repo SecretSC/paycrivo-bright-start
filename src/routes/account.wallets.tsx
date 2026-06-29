@@ -83,11 +83,11 @@ function WalletsPage() {
                 <p className="truncate text-xs text-muted-foreground">{w.network} · {w.address}</p>
               </div>
               {!w.isDefault && (
-                <button onClick={() => setWallets(setDefaultWallet(w.id))} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="Set default">
+                <button onClick={() => user && setWallets(setDefaultWallet(user.id, w.id))} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="Set default">
                   <Star className="size-4" />
                 </button>
               )}
-              <button onClick={() => setWallets(deleteWallet(w.id))} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive" aria-label="Delete wallet">
+              <button onClick={() => user && setWallets(deleteWallet(user.id, w.id))} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive" aria-label="Delete wallet">
                 <Trash2 className="size-4" />
               </button>
             </div>
