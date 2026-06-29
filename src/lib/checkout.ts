@@ -212,6 +212,8 @@ export type Order = {
   receive: number;
   fees: FeeBreakdown;
   email: string;
+  walletOwnership?: "none" | "confirmed" | "manual";
+  destinationTag?: string;
 };
 
 export function generateOrderId(): string {
