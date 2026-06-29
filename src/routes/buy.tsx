@@ -611,7 +611,6 @@ function VerificationStep({ onPreview }: { onPreview: () => void }) {
         <div className="rounded-2xl border border-border bg-card p-5">
           <div className="text-sm font-bold text-foreground">Use your phone to continue verification</div>
           <p className="mt-1 text-xs text-muted-foreground">Scan the code with your phone camera. QR expires in 15 minutes.</p>
-          <p className="mt-2 text-xs text-muted-foreground">Full mobile KYC flow will be added in Phase 7.</p>
           <button type="button" onClick={onPreview}
             className="mt-4 inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-primary/40">
             <Smartphone className="size-4" /> Preview mobile KYC
@@ -623,7 +622,7 @@ function VerificationStep({ onPreview }: { onPreview: () => void }) {
       </div>
 
       <p className="flex items-start gap-2 rounded-xl bg-secondary px-3 py-2.5 text-xs text-muted-foreground">
-        <Info className="mt-0.5 size-3.5 shrink-0" /> This is a staging preview. You can continue without completing verification.
+        <Info className="mt-0.5 size-3.5 shrink-0" /> Your information is encrypted and used only to verify your identity.
       </p>
     </Section>
   );
