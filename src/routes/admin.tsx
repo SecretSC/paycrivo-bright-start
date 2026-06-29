@@ -117,7 +117,7 @@ function SidebarContent({ counts, onNavigate }: { counts: { open: number; pendin
   const { admin, logout } = useAdminAuth();
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const search = useRouterState({ select: (s) => s.location.search }) as Record<string, string>;
+  const search = useRouterState({ select: (s) => s.location.search as Record<string, string> });
 
   const isActive = (item: NavItem) => {
     if (item.to !== path) return false;
