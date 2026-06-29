@@ -1,19 +1,10 @@
-import { CoinIcon } from "@/components/paycrivo/CoinIcon";
-import {
-  computeFees,
-  fiatByCode,
-  getAsset,
-  getPaymentMethod,
-} from "@/lib/checkout";
+import { CryptoIcon } from "@/components/CryptoIcon";
+import { computeFees, fiatByCode, getAsset, getPaymentMethod } from "@/lib/checkout";
 import { formatTokenAmount, formatUsd } from "@/data/cryptoAssets";
+import { usePrices } from "@/services/priceService";
 
 export function OrderSummary({
-  spend,
-  fiat,
-  coin,
-  method,
-  network,
-  wallet,
+  spend, fiat, coin, method, network, wallet,
 }: {
   spend: string;
   fiat: string;
@@ -24,7 +15,9 @@ export function OrderSummary({
 }) {
   const asset = getAsset(coin)!;
   const fiatInfo = fiatByCode(fiat);
-  const fees = computeFees(parseFloat(spend) || 0, asset, true);
+  const snap = usePrices();
+  const price = snap.prices[coin]?.price ?? asset.mockPriceUsd;
+  const fees = computeFees(parseFloat(spend) || 0, asset, true, price);
   const sym = fiatInfo.symbol;
   const money = (n: number) => `${sym}${n.toFixed(2)}`;
 
@@ -33,7 +26,7 @@ export function OrderSummary({
       <h3 className="font-display text-base font-bold text-foreground">Order summary</h3>
 
       <div className="mt-4 flex items-center gap-3 rounded-2xl bg-surface p-3">
-        <CoinIcon symbol={asset.symbol} color={asset.iconColor} size={40} />
+        <CryptoIcon symbol={asset.symbol} color={asset.iconColor} size={40} />
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-bold text-foreground">{asset.name}</div>
           <div className="text-xs text-muted-foreground">{asset.symbol}{network ? ` · ${network}` : ""}</div>
@@ -48,7 +41,7 @@ export function OrderSummary({
 
       <div className="mt-4 space-y-2 text-sm">
         <Row label="You spend" value={`${money(fees.amount)} ${fiat}`} />
-        <Row label="Exchange rate" value={`1 ${coin} = ${sym}${formatUsd(asset.mockPriceUsd)}`} />
+        <Row label="Exchange rate" value={`1 ${coin} = ${sym}${formatUsd(price)}`} />
         <Row label="Service fee (1%)" value={money(fees.serviceFee)} />
         <Row label="Network fee" value={money(fees.networkFee)} />
         <Row label="PayCrivo fee" value={money(fees.paycrivoFee)} />
@@ -60,18 +53,16 @@ export function OrderSummary({
           <span className="text-muted-foreground">Payment method</span>
           <span className="font-semibold text-foreground">{getPaymentMethod(method).name}</span>
         </div>
-        {wallet && (
-          <Row
-            label="Wallet"
-            value={`${wallet.slice(0, 6)}…${wallet.slice(-4)}`}
-          />
-        )}
+        {wallet && <Row label="Wallet" value={`${wallet.slice(0, 6)}…${wallet.slice(-4)}`} />}
       </div>
 
       <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
         <span className="text-sm font-bold text-foreground">Total cost</span>
         <span className="font-display text-lg font-bold text-foreground">{money(fees.total)} {fiat}</span>
       </div>
+      <p className="mt-2 text-center text-[11px] text-muted-foreground">
+        {snap.status === "live" ? "Live price" : "Price estimate"}
+      </p>
     </div>
   );
 }
