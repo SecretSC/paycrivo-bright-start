@@ -283,8 +283,8 @@ function BuyFlow() {
             )}
 
             {state.step === 2 && (
-              <Section title="Your details" subtitle="To complete purchases, your details may need to match your identity document.">
-                <div className="grid gap-4 sm:grid-cols-2">
+              <Section title="Your details" subtitle="These details should match your identity document.">
+                <div className="space-y-4">
                   <Field label="First name" error={errors.firstName}>
                     <input value={state.firstName} onChange={(e) => set("firstName", e.target.value.replace(/[0-9]/g, ""))} className={inputCls(errors.firstName)} />
                   </Field>
@@ -305,11 +305,11 @@ function BuyFlow() {
                       className={inputCls(errors.phone)}
                     />
                   </Field>
-                  <Field label="City" error={errors.city}>
-                    <input value={state.city} onChange={(e) => set("city", e.target.value)} className={inputCls(errors.city)} />
-                  </Field>
                   <Field label="Address" error={errors.address}>
                     <input value={state.address} onChange={(e) => set("address", e.target.value)} className={inputCls(errors.address)} />
+                  </Field>
+                  <Field label="City" error={errors.city}>
+                    <input value={state.city} onChange={(e) => set("city", e.target.value)} className={inputCls(errors.city)} />
                   </Field>
                   <Field label="Postal code" error={errors.postal}>
                     <input value={state.postal} onChange={(e) => set("postal", e.target.value)} className={inputCls(errors.postal)} />
