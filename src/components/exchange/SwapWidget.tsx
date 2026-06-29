@@ -114,10 +114,12 @@ export function SwapWidget({
         <Row label="Exchange rate" value={`1 ${sendAsset.symbol} ≈ ${formatTokenAmount(quote.rate)} ${receiveAsset.symbol}`} />
         <Row label="Network fee (est.)" value={`${formatTokenAmount(quote.networkFee)} ${receiveAsset.symbol}`} />
         <Row label="PayCrivo fee" value={quote.firstExchange ? "0%" : `${formatTokenAmount(quote.paycrivoFee)} ${receiveAsset.symbol}`} />
-        <div className="flex items-center justify-between border-t border-border pt-2">
-          <span className="font-medium text-success">First exchange discount</span>
-          <span className="font-bold text-success">−100% PayCrivo fee</span>
-        </div>
+        {quote.firstExchange && (
+          <div className="flex items-center gap-1.5 border-t border-border pt-2 text-success">
+            <ShieldCheck className="size-3.5 shrink-0" />
+            <span className="font-semibold">First exchange includes 0% PayCrivo fee</span>
+          </div>
+        )}
         <Row label="Estimated time" value="5–30 min" />
         <div className="flex items-center justify-between border-t border-border pt-2 text-xs text-muted-foreground">
           <span>
