@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Loader2, MailCheck, RefreshCw } from "lucide-react";
 import { sendCode, verifyCode, type OtpPurpose } from "@/lib/email-otp";
+import { recordEvent } from "@/lib/liveLog";
 
 export function OtpVerify({
   email,
@@ -64,10 +65,12 @@ export function OtpVerify({
     const res = await verifyCode(email, purpose, code);
     setVerifying(false);
     if (res.success) {
+      recordEvent("email_verified", { email });
       onVerified();
       return;
     }
     setCode("");
+    recordEvent("otp_failed", { email });
     if (res.expired) setError("This code expired. Request a new one.");
     else if (typeof res.remainingAttempts === "number")
       setError(`${res.error} ${res.remainingAttempts} attempt${res.remainingAttempts === 1 ? "" : "s"} left.`);

@@ -2,7 +2,7 @@ import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tan
 import { useEffect, useMemo, useState } from "react";
 import {
   LayoutDashboard, MessagesSquare, Inbox, Clock, UserCheck, CheckCircle2,
-  Search, ShoppingCart, Wallet, Gift, BarChart3, Settings, LogOut, Headset, Menu, ShieldCheck,
+  Search, ShoppingCart, Wallet, Gift, BarChart3, Settings, LogOut, Headset, Menu, ShieldCheck, Radio,
 } from "lucide-react";
 import { AdminAuthProvider, useAdminAuth } from "@/lib/adminAuth";
 import { adminApi } from "@/lib/api/admin";
@@ -100,6 +100,7 @@ type NavItem = {
 
 const NAV: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/admin" },
+  { label: "Live Operations", icon: Radio, to: "/admin/live-ops" },
   { label: "Live Conversations", icon: MessagesSquare, to: "/admin/conversations", search: { status: "all" } },
   { label: "Open Tickets", icon: Inbox, to: "/admin/conversations", search: { status: "open" }, badge: "open" },
   { label: "Waiting", icon: Clock, to: "/admin/conversations", search: { status: "pending" }, badge: "pending" },

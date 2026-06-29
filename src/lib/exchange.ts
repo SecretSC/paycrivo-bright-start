@@ -160,6 +160,7 @@ export function generateExchangeOrderId(): string {
 
 export function saveExchangeOrder(order: ExchangeOrder) {
   try {
+    import("./liveLog").then((m) => m.recordEvent("order_created", { email: (order as { email?: string }).email ?? null, label: "Exchange order created" })).catch(() => {});
     const raw = localStorage.getItem(EXCHANGE_ORDERS_KEY);
     const list: ExchangeOrder[] = raw ? JSON.parse(raw) : [];
     list.unshift(order);

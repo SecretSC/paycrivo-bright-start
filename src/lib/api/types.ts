@@ -140,3 +140,77 @@ export type AdminDashboardStats = {
   avgResponseMins: number;
   avgResolutionMins: number;
 };
+
+// ----------------------------- Live Operations (Phase E) -----------------------------
+export type LiveVisitorStatus = "active" | "idle" | "abandoned" | "completed";
+
+export type LiveVisitor = {
+  sessionId: string;
+  email?: string | null;
+  currentPage: string;
+  flow: "buy" | "exchange" | "account" | "reward" | "support" | "browsing";
+  step?: string | null;
+  selectedAsset?: string | null;
+  selectedFiat?: string | null;
+  lastActivity: string;
+  device: string;
+  browser: string;
+  status: LiveVisitorStatus;
+  needsHelp?: boolean;
+};
+
+export type LiveOpsEventType =
+  | "page_view"
+  | "checkout_started"
+  | "email_entered"
+  | "email_verified"
+  | "wallet_step"
+  | "wallet_validation_failed"
+  | "ownership_confirmed"
+  | "order_created"
+  | "support_opened"
+  | "ticket_created"
+  | "otp_failed"
+  | "reward_claim"
+  | "nav_suggestion";
+
+export type LiveOpsEvent = {
+  id: string;
+  type: LiveOpsEventType;
+  label: string;
+  sessionId?: string | null;
+  email?: string | null;
+  createdAt: string;
+};
+
+export type ServiceHealth = "operational" | "degraded" | "down";
+
+export type LiveOpsHealth = {
+  api: ServiceHealth;
+  smtp: ServiceHealth;
+  backend: ServiceHealth;
+};
+
+export type LiveOpsMetrics = {
+  activeVisitors: number;
+  activeBuyCheckouts: number;
+  activeExchangeCheckouts: number;
+  openSupportChats: number;
+  waitingTickets: number;
+  recentSignups: number;
+  recentOrders: number;
+  failedValidations: number;
+  walletValidationErrors: number;
+  otpFailures: number;
+  rewardClaims: number;
+};
+
+export type LiveOpsSnapshot = {
+  metrics: LiveOpsMetrics;
+  visitors: LiveVisitor[];
+  orders: ApiOrder[];
+  tickets: ApiSupportTicket[];
+  signups: { email: string; createdAt: string }[];
+  events: LiveOpsEvent[];
+  health: LiveOpsHealth;
+};

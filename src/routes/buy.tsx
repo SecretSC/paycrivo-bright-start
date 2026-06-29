@@ -30,6 +30,7 @@ import { AddressAutocomplete } from "@/components/checkout/AddressAutocomplete";
 import { StepLoader, type LoaderLabel } from "@/components/checkout/StepLoader";
 import { cn } from "@/lib/utils";
 import { OtpVerify } from "@/components/auth/OtpVerify";
+import { recordEvent } from "@/lib/liveLog";
 
 const searchSchema = z.object({
   spend: z.coerce.string().optional(),
@@ -144,7 +145,10 @@ function BuyFlow() {
     }
     if (step === WALLET) {
       if (!state.network) e.network = "Select a network.";
-      if (!walletCheck.valid) e.wallet = walletCheck.error ?? "Enter a valid wallet address.";
+      if (!walletCheck.valid) {
+        e.wallet = walletCheck.error ?? "Enter a valid wallet address.";
+        recordEvent("wallet_validation_failed", { email: state.email || null });
+      }
       if (!state.networkRiskAck) e.networkRiskAck = "Please confirm you understand the network risk.";
     }
     if (step === OWNERSHIP) {

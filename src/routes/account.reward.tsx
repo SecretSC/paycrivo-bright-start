@@ -9,6 +9,7 @@ import { CryptoIcon } from "@/components/CryptoIcon";
 import { getAsset } from "@/data/cryptoAssets";
 import { validateWalletAddress } from "@/lib/checkout";
 import { addWallet } from "@/lib/wallets";
+import { recordEvent } from "@/lib/liveLog";
 import {
   claimReward, getReward, REWARD_AMOUNT_USD, REWARD_ASSETS, REWARD_NETWORKS,
   type Reward, type WalletOwnership,
@@ -65,6 +66,7 @@ function RewardPage() {
         walletOwnershipStatus: ownership as WalletOwnership,
       });
       setReward(updated);
+      recordEvent("reward_claim", { email: user.email, label: `Reward claim submitted: ${asset}` });
       // optional reward email (best-effort)
       fetch("/api/email/reward-claim", {
         method: "POST", headers: { "Content-Type": "application/json" },
