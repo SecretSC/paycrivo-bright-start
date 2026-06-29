@@ -29,6 +29,7 @@ import { useQuote, formatUtcTime } from "@/services/marketDataService";
 import { AddressAutocomplete } from "@/components/checkout/AddressAutocomplete";
 import { StepLoader, type LoaderLabel } from "@/components/checkout/StepLoader";
 import { cn } from "@/lib/utils";
+import { OtpVerify } from "@/components/auth/OtpVerify";
 
 const searchSchema = z.object({
   spend: z.coerce.string().optional(),
@@ -75,6 +76,8 @@ function BuyFlow() {
   const [createdId, setCreatedId] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [loader, setLoader] = useState<LoaderLabel | null>(null);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [otpOpen, setOtpOpen] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
 
   const set = <K extends keyof CheckoutState>(key: K, value: CheckoutState[K]) =>
@@ -154,8 +157,7 @@ function BuyFlow() {
     return Object.keys(e).length === 0;
   };
 
-  const next = () => {
-    if (!validateStep(state.step)) return;
+  const proceed = () => {
     const label = STEP_LOADER[state.step] ?? "Loading…";
     setLoader(label);
     window.setTimeout(() => {
@@ -163,8 +165,18 @@ function BuyFlow() {
       set("step", Math.min(state.step + 1, REVIEW));
     }, 2200);
   };
+  const next = () => {
+    if (!validateStep(state.step)) return;
+    // The email step requires verifying the address with a 4-digit code.
+    if (state.step === 1 && !emailVerified) {
+      setOtpOpen(true);
+      return;
+    }
+    proceed();
+  };
   const back = () => {
     setErrors({});
+    setOtpOpen(false);
     set("step", Math.max(state.step - 1, 0));
   };
 
