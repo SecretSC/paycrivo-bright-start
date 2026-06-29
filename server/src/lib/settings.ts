@@ -5,6 +5,9 @@ export const DEFAULT_SETTINGS = {
     maintenanceMode: false,
     announcementBanner: "",
     supportAvailabilityText: "Support available 9am–9pm UTC, Mon–Sat.",
+    // Default theme served to first-time visitors with no saved preference.
+    // "light" | "dark". Runtime fallback is light when this cannot be loaded.
+    defaultTheme: "dark",
   },
   fees: {
     buyServiceFeePct: 1.5,
