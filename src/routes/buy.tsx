@@ -15,7 +15,7 @@ import { OrderSummary } from "@/components/checkout/OrderSummary";
 import { CryptoIcon } from "@/components/CryptoIcon";
 import { getAsset, formatTokenAmount } from "@/data/cryptoAssets";
 import {
-  MAX_USD, MIN_USD, clearDraft, computeFees, defaultCheckout, fiatByCode,
+  MAX_USD, MIN_USD, clearDraft, defaultCheckout, fiatByCode,
   generateOrderId, getPaymentMethod, loadDraft, networksForAsset, saveDraft,
   saveOrder, usdValueOf, type CheckoutState,
 } from "@/lib/checkout";
