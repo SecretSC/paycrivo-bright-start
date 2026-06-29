@@ -69,6 +69,11 @@ export type ApiSupportMessage = {
   senderType: "customer" | "agent" | "system";
   message: string;
   createdAt: string;
+  /** Internal note authored by an agent (never shown to the customer). */
+  internal?: boolean;
+  senderName?: string;
+  attachmentUrl?: string;
+  attachmentName?: string;
 };
 
 export type ApiSupportTicket = {
@@ -77,4 +82,61 @@ export type ApiSupportTicket = {
   status: string;
   topic: string;
   lastMessageAt?: string | null;
+  // Optional admin-facing metadata (populated by backend; also mirrored in the
+  // preview fallback so the admin inbox is usable without a backend).
+  email?: string;
+  customerName?: string;
+  country?: string;
+  priority?: string;
+  assignedAdminId?: string | null;
+  assignedAdminName?: string | null;
+  createdAt?: string;
+  relatedOrderId?: string | null;
+  flow?: string | null;
+  currentPage?: string | null;
+};
+
+// ----------------------------- Admin support -----------------------------
+export type AdminTicketNote = {
+  id: string;
+  ticketId: string;
+  adminId: string;
+  note: string;
+  createdAt: string;
+};
+
+export type AdminCustomerInfo = {
+  name: string;
+  email: string;
+  country?: string | null;
+  registeredAt?: string | null;
+  emailVerified?: boolean;
+  rewardStatus?: string;
+  activeOrders?: number;
+  completedOrders?: number;
+  buyHistory?: number;
+  exchangeHistory?: number;
+  savedWallets?: number;
+  lastActivity?: string | null;
+  browser?: string | null;
+  device?: string | null;
+  preferredLanguage?: string | null;
+};
+
+export type AdminTicketDetail = {
+  ticket: ApiSupportTicket;
+  messages: ApiSupportMessage[];
+  notes: AdminTicketNote[];
+  customer: AdminCustomerInfo;
+  order?: ApiOrder | null;
+};
+
+export type AdminDashboardStats = {
+  openTickets: number;
+  waitingCustomers: number;
+  resolvedToday: number;
+  activeAgents: number;
+  onlineVisitors: number;
+  avgResponseMins: number;
+  avgResolutionMins: number;
 };

@@ -52,8 +52,23 @@ export const supportApi = {
       () => {
         const id = `tkt_${Date.now().toString(36)}`;
         const now = new Date().toISOString();
+        const customerName = [input.firstName, input.lastName].filter(Boolean).join(" ").trim();
         const entry: LocalTicket = {
-          ticket: { id, ticketNumber: id.toUpperCase(), status: "open", topic: input.topic, lastMessageAt: now },
+          ticket: {
+            id,
+            ticketNumber: id.toUpperCase(),
+            status: "open",
+            topic: input.topic,
+            lastMessageAt: now,
+            createdAt: now,
+            email: input.email,
+            customerName: customerName || undefined,
+            priority: "medium",
+            assignedAdminId: null,
+            relatedOrderId: input.relatedOrderId ?? null,
+            flow: input.flow ?? null,
+            currentPage: input.currentPage ?? null,
+          },
           messages: [
             { id: `m1_${id}`, ticketId: id, senderType: "customer", message: input.message, createdAt: now },
             {
