@@ -1,8 +1,14 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Globe, Menu, Moon, Sun, X } from "lucide-react";
 import { Logo } from "./Logo";
 
-const navLinks = ["Buy Crypto", "Swap Crypto", "Prices", "Learn"];
+const navLinks: { label: string; to?: string; href?: string }[] = [
+  { label: "Buy Crypto", to: "/buy" },
+  { label: "Swap Crypto", href: "#" },
+  { label: "Prices", href: "#" },
+  { label: "Learn", href: "#" },
+];
 
 export function Header({ theme, onToggleTheme }: { theme: string; onToggleTheme: () => void }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -13,15 +19,26 @@ export function Header({ theme, onToggleTheme }: { theme: string; onToggleTheme:
         <div className="flex items-center gap-8">
           <Logo />
           <nav className="hidden items-center gap-1 lg:flex">
-            {navLinks.map((link) => (
-              <a
-                key={link}
-                href="#"
-                className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-              >
-                {link}
-              </a>
-            ))}
+            {navLinks.map((link) =>
+              link.to ? (
+                <Link
+                  key={link.label}
+                  to={link.to}
+                  search={{}}
+                  className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                >
+                  {link.label}
+                </a>
+              ),
+            )}
           </nav>
         </div>
 
@@ -45,12 +62,13 @@ export function Header({ theme, onToggleTheme }: { theme: string; onToggleTheme:
           >
             Sign In
           </a>
-          <a
-            href="#buy"
+          <Link
+            to="/buy"
+            search={{}}
             className="bg-gradient-primary hidden rounded-xl px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5 sm:block"
           >
             Get Started
-          </a>
+          </Link>
           <button
             onClick={() => setMobileOpen((o) => !o)}
             className="grid size-9 place-items-center rounded-lg text-foreground hover:bg-secondary lg:hidden"
@@ -64,15 +82,26 @@ export function Header({ theme, onToggleTheme }: { theme: string; onToggleTheme:
       {mobileOpen && (
         <div className="animate-fade-up border-t border-border bg-background px-4 py-4 lg:hidden">
           <nav className="flex flex-col gap-1">
-            {navLinks.map((link) => (
-              <a
-                key={link}
-                href="#"
-                className="rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary"
-              >
-                {link}
-              </a>
-            ))}
+            {navLinks.map((link) =>
+              link.to ? (
+                <Link
+                  key={link.label}
+                  to={link.to}
+                  search={{}}
+                  className="rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary"
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  className="rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary"
+                >
+                  {link.label}
+                </a>
+              ),
+            )}
           </nav>
           <div className="mt-4 flex flex-col gap-2">
             <a
@@ -81,12 +110,13 @@ export function Header({ theme, onToggleTheme }: { theme: string; onToggleTheme:
             >
               Sign In
             </a>
-            <a
-              href="#buy"
+            <Link
+              to="/buy"
+              search={{}}
               className="bg-gradient-primary rounded-xl px-4 py-2.5 text-center text-sm font-bold text-primary-foreground"
             >
               Get Started
-            </a>
+            </Link>
           </div>
         </div>
       )}
