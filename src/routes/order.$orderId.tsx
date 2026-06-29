@@ -51,7 +51,6 @@ function OrderStatusPage() {
 
   const timeline = [
     { label: "Order created", status: "complete" as const },
-    { label: "Verification", status: "pending" as const },
     { label: "Payment", status: "pending" as const },
     { label: "Processing", status: "pending" as const },
     { label: "Crypto delivery", status: "pending" as const },
