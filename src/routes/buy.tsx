@@ -153,7 +153,7 @@ function BuyFlow() {
       if (!state.networkRiskAck) e.networkRiskAck = "Please confirm you understand the network risk.";
     }
     if (step === OWNERSHIP) {
-      if (state.walletOwnership === "none") e.ownership = "Confirm wallet ownership or choose manual review.";
+      if (state.walletOwnership === "none") e.ownership = "Confirm wallet ownership to continue.";
     }
     if (step === REVIEW) {
       if (!state.riskAck) e.riskAck = "Please acknowledge to confirm.";

@@ -104,7 +104,7 @@ function ExchangeCheckout() {
       if (!state.networkRiskAck) e.networkRiskAck = "Please confirm you understand the network risk.";
     }
     if (step === OWNERSHIP) {
-      if (state.walletOwnership === "none") e.ownership = "Confirm wallet ownership or choose manual review.";
+      if (state.walletOwnership === "none") e.ownership = "Confirm wallet ownership to continue.";
     }
     if (step === SEND) {
       if (!state.depositConfirmed) e.deposit = "Confirm you have sent the crypto to continue.";
