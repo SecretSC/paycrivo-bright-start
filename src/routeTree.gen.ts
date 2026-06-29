@@ -14,6 +14,7 @@ import { Route as SwapRouteImport } from './routes/swap'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ExchangeRouteImport } from './routes/exchange'
 import { Route as BuyCryptoRouteImport } from './routes/buy-crypto'
 import { Route as BuyRouteImport } from './routes/buy'
@@ -48,6 +49,11 @@ const SignupRoute = SignupRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExchangeRoute = ExchangeRouteImport.update({
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/buy': typeof BuyRoute
   '/buy-crypto': typeof BuyCryptoRoute
   '/exchange': typeof ExchangeRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/buy': typeof BuyRoute
   '/buy-crypto': typeof BuyCryptoRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/buy': typeof BuyRoute
   '/buy-crypto': typeof BuyCryptoRoute
   '/exchange': typeof ExchangeRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/buy'
     | '/buy-crypto'
     | '/exchange'
+    | '/forgot-password'
     | '/login'
     | '/signup'
     | '/sitemap.xml'
@@ -175,6 +185,7 @@ export interface FileRouteTypes {
     | '/'
     | '/buy'
     | '/buy-crypto'
+    | '/forgot-password'
     | '/login'
     | '/signup'
     | '/sitemap.xml'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '/buy'
     | '/buy-crypto'
     | '/exchange'
+    | '/forgot-password'
     | '/login'
     | '/signup'
     | '/sitemap.xml'
@@ -210,6 +222,7 @@ export interface RootRouteChildren {
   BuyRoute: typeof BuyRoute
   BuyCryptoRoute: typeof BuyCryptoRoute
   ExchangeRoute: typeof ExchangeRouteWithChildren
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -255,6 +268,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/exchange': {
@@ -351,6 +371,7 @@ const rootRouteChildren: RootRouteChildren = {
   BuyRoute: BuyRoute,
   BuyCryptoRoute: BuyCryptoRoute,
   ExchangeRoute: ExchangeRouteWithChildren,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
