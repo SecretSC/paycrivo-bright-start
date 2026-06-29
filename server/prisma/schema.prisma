@@ -1,0 +1,321 @@
+// PayCrivo backend data model — PostgreSQL via Prisma.
+// Self-host ready: run `prisma migrate deploy` then `npm run seed:admin`.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------- Customers -----------------------------
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  passwordHash    String
+  firstName       String?
+  lastName        String?
+  country         String?
+  phone           String?
+  preferredFiat   String?   @default("USD")
+  emailVerified   Boolean   @default(false)
+  status          String    @default("active") // active | suspended
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  orders          Order[]
+  wallets         Wallet[]
+  rewardClaims    RewardClaim[]
+  sessions        Session[]
+  supportTickets  SupportTicket[]
+  liveEvents      LiveEvent[]
+  internalNotes   UserNote[]
+
+  @@map("users")
+}
+
+model UserNote {
+  id        String   @id @default(cuid())
+  userId    String
+  adminId   String?
+  note      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_notes")
+}
+
+// ------------------------------ Admins -------------------------------
+enum AdminRole {
+  super_admin
+  support_agent
+  order_manager
+  viewer
+}
+
+model AdminUser {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  name          String?
+  role          AdminRole @default(viewer)
+  status        String    @default("active") // active | disabled
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  actionLogs    AdminActionLog[]
+
+  @@map("admin_users")
+}
+
+// ------------------------------ Sessions -----------------------------
+// Visitor / customer live sessions for the live support panel.
+model Session {
+  id            String    @id @default(cuid())
+  userId        String?
+  anonId        String    @unique // browser-generated id stored in localStorage
+  email         String?
+  currentPage   String?
+  flow          String?   @default("homepage") // homepage|buy|exchange|account|reward|support
+  step          String?
+  selectedAsset String?
+  selectedFiat  String?
+  relatedOrderId String?
+  status        String    @default("browsing") // browsing|in_checkout|stuck|abandoned|completed
+  deviceType    String?
+  browser       String?
+  country       String?
+  lastActivityAt DateTime @default(now())
+  createdAt     DateTime  @default(now())
+
+  user          User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  events        LiveEvent[]
+
+  @@index([status])
+  @@map("sessions")
+}
+
+// Safe live events only — never store secrets/OTP/full wallets.
+model LiveEvent {
+  id           String   @id @default(cuid())
+  sessionId    String?
+  userId       String?
+  eventType    String   // page_view, clicked_buy, selected_asset, email_verified, etc.
+  metadataJson Json?
+  createdAt    DateTime @default(now())
+
+  session      Session? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("live_events")
+}
+
+// ------------------------------- Orders ------------------------------
+model Order {
+  id              String   @id @default(cuid())
+  reference       String   @unique // PCV-... external reference
+  type            String   // buy | exchange
+  userId          String?
+  email           String
+  // buy fields
+  fiat            String?
+  spendAmount     String?
+  // exchange fields
+  sendCoin        String?
+  sendAmount      String?
+  receiveCoin     String?
+  receiveAmount   String?
+  coin            String?  // primary asset (buy: bought coin; exchange: receive coin)
+  walletAddress   String?  // full address stored; live panel shows shortened
+  walletOwnership String?  @default("manual") // confirmed | manual
+  paymentStatus   String?  @default("awaiting_payment")
+  status          String   @default("pending") // pending|processing|completed|failed|cancelled|manual_review
+  metadataJson    Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  events          OrderEvent[]
+  notes           OrderNote[]
+
+  @@index([type])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderEvent {
+  id        String   @id @default(cuid())
+  orderId   String
+  eventType String
+  metadataJson Json?
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_events")
+}
+
+model OrderNote {
+  id        String   @id @default(cuid())
+  orderId   String
+  adminId   String?
+  note      String
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_notes")
+}
+
+// ------------------------------ Wallets ------------------------------
+model Wallet {
+  id        String   @id @default(cuid())
+  userId    String
+  coin      String
+  network   String?
+  address   String
+  nickname  String?
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("wallets")
+}
+
+// ---------------------------- Reward claims --------------------------
+model RewardClaim {
+  id              String   @id @default(cuid())
+  userId          String
+  email           String
+  amountUsd       Float    @default(20)
+  selectedAsset   String?
+  selectedNetwork String?
+  walletAddress   String?
+  walletOwnership String?  @default("manual")
+  status          String   @default("available") // available|pending|queued|completed|rejected
+  adminNote       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@map("reward_claims")
+}
+
+// ------------------------------ Support ------------------------------
+model SupportTicket {
+  id             String   @id @default(cuid())
+  ticketNumber   String   @unique // PCV-TKT-2026-XXXXXX
+  userId         String?
+  email          String
+  firstName      String?
+  lastName       String?
+  topic          String   // purchase|exchange|wallet|account|reward|other
+  status         String   @default("open") // open|pending|resolved|closed
+  priority       String   @default("normal") // normal|high|urgent
+  currentPage    String?
+  flow           String?
+  step           String?
+  relatedOrderId String?
+  sessionId      String?
+  assignedAdminId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  lastMessageAt  DateTime @default(now())
+
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  messages       SupportMessage[]
+  events         SupportConversationEvent[]
+  notes          TicketNote[]
+
+  @@index([status])
+  @@index([email])
+  @@map("support_tickets")
+}
+
+model SupportMessage {
+  id         String   @id @default(cuid())
+  ticketId   String
+  senderType String   // customer | admin | system
+  senderId   String?
+  message    String
+  createdAt  DateTime @default(now())
+  readAt     DateTime?
+  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@map("support_messages")
+}
+
+model SupportConversationEvent {
+  id           String   @id @default(cuid())
+  ticketId     String
+  eventType    String
+  metadataJson Json?
+  createdAt    DateTime @default(now())
+  ticket       SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@map("support_conversation_events")
+}
+
+model TicketNote {
+  id        String   @id @default(cuid())
+  ticketId  String
+  adminId   String?
+  note      String
+  createdAt DateTime @default(now())
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@map("ticket_notes")
+}
+
+// -------------------------- Admin action log -------------------------
+model AdminActionLog {
+  id           String   @id @default(cuid())
+  adminId      String?
+  action       String
+  targetType   String?
+  targetId     String?
+  metadataJson Json?
+  createdAt    DateTime @default(now())
+  admin        AdminUser? @relation(fields: [adminId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@map("admin_action_logs")
+}
+
+// ----------------------------- Email codes ---------------------------
+model EmailCode {
+  id          String   @id @default(cuid())
+  email       String
+  purpose     String   // signup|buy_checkout|exchange_checkout|forgot_password|login_security
+  codeHash    String
+  attempts    Int      @default(0)
+  consumed    Boolean  @default(false)
+  expiresAt   DateTime
+  lastSentAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([email, purpose])
+  @@map("email_codes")
+}
+
+// ------------------------------ Settings -----------------------------
+// Single-row key/value settings store (id = "global").
+model Settings {
+  id          String   @id @default("global")
+  json        Json
+  updatedAt   DateTime @updatedAt
+
+  @@map("settings")
+}
