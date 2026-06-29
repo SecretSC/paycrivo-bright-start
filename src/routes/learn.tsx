@@ -23,7 +23,9 @@ export const Route = createFileRoute("/learn")({
         property: "og:description",
         content: "Short guides to help you buy, swap, and store crypto with confidence.",
       },
+      { property: "og:url", content: "https://paycrivo.com/learn" },
     ],
+    links: [{ rel: "canonical", href: "https://paycrivo.com/learn" }],
   }),
   component: LearnPage,
 });

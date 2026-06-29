@@ -22,7 +22,9 @@ export const Route = createFileRoute("/buy-crypto")({
       },
       { property: "og:title", content: "Buy crypto with card or bank transfer — PayCrivo" },
       { property: "og:description", content: "Live rates, transparent fees, and instant checkout with PayCrivo." },
+      { property: "og:url", content: "https://paycrivo.com/buy-crypto" },
     ],
+    links: [{ rel: "canonical", href: "https://paycrivo.com/buy-crypto" }],
   }),
   component: BuyCryptoLanding,
 });
