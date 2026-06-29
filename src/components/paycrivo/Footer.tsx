@@ -1,10 +1,31 @@
+import { Link } from "@tanstack/react-router";
 import { Logo } from "./Logo";
 
-const columns = [
-  { title: "Product", links: ["Buy Crypto", "Swap Crypto", "Prices", "Supported Coins", "Fees"] },
-  { title: "Company", links: ["About", "Careers", "Newsroom", "Security", "Contact"] },
-  { title: "Resources", links: ["Learn", "Help Center", "API Docs", "Status", "Blog"] },
-  { title: "Legal", links: ["Terms", "Privacy", "Cookies", "Licenses", "AML Policy"] },
+type FooterLink = { label: string; to?: string };
+
+const columns: { title: string; links: FooterLink[] }[] = [
+  {
+    title: "Product",
+    links: [
+      { label: "Buy Crypto", to: "/buy-crypto" },
+      { label: "Swap Crypto", to: "/exchange" },
+      { label: "Prices", to: "/prices" },
+      { label: "Supported Coins", to: "/prices" },
+      { label: "Fees" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [{ label: "About" }, { label: "Careers" }, { label: "Newsroom" }, { label: "Security" }, { label: "Contact" }],
+  },
+  {
+    title: "Resources",
+    links: [{ label: "Learn", to: "/learn" }, { label: "Help Center", to: "/learn" }, { label: "API Docs" }, { label: "Status" }, { label: "Blog" }],
+  },
+  {
+    title: "Legal",
+    links: [{ label: "Terms" }, { label: "Privacy" }, { label: "Cookies" }, { label: "Licenses" }, { label: "AML Policy" }],
+  },
 ];
 
 export function Footer() {
@@ -34,10 +55,16 @@ export function Footer() {
               <h4 className="text-sm font-bold text-foreground">{col.title}</h4>
               <ul className="mt-4 space-y-2.5">
                 {col.links.map((l) => (
-                  <li key={l}>
-                    <a href="#" className="text-sm text-muted-foreground transition-colors hover:text-primary">
-                      {l}
-                    </a>
+                  <li key={l.label}>
+                    {l.to ? (
+                      <Link to={l.to} className="text-sm text-muted-foreground transition-colors hover:text-primary">
+                        {l.label}
+                      </Link>
+                    ) : (
+                      <a href="#" className="text-sm text-muted-foreground transition-colors hover:text-primary">
+                        {l.label}
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>
