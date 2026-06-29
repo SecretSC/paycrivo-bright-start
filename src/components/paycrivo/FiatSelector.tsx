@@ -110,7 +110,7 @@ export function FiatSelector({
         )}
         aria-haspopup="dialog"
       >
-        <Flag flag={selected.flag} />
+        <FlagIcon code={selected.country} size={compact ? 22 : 26} />
         <span className="min-w-0">
           <span className="block truncate text-sm font-bold text-foreground">{selected.code}</span>
           {!compact && <span className="block truncate text-xs text-muted-foreground">{selected.name}</span>}
