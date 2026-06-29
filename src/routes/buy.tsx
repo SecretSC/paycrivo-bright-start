@@ -290,16 +290,35 @@ function BuyFlow() {
               </Section>
             )}
 
-            {state.step === 1 && (
-              <Section title="Continue with your email" subtitle="We'll use this to send your order updates.">
+            {state.step === 1 && !otpOpen && (
+              <Section title="Verify your email" subtitle="We sent a 4-digit code so we can send your purchase updates.">
                 <Field label="Email address" error={errors.email}>
-                  <input type="email" value={state.email} onChange={(e) => set("email", e.target.value)}
+                  <input type="email" value={state.email}
+                    onChange={(e) => { set("email", e.target.value); setEmailVerified(false); }}
                     placeholder="you@email.com" className={inputCls(errors.email)} />
                 </Field>
                 <CheckRow checked={state.agreeTerms} onChange={(v) => set("agreeTerms", v)} error={errors.agreeTerms}>
                   I agree to the Terms, Privacy Policy, and Risk Disclosure.
                 </CheckRow>
+                {emailVerified && (
+                  <p className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-success">
+                    <Check className="size-4" /> Email verified
+                  </p>
+                )}
               </Section>
+            )}
+            {state.step === 1 && otpOpen && (
+              <OtpVerify
+                email={state.email.trim().toLowerCase()}
+                purpose="buy_checkout"
+                title="Verify your email"
+                subtitle={<>We sent a 4-digit code to <span className="font-semibold text-foreground">{state.email}</span> so we can send your purchase updates.</> as unknown as string}
+                onVerified={() => {
+                  setEmailVerified(true);
+                  setOtpOpen(false);
+                  proceed();
+                }}
+              />
             )}
 
             {state.step === 2 && (
