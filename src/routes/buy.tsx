@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import {
-  ArrowLeft, ArrowRight, Check, ClipboardPaste, Copy, Info, Loader2, QrCode,
+  ArrowLeft, ArrowRight, Check, ChevronDown, ClipboardPaste, Copy, Info, Loader2, QrCode,
   ScanFace, ShieldCheck, FileCheck2, Eye, Smartphone, Wallet, AlertTriangle, X,
 } from "lucide-react";
 import { Logo } from "@/components/paycrivo/Logo";
