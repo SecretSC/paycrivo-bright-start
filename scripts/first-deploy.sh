@@ -91,6 +91,9 @@ step "Building backend ($BACKEND_DIR)"
 [ -d "$BACKEND_DIR" ] || die "Backend folder not found: $BACKEND_DIR"
 cd "$BACKEND_DIR"
 npm install
+if [ -d "$BACKEND_DIR/prisma" ] || [ -f "$BACKEND_DIR/prisma/schema.prisma" ]; then
+  npx prisma generate
+fi
 if npm run | grep -qE '^[[:space:]]*build'; then
   npm run build
   ok "Backend built"
@@ -101,9 +104,19 @@ fi
 # ---- Database init (Prisma) ----
 step "Initialising database (Prisma, if present)"
 if [ -d "$BACKEND_DIR/prisma" ] || [ -f "$BACKEND_DIR/prisma/schema.prisma" ]; then
-  npx prisma generate
   npx prisma migrate deploy
+  node --input-type=module <<'NODE'
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
+try {
+  const rows = await prisma.$queryRaw`SELECT to_regclass('public.email_codes') IS NOT NULL AS "exists"`;
+  if (!rows?.[0]?.exists) throw new Error('public.email_codes was not created');
+} finally {
+  await prisma.$disconnect();
+}
+NODE
   ok "Prisma schema deployed"
+  ok "Verified public.email_codes exists"
 else
   echo "    (no Prisma schema found, skipping)"
 fi
@@ -136,6 +149,8 @@ sudo systemctl enable --now "$WEB_SERVICE"
 ok "Started $WEB_SERVICE (SSR frontend)"
 sudo systemctl enable --now "$API_SERVICE"
 ok "Started $API_SERVICE (port $BACKEND_PORT)"
+curl -fsS --max-time 10 "http://127.0.0.1:${BACKEND_PORT}/health" >/dev/null || die "API health check failed on port ${BACKEND_PORT}"
+ok "API health check passed"
 if [ -f "/etc/systemd/system/${WORKER_SERVICE}.service" ]; then
   sudo systemctl enable --now "$WORKER_SERVICE"
   ok "Started $WORKER_SERVICE"

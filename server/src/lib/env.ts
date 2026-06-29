@@ -7,13 +7,16 @@ function req(name: string, fallback?: string): string {
   return v;
 }
 
+const requiredCorsOrigins = ["https://paycrivo.com", "https://www.paycrivo.com"];
+const configuredCorsOrigins = (process.env.CORS_ORIGINS ?? "http://localhost:8080,http://localhost:3000")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
 export const env = {
   port: Number(process.env.PORT ?? 4100),
   nodeEnv: process.env.NODE_ENV ?? "development",
-  corsOrigins: (process.env.CORS_ORIGINS ?? "http://localhost:8080")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean),
+  corsOrigins: Array.from(new Set([...configuredCorsOrigins, ...requiredCorsOrigins])),
   databaseUrl: req("DATABASE_URL", "postgresql://localhost:5432/paycrivo"),
   jwtCustomerSecret: req("JWT_CUSTOMER_SECRET", "dev-customer-secret"),
   jwtAdminSecret: req("JWT_ADMIN_SECRET", "dev-admin-secret"),
@@ -29,7 +32,7 @@ export const env = {
     port: Number(process.env.SMTP_PORT ?? 587),
     user: process.env.SMTP_USER ?? "",
     pass: process.env.SMTP_PASS ?? "",
-    fromEmail: process.env.SMTP_FROM_EMAIL ?? "no-reply@paycrivo.com",
+    fromEmail: process.env.SMTP_FROM_EMAIL ?? "noreply@panema.it",
     fromName: process.env.SMTP_FROM_NAME ?? "PayCrivo",
   },
   otp: {
