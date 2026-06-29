@@ -61,7 +61,7 @@ function Conversations() {
   const { data: tickets } = useRealtimePoll(`admin:list:${JSON.stringify(filter)}`, listFetcher, { intervalMs: 3000 });
 
   const setSearch = (patch: Partial<Search>) =>
-    navigate({ to: "/admin/conversations", search: (prev) => ({ ...prev, ...patch }) });
+    navigate({ to: "/admin/conversations", search: (prev: Search) => ({ ...prev, ...patch }) });
 
   const activeId = search.ticket;
 
