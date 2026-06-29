@@ -76,7 +76,9 @@ function AssetRow({
           {asset.mockChange24h.toFixed(2)}%
         </div>
       </div>
-      {active && <Check className="size-4 shrink-0 text-primary" />}
+      <span className="grid size-5 shrink-0 place-items-center">
+        {active && <Check className="size-4 text-primary" />}
+      </span>
     </button>
   );
 }
