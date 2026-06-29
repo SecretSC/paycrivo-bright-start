@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   ArrowLeft, ArrowRight, Check, ChevronDown, ClipboardPaste, Copy, Info,
-  Loader2, QrCode, AlertTriangle, Clock,
+  Loader2, QrCode, AlertTriangle, Clock, Wallet, ShieldCheck,
 } from "lucide-react";
 import { CheckoutHeader } from "@/routes/buy";
 import { SwapWidget, type SwapState } from "@/components/exchange/SwapWidget";
@@ -27,13 +27,17 @@ export const Route = createFileRoute("/exchange/checkout")({
   component: ExchangeCheckout,
 });
 
-const STEPS = ["Pair", "Email", "Receiving wallet", "Send crypto", "Review"];
-const REVIEW = STEPS.length - 1; // 4
+const STEPS = ["Pair", "Email", "Receiving wallet", "Ownership", "Send crypto", "Review"];
+const REVIEW = STEPS.length - 1; // 5
+const OWNERSHIP = 3;
+const SEND = 4;
+const TOTAL_STEPS = 7; // includes the created success page
 const STEP_LOADER = [
   "Checking live rate…",
   "Saving your email…",
   "Validating receiving network…",
   "Generating deposit address…",
+  "Finalizing your exchange…",
 ];
 const RESERVE_MS = 15 * 60 * 1000;
 
@@ -43,6 +47,7 @@ function ExchangeCheckout() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loader, setLoader] = useState<string | null>(null);
   const [checkingDeposit, setCheckingDeposit] = useState(false);
+  const [connecting, setConnecting] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
 
   const set = <K extends keyof ExchangeState>(key: K, value: ExchangeState[K]) =>
@@ -90,7 +95,10 @@ function ExchangeCheckout() {
       if (!walletCheck.valid) e.wallet = walletCheck.error ?? "Enter a valid wallet address.";
       if (!state.networkRiskAck) e.networkRiskAck = "Please confirm you understand the network risk.";
     }
-    if (step === 3) {
+    if (step === OWNERSHIP) {
+      if (state.walletOwnership === "none") e.ownership = "Confirm wallet ownership or choose manual review.";
+    }
+    if (step === SEND) {
       if (!state.depositConfirmed) e.deposit = "Confirm you have sent the crypto to continue.";
     }
     if (step === REVIEW) {
@@ -109,13 +117,29 @@ function ExchangeCheckout() {
       setState((s) => {
         const target = Math.min(s.step + 1, REVIEW);
         // Reserve the rate when entering the Send crypto step.
-        const reservedUntil = target === 3 && !s.reservedUntil ? Date.now() + RESERVE_MS : s.reservedUntil;
+        const reservedUntil = target === SEND && !s.reservedUntil ? Date.now() + RESERVE_MS : s.reservedUntil;
         return { ...s, step: target, reservedUntil };
       });
     }, 2200);
   };
 
   const back = () => { setErrors({}); set("step", Math.max(state.step - 1, 0)); };
+
+  const connectWallet = () => {
+    setConnecting(true);
+    window.setTimeout(() => {
+      setConnecting(false);
+      set("walletOwnership", "confirmed");
+      setErrors((e) => ({ ...e, ownership: "" }));
+      toast.success("Wallet ownership confirmed");
+    }, 2600);
+  };
+
+  const cannotConnect = () => {
+    set("walletOwnership", "manual");
+    setErrors((e) => ({ ...e, ownership: "" }));
+    toast("Marked for manual review");
+  };
 
   const confirmDeposit = () => {
     setCheckingDeposit(true);
@@ -140,7 +164,7 @@ function ExchangeCheckout() {
         receiveEstimate: quote.netReceive, rate: quote.rate,
         wallet: state.wallet, destinationTag: state.destinationTag || undefined,
         email: state.email, depositAddress: deposit, depositConfirmed: state.depositConfirmed,
-        reservedUntil: state.reservedUntil,
+        walletOwnership: state.walletOwnership, reservedUntil: state.reservedUntil,
       });
       clearExchangeDraft();
       setLoader(null);
@@ -247,7 +271,54 @@ function ExchangeCheckout() {
               </Section>
             )}
 
-            {state.step === 3 && (
+            {state.step === OWNERSHIP && (
+              <Section title="Confirm wallet ownership" subtitle="To help protect your exchange, confirm that you control the receiving wallet.">
+                <div className="rounded-2xl border border-border bg-surface p-5">
+                  <div className="flex items-center gap-3">
+                    <CryptoIcon symbol={receiveAsset.symbol} color={receiveAsset.iconColor} size={40} />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-bold text-foreground">{receiveAsset.name} ({receiveAsset.symbol})</div>
+                      <div className="text-xs text-muted-foreground">{state.receiveNetwork}</div>
+                      <div className="truncate font-mono text-xs text-muted-foreground">
+                        {state.wallet ? `${state.wallet.slice(0, 10)}…${state.wallet.slice(-6)}` : "No address"}
+                      </div>
+                    </div>
+                    <ExchangeOwnershipBadge status={state.walletOwnership} />
+                  </div>
+
+                  <p className="mt-4 flex items-start gap-2 rounded-xl bg-card px-3 py-2.5 text-xs text-muted-foreground">
+                    <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-primary" />
+                    We never ask for seed phrases or private keys.
+                  </p>
+
+                  {state.walletOwnership === "confirmed" && (
+                    <div className="mt-4 flex items-center gap-2 rounded-xl bg-success/10 px-3 py-3 text-sm font-bold text-success">
+                      <Check className="size-4" /> Wallet ownership confirmed
+                    </div>
+                  )}
+                  {state.walletOwnership === "manual" && (
+                    <div className="mt-4 flex items-center gap-2 rounded-xl bg-amber-500/10 px-3 py-3 text-sm font-bold text-amber-600 dark:text-amber-400">
+                      <AlertTriangle className="size-4" /> Manual review required
+                    </div>
+                  )}
+                  {state.walletOwnership === "none" && (
+                    <div className="mt-4 space-y-3">
+                      <button type="button" onClick={connectWallet} disabled={connecting}
+                        className="bg-gradient-primary flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5 disabled:opacity-70">
+                        {connecting ? <><Loader2 className="size-4 animate-spin" /> Opening wallet confirmation…</> : <><Wallet className="size-4" /> Connect wallet</>}
+                      </button>
+                      <button type="button" onClick={cannotConnect}
+                        className="w-full rounded-2xl border border-border py-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                        I cannot connect this wallet
+                      </button>
+                    </div>
+                  )}
+                  {errors.ownership && <p className="mt-2 text-xs font-medium text-destructive">{errors.ownership}</p>}
+                </div>
+              </Section>
+            )}
+
+            {state.step === SEND && (
               <SendCryptoStep
                 state={state} deposit={deposit} sendAsset={sendAsset}
                 checking={checkingDeposit} onConfirm={confirmDeposit} error={errors.deposit}
@@ -263,6 +334,11 @@ function ExchangeCheckout() {
                   <ReviewRow label="Receive network" value={state.receiveNetwork} />
                   <ReviewRow label="Receiving wallet" value={`${state.wallet.slice(0, 8)}…${state.wallet.slice(-6)}`} copy={state.wallet} />
                   {state.destinationTag && <ReviewRow label="Tag / memo" value={state.destinationTag} />}
+                  <ReviewRow
+                    label="Wallet ownership"
+                    value={state.walletOwnership === "confirmed" ? "Confirmed" : state.walletOwnership === "manual" ? "Manual review required" : "Not confirmed"}
+                    success={state.walletOwnership === "confirmed"}
+                  />
                   <div className="border-t border-border pt-1.5">
                     <ReviewRow label="Exchange rate" value={`1 ${sendAsset.symbol} ≈ ${formatTokenAmount(quote.rate)} ${receiveAsset.symbol}`} />
                     <ReviewRow label="PayCrivo fee" value="0% (first exchange)" />
@@ -289,8 +365,13 @@ function ExchangeCheckout() {
               className="bg-gradient-primary flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5">
               Create exchange order <ArrowRight className="size-4" />
             </button>
-          ) : state.step === 3 ? (
+          ) : state.step === SEND ? (
             <button onClick={next} disabled={!state.depositConfirmed}
+              className="bg-gradient-primary flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50">
+              Continue <ArrowRight className="size-4" />
+            </button>
+          ) : state.step === OWNERSHIP ? (
+            <button onClick={next} disabled={state.walletOwnership === "none"}
               className="bg-gradient-primary flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50">
               Continue <ArrowRight className="size-4" />
             </button>
@@ -427,6 +508,9 @@ function SummaryAccordion({ state, className }: { state: ExchangeState; classNam
           <SRow label="You receive (est.)" value={`${formatTokenAmount(quote.netReceive)} ${receiveAsset.symbol}`} />
           <SRow label="Receive network" value={state.receiveNetwork} />
           {state.wallet && <SRow label="Receiving wallet" value={`${state.wallet.slice(0, 6)}…${state.wallet.slice(-4)}`} />}
+          {state.walletOwnership !== "none" && (
+            <SRow label="Wallet ownership" value={state.walletOwnership === "confirmed" ? "Confirmed" : "Manual review required"} />
+          )}
           <SRow label="Exchange rate" value={`1 ${sendAsset.symbol} ≈ ${formatTokenAmount(quote.rate)} ${receiveAsset.symbol}`} />
           <SRow label="PayCrivo fee" value="0% (first exchange)" />
           <SRow label="Network fee (est.)" value={`${formatTokenAmount(quote.networkFee)} ${receiveAsset.symbol}`} />
@@ -441,12 +525,12 @@ function SummaryAccordion({ state, className }: { state: ExchangeState; classNam
 
 /* ---------- shared pieces ---------- */
 function ProgressBar({ step }: { step: number }) {
-  const pct = ((step + 1) / STEPS.length) * 100;
+  const pct = ((step + 1) / TOTAL_STEPS) * 100;
   return (
     <div className="border-b border-border bg-card/50">
       <div className="mx-auto max-w-[600px] px-4 py-3 sm:px-6">
         <div className="mb-2 flex items-center justify-between text-xs font-semibold">
-          <span className="text-foreground">Step {step + 1} of {STEPS.length} · {STEPS[step]}</span>
+          <span className="text-foreground">Step {step + 1} of {TOTAL_STEPS} · {STEPS[step]}</span>
           <span className="text-muted-foreground">{Math.round(pct)}%</span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
@@ -520,4 +604,12 @@ function SRow({ label, value }: { label: string; value: string }) {
       <span className="text-right font-semibold text-foreground">{value}</span>
     </div>
   );
+}
+
+function ExchangeOwnershipBadge({ status }: { status: ExchangeState["walletOwnership"] }) {
+  if (status === "confirmed")
+    return <span className="rounded-full bg-success/15 px-3 py-1 text-xs font-bold text-success">Confirmed</span>;
+  if (status === "manual")
+    return <span className="rounded-full bg-amber-500/15 px-3 py-1 text-xs font-bold text-amber-600 dark:text-amber-400">Manual review</span>;
+  return <span className="rounded-full bg-secondary px-3 py-1 text-xs font-bold text-muted-foreground">Not confirmed</span>;
 }

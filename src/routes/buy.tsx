@@ -4,7 +4,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import {
   ArrowLeft, ArrowRight, Check, ChevronDown, ClipboardPaste, Copy, Info, Loader2, QrCode,
-  ScanFace, ShieldCheck, FileCheck2, Eye, Smartphone, Wallet, AlertTriangle, X,
+  ShieldCheck, Wallet, AlertTriangle,
 } from "lucide-react";
 import { Logo } from "@/components/paycrivo/Logo";
 import { AssetPicker } from "@/components/paycrivo/AssetPicker";
@@ -48,8 +48,11 @@ export const Route = createFileRoute("/buy")({
   component: BuyFlow,
 });
 
-const STEPS = ["Amount", "Email", "Details", "Verification", "Wallet", "Ownership", "Review"];
-const REVIEW = STEPS.length - 1; // 6
+const STEPS = ["Amount", "Email", "Details", "Wallet", "Ownership", "Review"];
+const REVIEW = STEPS.length - 1; // 5
+const WALLET = 3;
+const OWNERSHIP = 4;
+const TOTAL_STEPS = 7; // includes the created success page
 
 function BuyFlow() {
   const search = Route.useSearch();
@@ -71,7 +74,6 @@ function BuyFlow() {
   const [confirming, setConfirming] = useState(false);
   const [createdId, setCreatedId] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
-  const [kycPreview, setKycPreview] = useState(false);
   const [loader, setLoader] = useState<LoaderLabel | null>(null);
   const topRef = useRef<HTMLDivElement>(null);
 
@@ -137,12 +139,12 @@ function BuyFlow() {
       if (postalErr) e.postal = postalErr;
       if (!state.detailsConfirmed) e.detailsConfirmed = "Please confirm your details.";
     }
-    if (step === 4) {
+    if (step === WALLET) {
       if (!state.network) e.network = "Select a network.";
       if (!walletCheck.valid) e.wallet = walletCheck.error ?? "Enter a valid wallet address.";
       if (!state.networkRiskAck) e.networkRiskAck = "Please confirm you understand the network risk.";
     }
-    if (step === 5) {
+    if (step === OWNERSHIP) {
       if (state.walletOwnership === "none") e.ownership = "Confirm wallet ownership or choose manual review.";
     }
     if (step === REVIEW) {
@@ -289,7 +291,7 @@ function BuyFlow() {
             )}
 
             {state.step === 2 && (
-              <Section title="Your details" subtitle="These details should match your identity document.">
+              <Section title="Your details" subtitle="We use these details to process and protect your order.">
                 <div className="space-y-4">
                   <Field label="First name" error={errors.firstName}>
                     <input value={state.firstName} onChange={(e) => set("firstName", e.target.value.replace(/[0-9]/g, ""))} className={inputCls(errors.firstName)} />
@@ -334,16 +336,12 @@ function BuyFlow() {
                   </Field>
                 </div>
                 <CheckRow checked={state.detailsConfirmed} onChange={(v) => set("detailsConfirmed", v)} error={errors.detailsConfirmed}>
-                  I confirm these details are correct and match my identity document.
+                  I confirm these details are correct.
                 </CheckRow>
               </Section>
             )}
 
-            {state.step === 3 && (
-              <VerificationStep onPreview={() => setKycPreview(true)} />
-            )}
-
-            {state.step === 4 && (
+            {state.step === WALLET && (
               <Section title={`Enter your ${asset.name} wallet address`} subtitle="Your crypto will be delivered to this address.">
                 <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3">
                   <CryptoIcon symbol={asset.symbol} color={asset.iconColor} size={40} />
@@ -417,7 +415,7 @@ function BuyFlow() {
               </Section>
             )}
 
-            {state.step === 5 && (
+            {state.step === OWNERSHIP && (
               <Section title="Confirm wallet ownership" subtitle="To help protect your purchase, confirm that you control this wallet.">
                 <div className="rounded-2xl border border-border bg-surface p-5">
                   <div className="flex items-center gap-3">
@@ -499,7 +497,7 @@ function BuyFlow() {
           </div>
 
           {/* actions */}
-          {state.step !== 5 || state.walletOwnership !== "none" ? (
+          {state.step !== OWNERSHIP || state.walletOwnership !== "none" ? (
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
               {state.step > 0 && (
                 <button onClick={back} className="rounded-2xl border border-border px-6 py-3.5 text-sm font-bold text-foreground transition-colors hover:bg-secondary">
@@ -518,7 +516,7 @@ function BuyFlow() {
               )}
             </div>
           ) : (
-            state.step === 5 && (
+            state.step === OWNERSHIP && (
               <div className="mt-6">
                 <button onClick={back} className="rounded-2xl border border-border px-6 py-3.5 text-sm font-bold text-foreground transition-colors hover:bg-secondary">
                   Back
@@ -535,14 +533,13 @@ function BuyFlow() {
           <SummaryAccordion
             className="mt-5"
             spend={state.spend} fiat={state.fiat} coin={state.coin} method={state.method}
-            network={state.step >= 4 ? state.network : undefined}
-            wallet={state.step >= 4 ? state.wallet : undefined}
-            ownership={state.step >= 5 ? state.walletOwnership : undefined}
+            network={state.step >= WALLET ? state.network : undefined}
+            wallet={state.step >= WALLET ? state.wallet : undefined}
+            ownership={state.step >= OWNERSHIP ? state.walletOwnership : undefined}
           />
         </div>
       </div>
 
-      {kycPreview && <KycPreviewModal onClose={() => setKycPreview(false)} />}
       {loader && (
         <StepLoader
           label={loader}
@@ -562,9 +559,8 @@ const STEP_LOADER: Record<number, LoaderLabel> = {
   0: "Preparing secure checkout…",
   1: "Checking your email…",
   2: "Verifying your details…",
-  3: "Preparing verification…",
-  4: "Preparing wallet step…",
-  5: "Reviewing your order…",
+  3: "Preparing wallet step…",
+  4: "Reviewing your order…",
 };
 
 function networkHelp(symbol: string, network: string): string {
@@ -575,96 +571,6 @@ function networkHelp(symbol: string, network: string): string {
   if (n.includes("xrp")) return "XRP addresses start with r. Some wallets also require a destination tag.";
   if (n.includes("tron")) return "Tron addresses start with T and are 34 characters long.";
   return `Double-check your ${symbol} address matches the ${network} network before continuing.`;
-}
-
-/* ---------- Verification step ---------- */
-function VerificationStep({ onPreview }: { onPreview: () => void }) {
-  const stages = ["Not started", "Document", "Face check", "Review", "Complete"];
-  return (
-    <Section title="Verify your identity" subtitle="PayCrivo uses identity checks to help protect customers and prevent misuse.">
-      <div className="rounded-3xl border border-border bg-gradient-to-b from-surface to-card p-6">
-        <div className="flex justify-center">
-          <div className="grid size-16 place-items-center rounded-2xl bg-accent text-accent-foreground shadow-soft">
-            <ShieldCheck className="size-8" />
-          </div>
-        </div>
-
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
-          <VerifyCard icon={<FileCheck2 className="size-5" />} title="Document scan" desc="Passport, driver license, or national ID" />
-          <VerifyCard icon={<ScanFace className="size-5" />} title="Face check" desc="Quick liveness check on your phone" />
-          <VerifyCard icon={<Eye className="size-5" />} title="Review" desc="Automatic approval or manual review" />
-        </div>
-
-        {/* status bar */}
-        <div className="mt-6 flex items-center gap-1.5">
-          {stages.map((s, i) => (
-            <div key={s} className="flex flex-1 flex-col items-center gap-1.5">
-              <div className={cn("h-1.5 w-full rounded-full", i === 0 ? "bg-primary" : "bg-secondary")} />
-              <span className="text-center text-[10px] font-medium text-muted-foreground">{s}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
-        <div className="rounded-2xl border border-border bg-card p-5">
-          <div className="text-sm font-bold text-foreground">Use your phone to continue verification</div>
-          <p className="mt-1 text-xs text-muted-foreground">Scan the code with your phone camera. QR expires in 15 minutes.</p>
-          <button type="button" onClick={onPreview}
-            className="mt-4 inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-primary/40">
-            <Smartphone className="size-4" /> Preview mobile KYC
-          </button>
-        </div>
-        <div className="grid size-32 place-items-center self-center justify-self-center rounded-2xl border border-border bg-surface">
-          <QrCode className="size-20 text-foreground/80" />
-        </div>
-      </div>
-
-      <p className="flex items-start gap-2 rounded-xl bg-secondary px-3 py-2.5 text-xs text-muted-foreground">
-        <Info className="mt-0.5 size-3.5 shrink-0" /> Your information is encrypted and used only to verify your identity.
-      </p>
-    </Section>
-  );
-}
-
-function KycPreviewModal({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-foreground/50 p-4 backdrop-blur-sm">
-      <div className="animate-scale-in w-full max-w-sm rounded-3xl border border-border bg-popover p-6 shadow-elegant">
-        <div className="flex items-center justify-between">
-          <h3 className="font-display text-base font-bold text-foreground">Mobile KYC preview</h3>
-          <button onClick={onClose} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="Close">
-            <X className="size-5" />
-          </button>
-        </div>
-        {/* phone mockup */}
-        <div className="mx-auto mt-5 w-48 rounded-[2rem] border-4 border-foreground/80 bg-background p-2 shadow-elegant">
-          <div className="relative overflow-hidden rounded-[1.4rem] bg-gradient-to-b from-secondary to-card p-3">
-            <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-foreground/30" />
-            {/* document frame */}
-            <div className="rounded-xl border-2 border-dashed border-primary/60 p-3">
-              <div className="flex items-center gap-2">
-                <div className="size-8 rounded bg-primary/30" />
-                <div className="flex-1 space-y-1">
-                  <div className="h-1.5 w-full rounded bg-foreground/20" />
-                  <div className="h-1.5 w-2/3 rounded bg-foreground/20" />
-                </div>
-              </div>
-            </div>
-            {/* face circle overlay */}
-            <div className="mx-auto mt-4 grid size-20 place-items-center rounded-full border-2 border-primary/70">
-              <ScanFace className="size-9 text-primary" />
-            </div>
-            <p className="mt-2 text-center text-[10px] font-medium text-muted-foreground">Look left, then right →</p>
-          </div>
-        </div>
-        <p className="mt-4 text-center text-xs text-muted-foreground">Visual preview of the mobile verification experience.</p>
-        <button onClick={onClose} className="bg-gradient-primary mt-4 w-full rounded-2xl py-3 text-sm font-bold text-primary-foreground">
-          Close preview
-        </button>
-      </div>
-    </div>
-  );
 }
 
 function OwnershipBadge({ status }: { status: CheckoutState["walletOwnership"] }) {
@@ -681,7 +587,6 @@ function OrderCreated({ id, state }: { id: string; state: CheckoutState }) {
   const { fees, money } = useQuote(state.spend, state.coin, state.fiat);
   const timeline = [
     { label: "Order created", status: "complete" as const },
-    { label: "Verification", status: "pending" as const },
     { label: "Payment", status: "pending" as const },
     { label: "Processing", status: "pending" as const },
     { label: "Crypto delivery", status: "pending" as const },
@@ -756,12 +661,12 @@ export function CheckoutHeader() {
 }
 
 function ProgressBar({ step }: { step: number }) {
-  const pct = ((step + 1) / STEPS.length) * 100;
+  const pct = ((step + 1) / TOTAL_STEPS) * 100;
   return (
     <div className="border-b border-border bg-card/50">
       <div className="mx-auto max-w-[600px] px-4 py-3 sm:px-6">
         <div className="mb-2 flex items-center justify-between text-xs font-semibold">
-          <span className="text-foreground">Step {step + 1} of {STEPS.length} · {STEPS[step]}</span>
+          <span className="text-foreground">Step {step + 1} of {TOTAL_STEPS} · {STEPS[step]}</span>
           <span className="text-muted-foreground">{Math.round(pct)}%</span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
@@ -846,16 +751,6 @@ function CheckRow({ checked, onChange, error, children }: { checked: boolean; on
         <span className="text-sm text-muted-foreground">{children}</span>
       </button>
       {error && <p className="mt-1.5 pl-8 text-xs font-medium text-destructive">{error}</p>}
-    </div>
-  );
-}
-
-function VerifyCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
-  return (
-    <div className="rounded-xl border border-border bg-card p-4">
-      <div className="grid size-9 place-items-center rounded-lg bg-accent text-accent-foreground">{icon}</div>
-      <div className="mt-3 text-sm font-bold text-foreground">{title}</div>
-      <div className="text-xs text-muted-foreground">{desc}</div>
     </div>
   );
 }

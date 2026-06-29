@@ -124,6 +124,7 @@ export type CheckoutState = {
   walletOwnership: "none" | "confirmed" | "manual";
   destinationTag: string;
   networkRiskAck: boolean;
+  flowV?: number;
 };
 
 export const defaultCheckout: CheckoutState = {
@@ -150,6 +151,7 @@ export const defaultCheckout: CheckoutState = {
   walletOwnership: "none",
   destinationTag: "",
   networkRiskAck: false,
+  flowV: 2,
 };
 
 export const DRAFT_KEY = "paycrivo-checkout-draft";
@@ -159,7 +161,11 @@ export function loadDraft(): CheckoutState | null {
   try {
     const raw = localStorage.getItem(DRAFT_KEY);
     if (!raw) return null;
-    return { ...defaultCheckout, ...(JSON.parse(raw) as Partial<CheckoutState>) };
+    const parsed = JSON.parse(raw) as Partial<CheckoutState>;
+    // Migrate pre-v2 drafts that included a KYC/verification step.
+    let step = parsed.step ?? 0;
+    if (parsed.flowV !== 2) step = step >= 4 ? step - 1 : Math.min(step, 3);
+    return { ...defaultCheckout, ...parsed, step, flowV: 2 };
   } catch {
     return null;
   }

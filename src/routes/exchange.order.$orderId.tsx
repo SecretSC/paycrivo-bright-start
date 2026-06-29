@@ -52,6 +52,11 @@ function ExchangeOrderPage() {
   const timeline = [
     { label: "Pair selected", status: "complete" as const },
     { label: "Receiving wallet added", status: "complete" as const },
+    {
+      label: "Wallet ownership",
+      status: order.walletOwnership === "confirmed" ? ("complete" as const) : ("staging" as const),
+      note: order.walletOwnership === "manual" ? "Manual review required" : "Confirmed",
+    },
     { label: "Deposit instruction generated", status: "complete" as const },
     { label: "Deposit detected", status: depositDone ? ("staging" as const) : ("pending" as const) },
     { label: "Exchange processing", status: "pending" as const },
@@ -190,7 +195,7 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-type TLItem = { label: string; status: "complete" | "staging" | "pending" };
+type TLItem = { label: string; status: "complete" | "staging" | "pending"; note?: string };
 function Timeline({ items, className }: { items: TLItem[]; className?: string }) {
   return (
     <div className={cn("rounded-3xl border border-border bg-card p-6 shadow-soft", className)}>
@@ -210,7 +215,7 @@ function Timeline({ items, className }: { items: TLItem[]; className?: string })
             <div className="pb-4">
               <div className="text-sm font-semibold text-foreground">{it.label}</div>
               <div className="text-xs text-muted-foreground">
-                {it.status === "complete" ? "Complete" : it.status === "staging" ? "Staging complete" : "Pending"}
+                {it.note ?? (it.status === "complete" ? "Complete" : it.status === "staging" ? "Staging complete" : "Pending")}
               </div>
             </div>
           </div>
