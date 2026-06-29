@@ -23,17 +23,12 @@ export type OtpPurpose =
   | "forgot_password"
   | "login_security";
 
+// Delegates to the backend API client (VITE_API_BASE_URL) with graceful
+// preview fallback. Call-site signatures are unchanged.
+import { sendOtp, verifyOtp } from "@/lib/api/otp";
+
 export async function sendCode(email: string, purpose: OtpPurpose): Promise<SendCodeResponse> {
-  try {
-    const res = await fetch("/api/email/send-code", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, purpose }),
-    });
-    return (await res.json()) as SendCodeResponse;
-  } catch {
-    return { success: false, error: "Network error. Please try again." };
-  }
+  return sendOtp(email, purpose);
 }
 
 export async function verifyCode(
@@ -41,14 +36,5 @@ export async function verifyCode(
   purpose: OtpPurpose,
   code: string,
 ): Promise<VerifyCodeResponse> {
-  try {
-    const res = await fetch("/api/email/verify-code", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, purpose, code }),
-    });
-    return (await res.json()) as VerifyCodeResponse;
-  } catch {
-    return { success: false, error: "Network error. Please try again." };
-  }
+  return verifyOtp(email, purpose, code);
 }
