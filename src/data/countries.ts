@@ -92,6 +92,11 @@ export function toE164(phone: string, countryName: string): string {
 export const nameRe = /^[A-Za-zÀ-ÿ' -]{2,}$/;
 export const cityRe = /^[A-Za-zÀ-ÿ' -]{2,}$/;
 
+// Remove a leading "+<dialcode> " prefix so the national number can be re-prefixed.
+export function stripLeadingDial(phone: string): string {
+  return phone.replace(/^\s*\+\d{1,4}[\s-]*/, "").trim();
+}
+
 export function validateAge18(dob: string): string | null {
   if (!dob) return "Date of birth is required.";
   const d = new Date(dob);
