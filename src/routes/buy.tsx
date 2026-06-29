@@ -341,11 +341,7 @@ function BuyFlow() {
               </Section>
             )}
 
-            {state.step === 3 && (
-              <VerificationStep onPreview={() => setKycPreview(true)} />
-            )}
-
-            {state.step === 4 && (
+            {state.step === WALLET && (
               <Section title={`Enter your ${asset.name} wallet address`} subtitle="Your crypto will be delivered to this address.">
                 <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3">
                   <CryptoIcon symbol={asset.symbol} color={asset.iconColor} size={40} />
@@ -419,7 +415,7 @@ function BuyFlow() {
               </Section>
             )}
 
-            {state.step === 5 && (
+            {state.step === OWNERSHIP && (
               <Section title="Confirm wallet ownership" subtitle="To help protect your purchase, confirm that you control this wallet.">
                 <div className="rounded-2xl border border-border bg-surface p-5">
                   <div className="flex items-center gap-3">
