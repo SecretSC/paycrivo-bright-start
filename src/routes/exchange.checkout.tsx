@@ -22,6 +22,7 @@ import { validateWallet, detectAddressKind } from "@/utils/walletValidation";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { cn } from "@/lib/utils";
 import { OtpVerify } from "@/components/auth/OtpVerify";
+import { recordEvent } from "@/lib/liveLog";
 
 export const Route = createFileRoute("/exchange/checkout")({
   head: () => ({ meta: [{ title: "Exchange checkout — PayCrivo" }] }),
@@ -95,7 +96,10 @@ function ExchangeCheckout() {
     }
     if (step === 2) {
       if (!state.receiveNetwork) e.receiveNetwork = "Select a network.";
-      if (!walletCheck.valid) e.wallet = walletCheck.error ?? "Enter a valid wallet address.";
+      if (!walletCheck.valid) {
+        e.wallet = walletCheck.error ?? "Enter a valid wallet address.";
+        recordEvent("wallet_validation_failed", { email: state.email || null });
+      }
       if (!state.networkRiskAck) e.networkRiskAck = "Please confirm you understand the network risk.";
     }
     if (step === OWNERSHIP) {

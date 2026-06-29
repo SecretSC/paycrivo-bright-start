@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth";
 import { supportApi } from "@/lib/api/support";
+import { recordEvent } from "@/lib/liveLog";
 import { useRealtimePoll } from "@/providers/RealtimeProvider";
 import type { ApiSupportMessage, ApiSupportTicket } from "@/lib/api/types";
 import { loadDraft } from "@/lib/checkout";
@@ -202,6 +203,7 @@ export function SupportWidget() {
 
   const openWidget = () => {
     setOpen(true);
+    recordEvent("support_opened");
     if (activeTicketId) setStage("chat");
   };
 
@@ -428,6 +430,7 @@ function DetailsForm({
         step: meta.step,
         relatedOrderId: meta.relatedOrderId,
       });
+      recordEvent("ticket_created", { email: email.trim(), label: `Ticket created: ${topic}` });
       onCreated(ticket, messages);
     } catch {
       setSubmitError("We couldn't start the chat. Please try again.");

@@ -15,6 +15,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth";
 import { RealtimeProvider } from "@/providers/RealtimeProvider";
 import { SupportWidget } from "@/components/support/SupportWidget";
+import { LiveTracker } from "@/components/LiveTracker";
 
 function NotFoundComponent() {
   return (
@@ -144,6 +145,7 @@ function RootComponent() {
           <Outlet />
           <Toaster position="top-center" richColors />
           <SupportWidget />
+          <LiveTracker />
         </RealtimeProvider>
       </AuthProvider>
     </QueryClientProvider>

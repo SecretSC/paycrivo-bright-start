@@ -211,6 +211,7 @@ export function generateOrderId(): string {
 
 export function saveOrder(order: Order) {
   try {
+    import("./liveLog").then((m) => m.recordEvent("order_created", { email: (order as { email?: string }).email ?? null, label: "Buy order created" })).catch(() => {});
     const raw = localStorage.getItem(ORDERS_KEY);
     const list: Order[] = raw ? JSON.parse(raw) : [];
     list.unshift(order);
