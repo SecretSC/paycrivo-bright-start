@@ -659,7 +659,7 @@ function KycPreviewModal({ onClose }: { onClose: () => void }) {
             <p className="mt-2 text-center text-[10px] font-medium text-muted-foreground">Look left, then right →</p>
           </div>
         </div>
-        <p className="mt-4 text-center text-xs text-muted-foreground">Visual preview only. The real camera flow ships in Phase 7.</p>
+        <p className="mt-4 text-center text-xs text-muted-foreground">Visual preview of the mobile verification experience.</p>
         <button onClick={onClose} className="bg-gradient-primary mt-4 w-full rounded-2xl py-3 text-sm font-bold text-primary-foreground">
           Close preview
         </button>
@@ -677,14 +677,13 @@ function OwnershipBadge({ status }: { status: CheckoutState["walletOwnership"] }
 }
 
 /* ---------- Order created ---------- */
-function OrderCreated({ id, state, price }: { id: string; state: CheckoutState; price: number }) {
+function OrderCreated({ id, state }: { id: string; state: CheckoutState }) {
   const asset = getAsset(state.coin)!;
-  const fiatInfo = fiatByCode(state.fiat);
-  const fees = computeFees(parseFloat(state.spend) || 0, asset, true, price);
+  const { fees, money } = useQuote(state.spend, state.coin, state.fiat);
   const timeline = [
     { label: "Order created", status: "complete" as const },
-    { label: "Verification", status: "staging" as const },
-    { label: "Payment", status: "pending" as const, note: "not integrated" },
+    { label: "Verification", status: "pending" as const },
+    { label: "Payment", status: "pending" as const },
     { label: "Processing", status: "pending" as const },
     { label: "Crypto delivery", status: "pending" as const },
   ];
@@ -698,7 +697,7 @@ function OrderCreated({ id, state, price }: { id: string; state: CheckoutState; 
             <Check className="size-8" />
           </div>
           <h1 className="mt-5 font-display text-2xl font-bold text-foreground">Order created</h1>
-          <p className="mt-2 text-muted-foreground">Your PayCrivo order has been created in staging.</p>
+          <p className="mt-2 text-muted-foreground">Your PayCrivo order has been created successfully.</p>
         </div>
 
         <div className="mt-8 rounded-3xl border border-border bg-card p-6 shadow-soft">
@@ -709,12 +708,12 @@ function OrderCreated({ id, state, price }: { id: string; state: CheckoutState; 
           <div className="mt-3 flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Status</span>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-xs font-bold text-accent-foreground">
-              Awaiting payment integration
+              Awaiting payment
             </span>
           </div>
           <div className="mt-4 grid gap-3 border-t border-border pt-4 sm:grid-cols-2">
             <Info2 label="Asset" value={`${asset.name} (${asset.symbol})`} />
-            <Info2 label="Amount" value={`${fiatInfo.symbol}${fees.amount.toFixed(2)} ${state.fiat}`} />
+            <Info2 label="Amount" value={`${money(fees.amount)} ${state.fiat}`} />
             <Info2 label="Estimated receive" value={`${formatTokenAmount(fees.receive)} ${asset.symbol}`} />
             <Info2 label="Network" value={state.network} />
             <Info2 label="Wallet" value={`${state.wallet.slice(0, 8)}…${state.wallet.slice(-6)}`} />
