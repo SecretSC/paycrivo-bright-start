@@ -76,7 +76,9 @@ function AssetRow({
           {asset.mockChange24h.toFixed(2)}%
         </div>
       </div>
-      {active && <Check className="size-4 shrink-0 text-primary" />}
+      <span className="grid size-5 shrink-0 place-items-center">
+        {active && <Check className="size-4 text-primary" />}
+      </span>
     </button>
   );
 }
@@ -159,11 +161,11 @@ export function AssetPicker({
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[60] flex items-start justify-center bg-foreground/40 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-foreground/40 p-0 backdrop-blur-sm sm:items-center sm:p-4">
           <div
             role="dialog"
             aria-label="Select a crypto asset"
-            className="animate-scale-in flex h-full w-full flex-col overflow-hidden bg-popover shadow-elegant sm:h-auto sm:max-h-[80vh] sm:max-w-lg sm:rounded-3xl sm:border sm:border-border"
+            className="animate-scale-in flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-3xl bg-popover shadow-elegant sm:h-auto sm:max-h-[80vh] sm:max-w-lg sm:rounded-3xl sm:border sm:border-border"
           >
             {/* header */}
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
@@ -198,7 +200,7 @@ export function AssetPicker({
             </div>
 
             {/* body */}
-            <div className="flex-1 overflow-y-auto px-3 pb-4 pt-2">
+            <div className="scrollbar-custom flex-1 overflow-y-auto px-3 pb-4 pt-2">
               {!q && recentAssets.length > 0 && (
                 <Section label="Recently selected">
                   {recentAssets.map((a) => (
@@ -214,7 +216,7 @@ export function AssetPicker({
 
               {!q && (
                 <Section label="Top traded" icon={<Star className="size-3.5 text-primary" />}>
-                  {pinnedAssets.slice(0, 8).map((a) => (
+                  {pinnedAssets.slice(0, 7).map((a) => (
                     <AssetRow
                       key={`top-${a.symbol}`}
                       asset={a}

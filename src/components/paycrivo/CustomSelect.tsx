@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Check, ChevronDown } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Check, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type SelectOption = {
@@ -16,6 +16,9 @@ export function CustomSelect({
   className,
   align = "left",
   compact = false,
+  searchable = false,
+  searchPlaceholder = "Search…",
+  menuClassName,
 }: {
   options: SelectOption[];
   value: string;
@@ -23,13 +26,18 @@ export function CustomSelect({
   className?: string;
   align?: "left" | "right";
   compact?: boolean;
+  searchable?: boolean;
+  searchPlaceholder?: string;
+  menuClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const ref = useRef<HTMLDivElement>(null);
   const selected = options.find((o) => o.value === value);
 
   useEffect(() => {
     if (!open) return;
+    setQuery("");
     const onClick = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
@@ -41,6 +49,14 @@ export function CustomSelect({
       document.removeEventListener("keydown", onKey);
     };
   }, [open]);
+
+  const q = query.trim().toLowerCase();
+  const filtered = useMemo(() => {
+    if (!searchable || !q) return options;
+    return options.filter(
+      (o) => o.label.toLowerCase().includes(q) || (o.sub ?? "").toLowerCase().includes(q),
+    );
+  }, [searchable, q, options]);
 
   return (
     <div className={cn("relative", className)} ref={ref}>
@@ -72,11 +88,30 @@ export function CustomSelect({
         <div
           role="listbox"
           className={cn(
-            "animate-scale-in absolute z-50 mt-2 max-h-72 w-full min-w-[16rem] overflow-y-auto rounded-2xl border border-border bg-popover p-1.5 shadow-elegant",
+            "animate-scale-in absolute z-50 mt-2 w-full min-w-[17rem] overflow-hidden rounded-2xl border border-border bg-popover shadow-elegant",
             align === "right" ? "right-0" : "left-0",
+            menuClassName,
           )}
         >
-          {options.map((opt) => {
+          {searchable && (
+            <div className="border-b border-border p-2">
+              <div className="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 focus-within:border-primary/50">
+                <Search className="size-4 text-muted-foreground" />
+                <input
+                  autoFocus
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={searchPlaceholder}
+                  className="w-full bg-transparent text-sm font-medium text-foreground outline-none placeholder:text-muted-foreground"
+                />
+              </div>
+            </div>
+          )}
+          <div className="scrollbar-custom max-h-72 overflow-y-auto p-1.5">
+          {filtered.length === 0 && (
+            <p className="px-3 py-6 text-center text-sm text-muted-foreground">No matches.</p>
+          )}
+          {filtered.map((opt) => {
             const active = opt.value === value;
             return (
               <button
@@ -106,6 +141,7 @@ export function CustomSelect({
               </button>
             );
           })}
+          </div>
         </div>
       )}
     </div>

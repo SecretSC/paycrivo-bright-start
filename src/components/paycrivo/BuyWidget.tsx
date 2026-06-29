@@ -1,22 +1,15 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Info, Lock, ShieldCheck } from "lucide-react";
 import { FiatBadge } from "./FiatBadge";
 import { AssetPicker } from "./AssetPicker";
 import { CustomSelect, type SelectOption } from "./CustomSelect";
 import { fiats } from "@/lib/paycrivo-data";
 import { getAsset, formatUsd, formatTokenAmount } from "@/data/cryptoAssets";
-
-const paymentMethods = [
-  { id: "card", name: "Credit / Debit Card", desc: "Visa, Mastercard · Instant" },
-  { id: "apple", name: "Apple Pay", desc: "Instant checkout" },
-  { id: "google", name: "Google Pay", desc: "Instant checkout" },
-  { id: "bank", name: "Bank Transfer", desc: "1–2 business days" },
-  { id: "sepa", name: "SEPA Transfer", desc: "Euro area · low fee" },
-  { id: "pix", name: "PIX (placeholder)", desc: "Brazil · coming soon" },
-  { id: "mobilepay", name: "MobilePay (placeholder)", desc: "Nordics · coming soon" },
-];
+import { paymentMethods, computeFees } from "@/lib/checkout";
 
 export function BuyWidget() {
+  const navigate = useNavigate();
   const [spend, setSpend] = useState("500");
   const [fiat, setFiat] = useState("USD");
   const [coin, setCoin] = useState("BTC");
@@ -39,15 +32,12 @@ export function BuyWidget() {
   const selectedFiat = fiats.find((f) => f.code === fiat)!;
 
   const calc = useMemo(() => {
-    const amount = parseFloat(spend) || 0;
-    const serviceFee = amount * 0.01;
-    const networkFee = 1.99;
-    const paycrivoFee = 0; // first purchase 0%
-    const totalFees = serviceFee + networkFee + paycrivoFee;
-    const net = Math.max(amount - totalFees, 0);
-    const receive = net / selectedCoin.mockPriceUsd;
-    return { amount, serviceFee, networkFee, paycrivoFee, receive };
+    return computeFees(parseFloat(spend) || 0, selectedCoin, true);
   }, [spend, selectedCoin]);
+
+  const goToCheckout = () => {
+    navigate({ to: "/buy", search: { spend, fiat, coin, method } });
+  };
 
   return (
     <div className="w-full max-w-md rounded-3xl border border-border bg-card p-5 shadow-elegant sm:p-6" id="buy">
@@ -80,6 +70,8 @@ export function BuyWidget() {
           onChange={setFiat}
           align="right"
           compact
+          searchable
+          searchPlaceholder="Search currency…"
         />
       </div>
 
@@ -124,12 +116,15 @@ export function BuyWidget() {
         </div>
       </div>
 
-      <button className="bg-gradient-primary mt-4 flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5 active:translate-y-0">
+      <button
+        onClick={goToCheckout}
+        className="bg-gradient-primary mt-4 flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5 active:translate-y-0"
+      >
         Buy {selectedCoin.name} <ArrowRight className="size-4" />
       </button>
 
       <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-        <Lock className="size-3.5" /> All fees shown before checkout · No hidden costs
+        <Lock className="size-3.5" /> No real payment is processed in staging.
       </p>
       <p className="mt-2 flex items-center justify-center gap-1.5 rounded-xl bg-secondary px-3 py-2 text-center text-xs font-medium text-muted-foreground">
         <Info className="size-3.5 shrink-0" /> Payment integrations are not active in staging.
