@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 interface LogoProps {
   /** Render only the "P" mark icon instead of the full wordmark. */
   markOnly?: boolean;
@@ -7,14 +9,45 @@ interface LogoProps {
   className?: string;
   /** Tailwind height classes for the image. */
   imgClassName?: string;
+  /** Force a theme variant. Defaults to auto-detecting the active theme. */
+  variant?: "auto" | "dark" | "light";
+}
+
+/** Reads the active theme from the <html> class set by the no-flash script. */
+function useActiveTheme(): "dark" | "light" {
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  useEffect(() => {
+    const read = () =>
+      setTheme(document.documentElement.classList.contains("dark") ? "dark" : "light");
+    read();
+    const observer = new MutationObserver(read);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+  return theme;
 }
 
 /**
  * PayCrivo brand mark — a vector rounded-tile "P" on the brand gradient.
  * Fully crisp at any size and legible on light and dark backgrounds.
  */
-export function PaycrivoMark({ size = 36, className = "" }: { size?: number; className?: string }) {
-  const id = "pc-grad";
+export function PaycrivoMark({
+  size = 36,
+  className = "",
+  theme = "dark",
+}: {
+  size?: number;
+  className?: string;
+  theme?: "dark" | "light";
+}) {
+  // Unique gradient id so multiple marks on one page don't collide.
+  const id = `pc-grad-${theme}`;
+  // Light theme uses a deeper purple range for stronger contrast on white;
+  // dark theme keeps the brighter, glowing gradient.
+  const stops =
+    theme === "light"
+      ? { from: "#6D34F2", to: "#9061F0" }
+      : { from: "#7C4DFF", to: "#A47BF7" };
   return (
     <svg
       width={size}
@@ -27,11 +60,14 @@ export function PaycrivoMark({ size = 36, className = "" }: { size?: number; cla
     >
       <defs>
         <linearGradient id={id} x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#7C4DFF" />
-          <stop offset="1" stopColor="#A47BF7" />
+          <stop offset="0" stopColor={stops.from} />
+          <stop offset="1" stopColor={stops.to} />
         </linearGradient>
       </defs>
       <rect width="48" height="48" rx="13" fill={`url(#${id})`} />
+      {theme === "light" && (
+        <rect x="0.5" y="0.5" width="47" height="47" rx="12.5" fill="none" stroke="rgba(17,10,36,0.08)" />
+      )}
       <path
         d="M14 12 H27 A7 7 0 0 1 27 26 H20 V36 H14 Z M20 17 H25 A2 2 0 0 1 25 21 H20 Z"
         fill="#fff"
@@ -47,11 +83,14 @@ export function Logo({
   asLink = true,
   className = "",
   imgClassName,
+  variant = "auto",
 }: LogoProps = {}) {
+  const activeTheme = useActiveTheme();
+  const theme = variant === "auto" ? activeTheme : variant;
   const markSize = markOnly ? 38 : 34;
   const content = (
     <span className="inline-flex items-center gap-2.5 select-none">
-      <PaycrivoMark size={markSize} className={imgClassName} />
+      <PaycrivoMark size={markSize} className={imgClassName} theme={theme} />
       {!markOnly && (
         <span className="font-display text-[1.35rem] font-extrabold leading-none tracking-tight text-foreground">
           PayCrivo

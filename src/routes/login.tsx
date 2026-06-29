@@ -6,7 +6,15 @@ import { useAuth } from "@/lib/auth";
 import { Logo } from "@/components/paycrivo/Logo";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Sign in to PayCrivo" }] }),
+  head: () => ({
+    meta: [
+      { title: "Sign in to PayCrivo" },
+      { name: "description", content: "Sign in to your PayCrivo account to buy crypto, track orders, and manage your wallets securely." },
+      { property: "og:title", content: "Sign in to PayCrivo" },
+      { property: "og:url", content: "https://paycrivo.com/login" },
+    ],
+    links: [{ rel: "canonical", href: "https://paycrivo.com/login" }],
+  }),
   component: LoginPage,
 });
 

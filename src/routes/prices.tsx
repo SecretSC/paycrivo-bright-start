@@ -27,7 +27,9 @@ export const Route = createFileRoute("/prices")({
         property: "og:description",
         content: "Track popular crypto assets with transparent rates before you buy or swap.",
       },
+      { property: "og:url", content: "https://paycrivo.com/prices" },
     ],
+    links: [{ rel: "canonical", href: "https://paycrivo.com/prices" }],
   }),
   component: PricesPage,
 });

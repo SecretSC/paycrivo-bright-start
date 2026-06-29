@@ -18,18 +18,20 @@ import { RewardBanner } from "@/components/paycrivo/RewardBanner";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "PayCrivo — Buy Bitcoin with Credit Card or Debit Card" },
+      { title: "PayCrivo — Buy & Swap Cryptocurrency Securely" },
       {
         name: "description",
         content:
-          "Buy and swap Bitcoin and 18+ cryptocurrencies fast, simply, and securely with PayCrivo. Transparent fees, instant checkout, and your own wallet. First purchase: 0% fee.",
+          "Buy Bitcoin, Ethereum, USDT and hundreds of cryptocurrencies securely with PayCrivo. Fast crypto purchases, instant swaps, simple verification, competitive rates and secure checkout.",
       },
-      { property: "og:title", content: "PayCrivo — Buy Crypto Fast, Simple, and Secure" },
+      { property: "og:title", content: "PayCrivo — Buy & Swap Cryptocurrency Securely" },
       {
         property: "og:description",
-        content: "Fast, simple, and secure crypto purchases with transparent fees. First purchase: 0% PayCrivo fee.",
+        content: "Buy Bitcoin, Ethereum, USDT and hundreds of cryptocurrencies securely with PayCrivo. Fast purchases, instant swaps, and secure checkout.",
       },
+      { property: "og:url", content: "https://paycrivo.com/" },
     ],
+    links: [{ rel: "canonical", href: "https://paycrivo.com/" }],
   }),
   component: Index,
 });

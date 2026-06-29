@@ -24,7 +24,9 @@ export const Route = createFileRoute("/exchange/")({
       { name: "description", content: "Swap between 250+ digital assets with transparent rates, network-aware wallet checks, and a simple checkout flow." },
       { property: "og:title", content: "PayCrivo Exchange — Swap crypto instantly" },
       { property: "og:description", content: "Crypto-to-crypto swaps with transparent rates and clear network details." },
+      { property: "og:url", content: "https://paycrivo.com/exchange" },
     ],
+    links: [{ rel: "canonical", href: "https://paycrivo.com/exchange" }],
   }),
   component: ExchangeLanding,
 });
