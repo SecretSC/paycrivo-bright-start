@@ -385,6 +385,7 @@ function DefaultThemeSetting() {
 
 function AdminSettings() {
   const { admin } = useAdminAuth();
+  const isSuperAdmin = admin?.role === "super_admin";
   const [sound, setSound] = useState(true);
   const [desktop, setDesktop] = useState(typeof Notification !== "undefined" && Notification.permission === "granted");
 
@@ -407,6 +408,9 @@ function AdminSettings() {
         </div>
 
         <DefaultThemeSetting />
+
+        {isSuperAdmin && <SmtpSettingsSection />}
+        {isSuperAdmin && <ConnectorScriptsSection />}
 
         <section className="rounded-xl border border-border bg-card p-4">
           <h2 className="mb-3 text-sm font-semibold">Agent profile</h2>
