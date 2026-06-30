@@ -12,7 +12,7 @@ sudo apt install -y nginx certbot python3-certbot-nginx
 ## 2. Frontend server block — `paycrivo.com`
 
 The frontend is a **TanStack Start SSR app** running as the `paycrivo-web` Node
-server on `127.0.0.1:4000`. Nginx reverse-proxies to it.
+server on `127.0.0.1:3005`. Nginx reverse-proxies to it.
 
 `/etc/nginx/sites-available/paycrivo.com`:
 
@@ -22,7 +22,7 @@ server {
     server_name paycrivo.com www.paycrivo.com;
 
     location / {
-        proxy_pass http://127.0.0.1:4000;
+        proxy_pass http://127.0.0.1:3005;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;

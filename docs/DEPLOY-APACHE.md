@@ -14,7 +14,7 @@ sudo systemctl restart apache2
 ## 2. Frontend VirtualHost — `paycrivo.com`
 
 The frontend is a **TanStack Start SSR app** that runs as a Node server
-(`paycrivo-web` on `127.0.0.1:4000`, see DEPLOY-DEBIAN.md). Apache reverse-proxies
+(`paycrivo-web` on `127.0.0.1:3005`, see DEPLOY-DEBIAN.md). Apache reverse-proxies
 to it — it does **not** serve a static `dist/` folder.
 
 `/etc/apache2/sites-available/paycrivo.com.conf`:
@@ -25,8 +25,8 @@ to it — it does **not** serve a static `dist/` folder.
     ServerAlias www.paycrivo.com
 
     ProxyPreserveHost On
-    ProxyPass / http://127.0.0.1:4000/
-    ProxyPassReverse / http://127.0.0.1:4000/
+    ProxyPass / http://127.0.0.1:3005/
+    ProxyPassReverse / http://127.0.0.1:3005/
     RequestHeader set X-Forwarded-Proto "http"
 </VirtualHost>
 ```
