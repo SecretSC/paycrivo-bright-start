@@ -7,6 +7,27 @@ import { validateBody } from "../middleware/validate.js";
 
 export const liveRouter = Router();
 
+// Coarse server-side fallbacks so self-hosted deployments still get device /
+// browser / country even if the client doesn't send them.
+function parseDevice(ua: string): string {
+  if (/Mobi|Android|iPhone/i.test(ua)) return "Mobile";
+  if (/iPad|Tablet/i.test(ua)) return "Tablet";
+  return "Desktop";
+}
+function parseBrowser(ua: string): string {
+  if (/Edg\//.test(ua)) return "Edge";
+  if (/OPR\//.test(ua)) return "Opera";
+  if (/Chrome\//.test(ua)) return "Chrome";
+  if (/Firefox\//.test(ua)) return "Firefox";
+  if (/Safari\//.test(ua)) return "Safari";
+  return "Browser";
+}
+function countryFrom(req: { headers: Record<string, unknown> }): string | undefined {
+  const h = req.headers;
+  const c = (h["cf-ipcountry"] || h["x-vercel-ip-country"] || h["x-country"] || h["x-geo-country"]) as string | undefined;
+  return c && c !== "XX" ? String(c) : undefined;
+}
+
 // Safe event types only. Anything else is rejected.
 const SAFE_EVENTS = new Set([
   "page_view", "clicked_buy", "clicked_exchange", "amount_changed", "selected_asset",
@@ -38,6 +59,10 @@ liveRouter.post("/track", optionalCustomer, validateBody(trackSchema), async (re
   if (!SAFE_EVENTS.has(d.eventType)) {
     return res.status(400).json({ error: "Unsupported event type" });
   }
+  const ua = String(req.headers["user-agent"] ?? "");
+  const deviceType = d.deviceType ?? parseDevice(ua);
+  const browser = d.browser ?? parseBrowser(ua);
+  const country = d.country ?? countryFrom(req);
   const session = await prisma.session.upsert({
     where: { anonId: d.anonId },
     create: {
@@ -45,13 +70,14 @@ liveRouter.post("/track", optionalCustomer, validateBody(trackSchema), async (re
       currentPage: d.currentPage, flow: d.flow, step: d.step,
       selectedAsset: d.selectedAsset, selectedFiat: d.selectedFiat,
       relatedOrderId: d.relatedOrderId, status: d.status ?? "browsing",
-      deviceType: d.deviceType, browser: d.browser, country: d.country,
+      deviceType, browser, country,
     },
     update: {
       userId: req.customer?.sub ?? undefined, email: d.email?.toLowerCase() ?? undefined,
       currentPage: d.currentPage, flow: d.flow, step: d.step,
       selectedAsset: d.selectedAsset, selectedFiat: d.selectedFiat,
       relatedOrderId: d.relatedOrderId, status: d.status ?? undefined,
+      deviceType, browser, country: country ?? undefined,
       lastActivityAt: new Date(),
     },
   });
@@ -61,6 +87,7 @@ liveRouter.post("/track", optionalCustomer, validateBody(trackSchema), async (re
   if (d.selectedFiat) metadata.fiat = d.selectedFiat;
   if (d.step) metadata.step = d.step;
   if (d.walletAddress) metadata.walletShort = shortenAddress(d.walletAddress);
+  if (d.currentPage) metadata.page = d.currentPage;
   await prisma.liveEvent.create({
     data: {
       sessionId: session.id, userId: req.customer?.sub ?? null,

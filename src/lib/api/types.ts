@@ -157,6 +157,25 @@ export type LiveVisitor = {
   browser: string;
   status: LiveVisitorStatus;
   needsHelp?: boolean;
+  country?: string | null;
+  lastAction?: string | null;
+  personal?: {
+    firstName?: string | null;
+    lastName?: string | null;
+    country?: string | null;
+    phone?: string | null;
+    emailVerified?: boolean;
+  } | null;
+  order?: {
+    reference: string;
+    type: string;
+    status: string;
+    asset?: string | null;
+    network?: string | null;
+    amount?: string | null;
+    fiat?: string | null;
+    walletAddress?: string | null;
+  } | null;
 };
 
 export type LiveOpsEventType =

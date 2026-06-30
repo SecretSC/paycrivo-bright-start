@@ -224,8 +224,22 @@ function LiveOps() {
                           {v.currentPage}{v.step ? ` · ${v.step}` : ""}
                           {v.selectedAsset ? ` · ${v.selectedAsset}` : ""}{v.selectedFiat ? `/${v.selectedFiat}` : ""}
                         </p>
+                        {v.personal && (v.personal.firstName || v.personal.lastName || v.personal.phone) && (
+                          <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                            {[v.personal.firstName, v.personal.lastName].filter(Boolean).join(" ")}
+                            {v.personal.phone ? ` · ${v.personal.phone}` : ""}
+                            {v.personal.emailVerified ? " · ✓ verified" : ""}
+                          </p>
+                        )}
+                        {v.order && (
+                          <p className="mt-0.5 truncate text-[11px] text-primary">
+                            {v.order.reference} · {v.order.amount ?? ""} {v.order.fiat ?? ""}
+                            {v.order.asset ? ` → ${v.order.asset}` : ""}{v.order.network ? ` (${v.order.network})` : ""} · {v.order.status}
+                          </p>
+                        )}
                         <p className="mt-0.5 text-[11px] text-muted-foreground">
-                          {v.device} · {v.browser} · {relativeTime(v.lastActivity)}
+                          {v.country ? `${v.country} · ` : ""}{v.device} · {v.browser} · {relativeTime(v.lastActivity)}
+                          {v.lastAction ? ` · ${v.lastAction}` : ""}
                         </p>
                       </div>
                       <div className="flex shrink-0 flex-col gap-1">

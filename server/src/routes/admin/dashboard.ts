@@ -73,7 +73,72 @@ adminDashboardRouter.get("/live-sessions", async (_req, res) => {
     orderBy: { lastActivityAt: "desc" },
     take: 100,
   });
-  res.json({ sessions });
+
+  // Bulk-load related users, orders and the latest event per session so the
+  // Live Ops cards can show personal details, amount/asset/network and last
+  // action without N+1 queries.
+  const userIds = [...new Set(sessions.map((s) => s.userId).filter(Boolean))] as string[];
+  const emails = [...new Set(sessions.map((s) => s.email?.toLowerCase()).filter(Boolean))] as string[];
+  const orderRefs = [...new Set(sessions.map((s) => s.relatedOrderId).filter(Boolean))] as string[];
+  const sessionIds = sessions.map((s) => s.id);
+
+  const [users, orders, latestEvents] = await Promise.all([
+    userIds.length || emails.length
+      ? prisma.user.findMany({ where: { OR: [{ id: { in: userIds } }, { email: { in: emails } }] } })
+      : Promise.resolve([]),
+    orderRefs.length
+      ? prisma.order.findMany({ where: { OR: [{ id: { in: orderRefs } }, { reference: { in: orderRefs } }] } })
+      : Promise.resolve([]),
+    sessionIds.length
+      ? prisma.liveEvent.findMany({
+          where: { sessionId: { in: sessionIds }, eventType: { not: "nav_suggestion" } },
+          orderBy: { createdAt: "desc" },
+          take: 400,
+        })
+      : Promise.resolve([]),
+  ]);
+
+  const userById = new Map(users.map((u) => [u.id, u]));
+  const userByEmail = new Map(users.map((u) => [u.email.toLowerCase(), u]));
+  const orderByKey = new Map<string, (typeof orders)[number]>();
+  orders.forEach((o) => { orderByKey.set(o.id, o); orderByKey.set(o.reference, o); });
+  const lastEventBySession = new Map<string, (typeof latestEvents)[number]>();
+  for (const ev of latestEvents) {
+    if (ev.sessionId && !lastEventBySession.has(ev.sessionId)) lastEventBySession.set(ev.sessionId, ev);
+  }
+
+  const enriched = sessions.map((s) => {
+    const user = (s.userId && userById.get(s.userId)) || (s.email && userByEmail.get(s.email.toLowerCase())) || null;
+    const order = s.relatedOrderId ? orderByKey.get(s.relatedOrderId) ?? null : null;
+    const lastEvent = lastEventBySession.get(s.id) ?? null;
+    return {
+      ...s,
+      personal: user
+        ? {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            country: user.country ?? s.country,
+            phone: user.phone,
+            emailVerified: user.emailVerified,
+          }
+        : null,
+      order: order
+        ? {
+            reference: order.reference,
+            type: order.type,
+            status: order.status,
+            asset: order.coin ?? order.receiveCoin ?? null,
+            network: order.sendCoin ?? null,
+            amount: order.spendAmount ?? order.sendAmount ?? null,
+            fiat: order.fiat ?? null,
+            walletAddress: shortenAddress(order.walletAddress),
+          }
+        : null,
+      lastEvent: lastEvent ? { type: lastEvent.eventType, at: lastEvent.createdAt, meta: lastEvent.metadataJson } : null,
+    };
+  });
+
+  res.json({ sessions: enriched });
 });
 
 adminDashboardRouter.get("/live-sessions/:id", async (req, res) => {

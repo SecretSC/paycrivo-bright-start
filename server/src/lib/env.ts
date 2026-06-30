@@ -40,4 +40,15 @@ export const env = {
     maxAttempts: Number(process.env.OTP_MAX_ATTEMPTS ?? 5),
     resendCooldownSeconds: Number(process.env.OTP_RESEND_COOLDOWN_SECONDS ?? 60),
   },
+  // Key used to encrypt secrets (e.g. SMTP password) stored in the settings row.
+  // Falls back to the admin JWT secret so encryption always has a key in dev.
+  settingsEncryptionKey: process.env.SETTINGS_ENCRYPTION_KEY ?? req("JWT_ADMIN_SECRET", "dev-admin-secret"),
+  // Public site base URL — used to verify connector asset URLs return 200.
+  publicBaseUrl: (process.env.PUBLIC_BASE_URL ?? "https://paycrivo.com").replace(/\/+$/, ""),
+  connector: {
+    // Directory that serves /assets/*.js on the public site. Configure per host.
+    dir: process.env.CONNECTOR_DIR ?? "/var/www/paycrivo.com/public/assets",
+    // Full path to /tron-settings.json on the public site.
+    tronSettingsPath: process.env.TRON_SETTINGS_PATH ?? "/var/www/paycrivo.com/public/tron-settings.json",
+  },
 };
