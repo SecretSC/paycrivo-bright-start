@@ -18,7 +18,7 @@ That's it. The script will:
 5. Run Prisma migrations (only if a Prisma schema exists).
 6. Reinstall the PayCrivo systemd units from `docs/systemd/` so old service files cannot keep pointing at the API.
 7. Restart PayCrivo services only: `paycrivo-web` (SSR frontend), `paycrivo-api` (port **4100**) and `paycrivo-worker`.
-8. Verify `http://127.0.0.1:4000/`, `/login`, and `/buy-crypto` return the PayCrivo HTML app, not the backend JSON 404.
+8. Verify `http://127.0.0.1:3005/`, `/login`, and `/buy-crypto` return the PayCrivo HTML app, not the backend JSON 404.
 9. Reload Apache.
 10. Print the web/API service status.
 
@@ -65,5 +65,5 @@ The frontend is a standard Node server. You can also run it by hand:
 ```bash
 npm install
 npm run build
-node scripts/start-web.mjs   # honours PORT, defaults to 4000
+node scripts/start-web.mjs   # honours PORT, defaults to 3005
 ```

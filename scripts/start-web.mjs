@@ -54,7 +54,7 @@ if (!existsSync(publicRoot)) {
 delete globalThis.__srvxLoader__;
 
 // Defaults match docs/systemd/paycrivo-web.service (Apache proxies to this).
-const port = Number.parseInt(process.env.PORT || "4000", 10);
+const port = Number.parseInt(process.env.PORT || "3005", 10);
 const host = process.env.HOST || "127.0.0.1";
 process.env.PORT = String(port);
 process.env.HOST = host;

@@ -58,12 +58,12 @@ The frontend build uses the Nitro **`node-server`** preset (configured in
 `scripts/start-web.mjs`, a hardened Node launcher that serves `.output/public`
 assets and dispatches application routes directly to the generated SSR service.
 This avoids generic JSON 404 fallthroughs and guarantees `/`, `/login`, and
-`/buy-crypto` render the app on port 4000.
+`/buy-crypto` render the app on port 3005.
 
 ```bash
 npm install
 npm run build
-PORT=4000 node scripts/start-web.mjs
+PORT=3005 node scripts/start-web.mjs
 ```
 
 Cloudflare Workers is **not** the default target. To build for Cloudflare
@@ -84,7 +84,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=/var/www/paycrivo.com
-Environment=PORT=4000
+Environment=PORT=3005
 Environment=HOST=127.0.0.1
 Environment=NODE_ENV=production
 ExecStart=/usr/bin/node scripts/start-web.mjs
@@ -142,7 +142,7 @@ sudo ufw allow 'WWW Full'   # 80 + 443
 sudo ufw enable
 ```
 
-The frontend runs as the `paycrivo-web` Node SSR server on `127.0.0.1:4000`
+The frontend runs as the `paycrivo-web` Node SSR server on `127.0.0.1:3005`
 and is reverse-proxied by Nginx or Apache at `paycrivo.com` (next guide). The
 Express API stays internal on `127.0.0.1:4100` and is reverse-proxied at
 `api.paycrivo.com`.

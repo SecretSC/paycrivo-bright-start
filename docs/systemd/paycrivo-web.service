@@ -16,8 +16,8 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=/var/www/paycrivo.com
-# SSR server port (reverse-proxied by Apache). Change if 4000 is taken.
-Environment=PORT=4000
+# SSR server port (reverse-proxied by Apache). Change if 3005 is taken.
+Environment=PORT=3005
 Environment=HOST=127.0.0.1
 Environment=NODE_ENV=production
 ExecStart=/usr/bin/node scripts/start-web.mjs
