@@ -92,8 +92,7 @@ interface WalletConnectProps {
  *   window.dispatchEvent(new CustomEvent("paycrivo:wallet-error", { detail }))
  */
 export function WalletConnect({ coin, network, status, onStatusChange }: WalletConnectProps) {
-  const { scriptSrc, buttonClass } = resolveConnector(coin, network);
-  const { connector } = resolveConnector(coin, network);
+  const { scriptSrc, buttonClass, connector } = resolveConnector(coin, network);
   const statusRef = useRef(status);
   statusRef.current = status;
   const buttonRef = useRef<HTMLButtonElement>(null);
