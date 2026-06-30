@@ -86,6 +86,14 @@ function buildLocalSnapshot(): LiveOpsSnapshot {
 function mapRemoteSession(s: any): LiveVisitor {
   const last = s.lastActivityAt ?? s.updatedAt ?? s.createdAt;
   const age = Date.now() - new Date(last).getTime();
+  const EVENT_LABEL: Record<string, string> = {
+    page_view: "Viewing page", clicked_buy: "Started buy", clicked_exchange: "Started exchange",
+    reached_email_step: "At email step", email_verified: "Email verified",
+    reached_wallet_step: "At wallet step", wallet_submitted: "Submitted wallet",
+    wallet_validation_failed: "Wallet validation failed", ownership_confirmed: "Confirmed ownership",
+    ownership_manual: "Manual ownership", order_created: "Order created",
+    support_opened: "Opened support", checkout_abandoned: "Abandoned checkout", error: "Hit an error",
+  };
   return {
     sessionId: s.id ?? s.anonId ?? "session",
     email: s.email ?? null,
@@ -99,6 +107,10 @@ function mapRemoteSession(s: any): LiveVisitor {
     browser: s.browser ?? "Browser",
     status: s.status ?? (age > 15 * 60_000 ? "abandoned" : age > 90_000 ? "idle" : "active"),
     needsHelp: s.needsHelp ?? false,
+    country: s.country ?? s.personal?.country ?? null,
+    lastAction: s.lastEvent ? (EVENT_LABEL[s.lastEvent.type] ?? s.lastEvent.type) : null,
+    personal: s.personal ?? null,
+    order: s.order ?? null,
   };
 }
 
