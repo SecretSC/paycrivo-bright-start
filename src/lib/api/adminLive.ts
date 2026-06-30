@@ -105,7 +105,14 @@ function mapRemoteSession(s: any): LiveVisitor {
     lastActivity: last ?? new Date().toISOString(),
     device: s.deviceType ?? "Desktop",
     browser: s.browser ?? "Browser",
-    status: s.status ?? (age > 15 * 60_000 ? "abandoned" : age > 90_000 ? "idle" : "active"),
+    status:
+      s.status === "completed"
+        ? "completed"
+        : s.status === "abandoned" || age > 15 * 60_000
+          ? "abandoned"
+          : age > 90_000
+            ? "idle"
+            : "active",
     needsHelp: s.needsHelp ?? false,
     country: s.country ?? s.personal?.country ?? null,
     lastAction: s.lastEvent ? (EVENT_LABEL[s.lastEvent.type] ?? s.lastEvent.type) : null,
