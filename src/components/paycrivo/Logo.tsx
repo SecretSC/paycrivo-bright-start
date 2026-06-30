@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import lightLogo from "@/assets/paycrivo-light.png.asset.json";
+import darkLogo from "@/assets/paycrivo-dark.png.asset.json";
 
 interface LogoProps {
   /** Render only the "P" mark icon instead of the full wordmark. */
@@ -87,16 +89,27 @@ export function Logo({
 }: LogoProps = {}) {
   const activeTheme = useActiveTheme();
   const theme = variant === "auto" ? activeTheme : variant;
-  const markSize = markOnly ? 38 : 34;
+  // markOnly keeps the crisp vector tile (used in collapsed admin sidebar).
+  if (markOnly) {
+    const mark = <PaycrivoMark size={38} className={imgClassName} theme={theme} />;
+    if (!asLink) return <span className={`inline-flex items-center ${className}`}>{mark}</span>;
+    return (
+      <a href="/" className={`inline-flex items-center ${className}`} aria-label="PayCrivo home">
+        {mark}
+      </a>
+    );
+  }
+
+  // Full wordmark: theme-aware official PayCrivo logo image.
+  // Light theme -> dark "Pay" version; dark theme -> white "Pay" version.
+  const src = theme === "dark" ? darkLogo.url : lightLogo.url;
   const content = (
-    <span className="inline-flex items-center gap-2.5 select-none">
-      <PaycrivoMark size={markSize} className={imgClassName} theme={theme} />
-      {!markOnly && (
-        <span className="font-display text-[1.35rem] font-extrabold leading-none tracking-tight text-foreground">
-          PayCrivo
-        </span>
-      )}
-    </span>
+    <img
+      src={src}
+      alt="PayCrivo"
+      className={imgClassName ?? "h-8 w-auto"}
+      draggable={false}
+    />
   );
 
   if (!asLink) {
