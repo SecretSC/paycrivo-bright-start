@@ -17,7 +17,13 @@ interface LogoProps {
 
 /** Reads the active theme from the <html> class set by the no-flash script. */
 function useActiveTheme(): "dark" | "light" {
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  // Initialise from the <html> class the no-flash script already applied so the
+  // correct logo variant renders immediately (no invisible-logo flash).
+  const [theme, setTheme] = useState<"dark" | "light">(() =>
+    typeof document !== "undefined" && document.documentElement.classList.contains("dark")
+      ? "dark"
+      : "light",
+  );
   useEffect(() => {
     const read = () =>
       setTheme(document.documentElement.classList.contains("dark") ? "dark" : "light");
