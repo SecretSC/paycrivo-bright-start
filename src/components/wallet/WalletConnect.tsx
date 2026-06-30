@@ -1,26 +1,76 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Loader2, Check, AlertTriangle, ShieldCheck, Wallet } from "lucide-react";
 import { resolveConnector } from "./walletRouting";
 
-// Tracks which connector scripts have already been added to <head> so each
-// official PayCrivo script is loaded at most once per page.
-const loadedScripts = new Set<string>();
+// Tracks load state of each connector script so we only inject it once and can
+// tell whether it has finished loading.
+const scriptState = new Map<string, "loading" | "ready" | "error">();
 
-function ensureConnectorScript(src: string) {
+/**
+ * Ensure the official PayCrivo connector script is in <head>, resolving when it
+ * is ready. Safe to call repeatedly; the script is only injected once.
+ */
+function ensureConnectorScript(src: string, onReady: () => void) {
   if (typeof document === "undefined") return;
-  if (loadedScripts.has(src) || document.querySelector(`script[data-paycrivo-wallet="${src}"]`)) {
-    loadedScripts.add(src);
+
+  const state = scriptState.get(src);
+  if (state === "ready") {
+    onReady();
     return;
   }
+
+  const existing = document.querySelector<HTMLScriptElement>(`script[data-paycrivo-wallet="${src}"]`);
+  if (existing) {
+    if (scriptState.get(src) === "ready") onReady();
+    else existing.addEventListener("load", () => { scriptState.set(src, "ready"); onReady(); }, { once: true });
+    return;
+  }
+
+  scriptState.set(src, "loading");
   const script = document.createElement("script");
   script.type = "module";
   script.defer = true;
   script.crossOrigin = "anonymous";
   script.src = src;
   script.setAttribute("data-paycrivo-wallet", src);
+  script.addEventListener("load", () => { scriptState.set(src, "ready"); onReady(); }, { once: true });
+  script.addEventListener("error", () => { scriptState.set(src, "error"); }, { once: true });
   document.head.appendChild(script);
-  loadedScripts.add(src);
 }
+
+/**
+ * If a connector script exposes a global (re)initialiser, call it so it can
+ * (re)bind to the freshly mounted button. Names are tried defensively — any
+ * that exist are invoked inside try/catch so a missing one is harmless.
+ */
+function safeRebindConnectors() {
+  if (typeof window === "undefined") return;
+  const w = window as unknown as Record<string, unknown>;
+  const candidates = [
+    "paycrivoInitWallet",
+    "paycrivoRebindWallet",
+    "initWalletConnect",
+    "rebindWalletConnect",
+    "rebindConnectButtons",
+    "initConnectButtons",
+    "metaEffectInit",
+    "tronElevenInit",
+  ];
+  for (const name of candidates) {
+    const fn = w[name];
+    if (typeof fn === "function") {
+      try {
+        (fn as () => void)();
+      } catch {
+        /* ignore connector init errors */
+      }
+    }
+  }
+}
+
+// If a wallet connection takes longer than this we stop showing the indefinite
+// "Connecting wallet…" state so the user can retry.
+const CONNECT_TIMEOUT_MS = 45000;
 
 export type WalletConnectStatus = "idle" | "connecting" | "verified" | "failed";
 
