@@ -8,6 +8,31 @@ import type { ApiAdmin } from "./api/types";
 
 const LOCAL_ADMIN = "paycrivo_admin_local";
 const LOCAL_TOKEN = "preview-admin-session";
+const CREDS_KEY = "paycrivo_admin_credentials";
+const DEFAULT_EMAIL = "admin@paycrivo.com";
+const DEFAULT_PASSWORD = "Admin@1234";
+
+type StoredCreds = { email: string; password: string };
+
+function readCreds(): StoredCreds {
+  try {
+    const raw = localStorage.getItem(CREDS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<StoredCreds>;
+      if (parsed?.email && parsed?.password) {
+        return { email: parsed.email.toLowerCase(), password: parsed.password };
+      }
+    }
+  } catch { /* ignore */ }
+  return { email: DEFAULT_EMAIL, password: DEFAULT_PASSWORD };
+}
+
+export function setAdminCredentials(email: string, password: string) {
+  try {
+    localStorage.setItem(CREDS_KEY, JSON.stringify({ email: email.toLowerCase(), password }));
+  } catch { /* ignore */ }
+}
+export function getAdminCredentialsEmail(): string { return readCreds().email; }
 
 type AdminAuthValue = {
   admin: ApiAdmin | null;
@@ -53,12 +78,17 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       setAdmin(a);
       return;
     }
-    // Preview fallback agent session.
+    // Static hosting: enforce the local admin credentials (default
+    // admin@paycrivo.com / Admin@1234, overridable via setAdminCredentials).
+    const creds = readCreds();
+    if (email.trim().toLowerCase() !== creds.email || password !== creds.password) {
+      throw new Error("Invalid email or password.");
+    }
     const a: ApiAdmin = {
       id: "local-admin",
-      email: email.toLowerCase(),
-      name: email.split("@")[0].replace(/[._-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) || "Support Agent",
-      role: "support_agent",
+      email: creds.email,
+      name: "PayCrivo Admin",
+      role: "super_admin",
     };
     tokenStore.setAdmin(LOCAL_TOKEN);
     try {
