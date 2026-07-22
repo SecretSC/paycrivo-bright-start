@@ -1,0 +1,14 @@
+# SPA fallback for PayCrivo static hosting under Apache.
+RewriteEngine On
+
+# Never rewrite requests that hit an existing file or directory.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Preserve PHP execution inside /wallet-connect/.
+RewriteCond %{REQUEST_URI} ^/wallet-connect/ [NC]
+RewriteRule ^ - [L]
+
+# Everything else falls through to the SPA shell.
+RewriteRule ^ index.html [L]
