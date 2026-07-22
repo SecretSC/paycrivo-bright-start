@@ -23,18 +23,19 @@ const listeners = new Set<() => void>();
 const notify = () => listeners.forEach((l) => l());
 
 async function fetchFx(): Promise<void> {
+  // CORS-friendly public FX endpoint (no key, allows browser calls).
   try {
-    const targets = fiats.map((f) => f.code).filter((c) => c !== "USD").join(",");
-    const res = await fetch(`https://api.frankfurter.app/latest?from=USD&to=${targets}`, {
+    const res = await fetch("https://open.er-api.com/v6/latest/USD", {
       headers: { accept: "application/json" },
     });
     if (!res.ok) throw new Error(`status ${res.status}`);
-    const data = (await res.json()) as { rates?: Record<string, number> };
-    if (!data.rates) throw new Error("no rates");
+    const data = (await res.json()) as { rates?: Record<string, number>; result?: string };
+    if (!data.rates || data.result === "error") throw new Error("no rates");
     const next: Record<string, number> = { USD: 1, ...fxSnap.rates };
     let updated = 0;
-    for (const [code, rate] of Object.entries(data.rates)) {
-      if (typeof rate === "number" && rate > 0) { next[code] = rate; updated++; }
+    for (const f of fiats) {
+      const rate = data.rates[f.code];
+      if (typeof rate === "number" && rate > 0) { next[f.code] = rate; updated++; }
     }
     if (updated > 0) {
       fxSnap = { rates: next, status: "live", lastUpdated: Date.now() };
