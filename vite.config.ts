@@ -27,26 +27,30 @@ export default defineConfig({
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+    // Prerender all app routes to static HTML so the `static` Nitro preset
+    // emits index.html + per-route HTML into `.output/public/` for static hosts.
+    prerender: {
+      enabled: true,
+      crawlLinks: true,
+      failOnError: false,
+      autoSubfolderIndex: true,
+    },
+    pages: [
+      { path: "/" },
+      { path: "/buy" },
+      { path: "/buy-crypto" },
+      { path: "/exchange" },
+      { path: "/swap" },
+      { path: "/prices" },
+      { path: "/learn" },
+      { path: "/login" },
+      { path: "/signup" },
+      { path: "/forgot-password" },
+      { path: "/verify-email" },
+      { path: "/dashboard" },
+    ],
   },
   nitro: {
     preset: nitroPreset,
-    prerender: {
-      crawlLinks: true,
-      failOnError: false,
-      routes: [
-        "/",
-        "/buy",
-        "/buy-crypto",
-        "/exchange",
-        "/swap",
-        "/prices",
-        "/learn",
-        "/login",
-        "/signup",
-        "/forgot-password",
-        "/verify-email",
-        "/dashboard",
-      ],
-    },
   },
 });
