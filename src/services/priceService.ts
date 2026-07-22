@@ -1,17 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { cryptoAssets } from "@/data/cryptoAssets";
 
-const COINGECKO_IDS: Record<string, string> = {
-  BTC: "bitcoin", ETH: "ethereum", SOL: "solana", XRP: "ripple", USDT: "tether",
-  USDC: "usd-coin", BNB: "binancecoin", DOGE: "dogecoin", TRX: "tron", ADA: "cardano",
-  LTC: "litecoin", AVAX: "avalanche-2", LINK: "chainlink", DOT: "polkadot", POL: "polygon-ecosystem-token",
-  BCH: "bitcoin-cash", XLM: "stellar", TON: "the-open-network", SHIB: "shiba-inu", UNI: "uniswap",
-  ETC: "ethereum-classic", ATOM: "cosmos", NEAR: "near", APT: "aptos", ARB: "arbitrum",
-  OP: "optimism", FIL: "filecoin", ICP: "internet-computer", HBAR: "hedera-hashgraph", INJ: "injective-protocol",
-  AAVE: "aave", SUI: "sui", TIA: "celestia", KAS: "kaspa", XMR: "monero", RNDR: "render-token",
-  FET: "fetch-ai", TAO: "bittensor", PEPE: "pepe", WIF: "dogwifcoin", BONK: "bonk", FTM: "fantom",
-};
-
 export type PriceEntry = { price: number; change24h: number };
 export type PriceStatus = "live" | "estimate";
 
@@ -26,45 +15,15 @@ for (const a of cryptoAssets) {
   seedPrices[a.symbol] = { price: a.mockPriceUsd, change24h: a.mockChange24h };
 }
 
+// Static-hosting build: no live crypto price feed. CoinGecko was removed
+// because api.coingecko.com is CORS-blocked and rate-limited from the browser.
+// We serve the seeded snapshot as an "estimate" — consumers already handle
+// the "estimate" status. Fiat FX comes from marketDataService via open.er-api.com.
 let snapshot: Snapshot = { prices: seedPrices, status: "estimate", lastUpdated: Date.now() };
 
 const listeners = new Set<() => void>();
-const notify = () => listeners.forEach((l) => l());
-
-async function fetchLive(): Promise<void> {
-  try {
-    const ids = Array.from(new Set(Object.values(COINGECKO_IDS))).join(",");
-    const res = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`,
-      { headers: { accept: "application/json" } },
-    );
-    if (!res.ok) throw new Error(`status ${res.status}`);
-    const data = (await res.json()) as Record<string, { usd: number; usd_24h_change?: number }>;
-    const nextPrices = { ...snapshot.prices };
-    let updated = 0;
-    for (const [symbol, id] of Object.entries(COINGECKO_IDS)) {
-      const row = data[id];
-      if (row && typeof row.usd === "number" && row.usd > 0) {
-        nextPrices[symbol] = { price: row.usd, change24h: row.usd_24h_change ?? nextPrices[symbol]?.change24h ?? 0 };
-        updated++;
-      }
-    }
-    if (updated > 0) {
-      snapshot = { prices: nextPrices, status: "live", lastUpdated: Date.now() };
-      notify();
-    }
-  } catch {
-    // Keep the realistic fallback snapshot. Status stays "estimate".
-  }
-}
-
-let started = false;
-function ensureStarted() {
-  if (started || typeof window === "undefined") return;
-  started = true;
-  fetchLive();
-  setInterval(fetchLive, 10_000);
-}
+// No-op subscription: snapshot never changes at runtime.
+function ensureStarted() { /* no live feed */ }
 
 export function getPrice(symbol: string): number {
   return snapshot.prices[symbol]?.price ?? 0;
