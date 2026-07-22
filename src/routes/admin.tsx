@@ -2,7 +2,7 @@ import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tan
 import { useEffect, useMemo, useState } from "react";
 import {
   LayoutDashboard, MessagesSquare, Inbox, Clock, UserCheck, CheckCircle2,
-  Search, ShoppingCart, Wallet, Gift, BarChart3, Settings, LogOut, Headset, Menu, ShieldCheck, Radio,
+  Search, ShoppingCart, Wallet, Gift, BarChart3, Settings, LogOut, Headset, Menu, ShieldCheck, Radio, Mail,
 } from "lucide-react";
 import { AdminAuthProvider, useAdminAuth } from "@/lib/adminAuth";
 import { adminApi } from "@/lib/api/admin";
@@ -108,6 +108,7 @@ const NAV: NavItem[] = [
   { label: "Rewards", icon: Gift, to: "/admin/rewards" },
   { label: "Analytics", icon: BarChart3, to: "/admin/analytics" },
   { label: "Settings", icon: Settings, to: "/admin/settings" },
+  { label: "SMTP Manager", icon: Mail, to: "/admin/smtp-manager" },
 ];
 
 function SidebarContent({ counts, onNavigate }: { counts: { open: number; pending: number }; onNavigate?: () => void }) {
