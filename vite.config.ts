@@ -85,25 +85,10 @@ export default defineConfig({
       maskPath: "/",
       prerender: { outputPath: "/", crawlLinks: false },
     },
-    prerender: {
-      enabled: true,
-      crawlLinks: true,
-      failOnError: false,
-    },
-    pages: [
-      { path: "/" },
-      { path: "/buy" },
-      { path: "/buy-crypto" },
-      { path: "/exchange" },
-      { path: "/swap" },
-      { path: "/prices" },
-      { path: "/learn" },
-      { path: "/login" },
-      { path: "/signup" },
-      { path: "/forgot-password" },
-      { path: "/verify-email" },
-      { path: "/dashboard" },
-    ],
+    // Prerender disabled: the Cloudflare Workers preset does not emit
+    // .output/server/server.js, so the crawler crashes with ERR_MODULE_NOT_FOUND.
+    // We generate the SPA shell via staticSpaIndexPlugin() and fan it out to
+    // every route folder via scripts/spa-fallback.mjs (see package.json build).
   },
   nitro: {
     output: {
