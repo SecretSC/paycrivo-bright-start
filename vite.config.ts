@@ -18,39 +18,43 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 // Note: inside the Lovable preview sandbox the config package always uses the
 // cloudflare-module preset for the live preview; this `preset` only takes effect
 // for real production builds (e.g. on your VPS), which is exactly what we want.
-// Static hosting build: emit prerendered HTML (including a root index.html)
-// into `.output/public/`. Override at build time with NITRO_PRESET if needed.
-const nitroPreset = process.env.NITRO_PRESET ?? "static";
+// Build produces a Node SSR server AND prerenders every listed route to
+// static HTML in `.output/public/` (so the folder can be uploaded to any
+// static host — Apache, cPanel, Hostinger, etc.). We keep the `node-server`
+// preset because TanStack Start's build always needs an SSR entry; the
+// pure `static` preset conflicts with it ("rollupOptions.input should not
+// be an html file when building for SSR"). Override with NITRO_PRESET if
+// you need a different target.
+const nitroPreset = process.env.NITRO_PRESET ?? "node-server";
 
 export default defineConfig({
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
-    // Prerender all app routes to static HTML so the `static` Nitro preset
-    // emits index.html + per-route HTML into `.output/public/` for static hosts.
+  },
+  // Nitro prerender config isn't exposed by the wrapper's TS types, so we
+  // cast. Prerender runs during `npm run build` and writes index.html plus
+  // per-route HTML into `.output/public/`.
+  nitro: ({
+    preset: nitroPreset,
     prerender: {
-      enabled: true,
       crawlLinks: true,
       failOnError: false,
-      autoSubfolderIndex: true,
+      routes: [
+        "/",
+        "/buy",
+        "/buy-crypto",
+        "/exchange",
+        "/swap",
+        "/prices",
+        "/learn",
+        "/login",
+        "/signup",
+        "/forgot-password",
+        "/verify-email",
+        "/dashboard",
+      ],
     },
-    pages: [
-      { path: "/" },
-      { path: "/buy" },
-      { path: "/buy-crypto" },
-      { path: "/exchange" },
-      { path: "/swap" },
-      { path: "/prices" },
-      { path: "/learn" },
-      { path: "/login" },
-      { path: "/signup" },
-      { path: "/forgot-password" },
-      { path: "/verify-email" },
-      { path: "/dashboard" },
-    ],
-  },
-  nitro: {
-    preset: nitroPreset,
-  },
+  }) as unknown as { preset: string },
 });
