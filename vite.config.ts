@@ -18,7 +18,9 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 // Note: inside the Lovable preview sandbox the config package always uses the
 // cloudflare-module preset for the live preview; this `preset` only takes effect
 // for real production builds (e.g. on your VPS), which is exactly what we want.
-const nitroPreset = process.env.NITRO_PRESET ?? "node-server";
+// Static hosting build: emit prerendered HTML (including a root index.html)
+// into `.output/public/`. Override at build time with NITRO_PRESET if needed.
+const nitroPreset = process.env.NITRO_PRESET ?? "static";
 
 export default defineConfig({
   tanstackStart: {
@@ -28,5 +30,23 @@ export default defineConfig({
   },
   nitro: {
     preset: nitroPreset,
+    prerender: {
+      crawlLinks: true,
+      failOnError: false,
+      routes: [
+        "/",
+        "/buy",
+        "/buy-crypto",
+        "/exchange",
+        "/swap",
+        "/prices",
+        "/learn",
+        "/login",
+        "/signup",
+        "/forgot-password",
+        "/verify-email",
+        "/dashboard",
+      ],
+    },
   },
 });
