@@ -2,7 +2,7 @@ import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tan
 import { useEffect, useMemo, useState } from "react";
 import {
   LayoutDashboard, MessagesSquare, Inbox, Clock, UserCheck, CheckCircle2,
-  Search, ShoppingCart, Wallet, Gift, BarChart3, Settings, LogOut, Headset, Menu, ShieldCheck, Radio,
+  Search, ShoppingCart, Wallet, Gift, BarChart3, Settings, LogOut, Headset, Menu, ShieldCheck, Radio, Mail,
 } from "lucide-react";
 import { AdminAuthProvider, useAdminAuth } from "@/lib/adminAuth";
 import { adminApi } from "@/lib/api/admin";
