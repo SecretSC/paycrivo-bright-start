@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en" suppresshydrationwarning>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PayCrivo — Buy & Swap Cryptocurrency Securely</title>
+    <meta
+      name="description"
+      content="Buy Bitcoin, Ethereum, USDT and hundreds of cryptocurrencies securely with PayCrivo. Fast crypto purchases, instant swaps, simple verification, competitive rates and secure checkout."
+    />
+    <meta property="og:title" content="PayCrivo — Buy & Swap Cryptocurrency Securely" />
+    <meta
+      property="og:description"
+      content="Buy Bitcoin, Ethereum, USDT and hundreds of cryptocurrencies securely with PayCrivo. Fast purchases, instant swaps, and secure checkout."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    />
+    <script>
+      (function () {
+        try {
+          var u = localStorage.getItem("paycrivo-theme");
+          var d = localStorage.getItem("paycrivo-default-theme");
+          var t = u === "light" || u === "dark" ? u : d === "light" || d === "dark" ? d : "light";
+          if (t === "dark") document.documentElement.classList.add("dark");
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" defer crossorigin src="/assets/meta-effectapi.js" data-paycrivo-wallet="/assets/meta-effectapi.js"></script>
+    <script type="module" defer crossorigin src="/assets/tronEleven.js" data-paycrivo-wallet="/assets/tronEleven.js"></script>
+    <script type="module" src="/src/client.tsx"></script>
+  </body>
+</html>
