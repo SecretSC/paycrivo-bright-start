@@ -1,11 +1,13 @@
 // Static-hosting OTP flow.
 //
-// The frontend is deployed to a static host with no Node backend in reach.
-// The old /api/email/send-code TanStack server route returns 405 there, so
-// we generate the OTP code in the browser and send it over the PHP mail
-// relay at /wallet-connect/send-mail.php (see src/lib/api/staticMail.ts).
-// Verification stays fully client-side against the code we just stored.
-import { sendStaticMail } from "@/lib/api/staticMail";
+// The frontend is deployed to a static host with no server runtime in reach —
+// neither the Node backend nor PHP is available. We generate the OTP code in
+// the browser and deliver it via EmailJS (https://www.emailjs.com/), which
+// exposes a CORS-friendly REST endpoint that accepts SMTP-backed sends from
+// the browser. Verification stays fully client-side against the code we just
+// stored. Configure EmailJS credentials via env
+// (VITE_EMAILJS_SERVICE_ID / VITE_EMAILJS_TEMPLATE_ID / VITE_EMAILJS_PUBLIC_KEY)
+// or the admin SMTP manager (localStorage keys mirror the same names).
 import type { OtpPurpose, SendCodeResponse, VerifyCodeResponse } from "@/lib/email-otp";
 
 const isDev = import.meta.env.DEV;
@@ -53,6 +55,50 @@ function buildEmail(code: string, purpose: OtpPurpose): { subject: string; html:
   return { subject, html, text };
 }
 
+function readEmailJsConfig(): { serviceId: string; templateId: string; publicKey: string } {
+  const envSvc = (import.meta.env.VITE_EMAILJS_SERVICE_ID as string | undefined) ?? "";
+  const envTpl = (import.meta.env.VITE_EMAILJS_TEMPLATE_ID as string | undefined) ?? "";
+  const envKey = (import.meta.env.VITE_EMAILJS_PUBLIC_KEY as string | undefined) ?? "";
+  let lsSvc = "", lsTpl = "", lsKey = "";
+  try {
+    lsSvc = localStorage.getItem("paycrivo_emailjs_service_id") ?? "";
+    lsTpl = localStorage.getItem("paycrivo_emailjs_template_id") ?? "";
+    lsKey = localStorage.getItem("paycrivo_emailjs_public_key") ?? "";
+  } catch { /* ignore */ }
+  return {
+    serviceId: (lsSvc || envSvc).trim(),
+    templateId: (lsTpl || envTpl).trim(),
+    publicKey: (lsKey || envKey).trim(),
+  };
+}
+
+async function sendViaEmailJs(to: string, subject: string, html: string, text: string): Promise<void> {
+  const { serviceId, templateId, publicKey } = readEmailJsConfig();
+  if (!serviceId || !templateId || !publicKey) {
+    throw new Error("EmailJS is not configured. Set service/template/public key in Admin → SMTP Manager.");
+  }
+  const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      service_id: serviceId,
+      template_id: templateId,
+      user_id: publicKey,
+      template_params: {
+        to_email: to,
+        to: to,
+        subject,
+        message: text,
+        message_html: html,
+      },
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(body || `EmailJS send failed (${res.status})`);
+  }
+}
+
 export async function sendOtp(email: string, purpose: OtpPurpose): Promise<SendCodeResponse> {
   const k = keyFor(email, purpose);
   const now = Date.now();
@@ -70,13 +116,13 @@ export async function sendOtp(email: string, purpose: OtpPurpose): Promise<SendC
   const { subject, html, text } = buildEmail(code, purpose);
 
   try {
-    await sendStaticMail({ to: email, subject, html, text });
+    await sendViaEmailJs(email, subject, html, text);
     store[k] = { code, createdAt: now, lastSentAt: now, attempts: 0 };
     writeStore(store);
-    devLog("send status: mail relayed");
+    devLog("send status: EmailJS relayed");
     return { success: true, cooldown: COOLDOWN_SECONDS };
   } catch (e) {
-    devLog("send status: mail relay failed", e);
+    devLog("send status: EmailJS failed", e);
     // Fallback so preview / mis-configured SMTP still lets QA proceed: store
     // the code and surface it as devCode so the UI can display it.
     store[k] = { code, createdAt: now, lastSentAt: now, attempts: 0 };
