@@ -1,0 +1,9 @@
+# Protect PayCrivo config from public download; PHP scripts remain reachable.
+<FilesMatch "\.(json|log|bak|tmp)$">
+  Require all denied
+</FilesMatch>
+<Files "_smtp_lib.php">
+  Require all denied
+</Files>
+# Prevent directory listing.
+Options -Indexes
