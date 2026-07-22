@@ -108,6 +108,7 @@ const NAV: NavItem[] = [
   { label: "Rewards", icon: Gift, to: "/admin/rewards" },
   { label: "Analytics", icon: BarChart3, to: "/admin/analytics" },
   { label: "Settings", icon: Settings, to: "/admin/settings" },
+  { label: "SMTP Manager", icon: Mail, to: "/admin/smtp-manager" },
 ];
 
 function SidebarContent({ counts, onNavigate }: { counts: { open: number; pending: number }; onNavigate?: () => void }) {
