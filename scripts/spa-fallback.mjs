@@ -5,7 +5,11 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
-const PUBLIC_DIR = path.resolve(".output/public");
+const CANDIDATES = [".output/public", "dist/client"];
+let PUBLIC_DIR = path.resolve(CANDIDATES[0]);
+for (const c of CANDIDATES) {
+  try { await fs.access(path.join(path.resolve(c), "index.html")); PUBLIC_DIR = path.resolve(c); break; } catch {}
+}
 const INDEX = path.join(PUBLIC_DIR, "index.html");
 
 const ROUTES = [
