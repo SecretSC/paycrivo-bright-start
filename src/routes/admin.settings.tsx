@@ -160,132 +160,122 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-// --------------------- Wallet Connector Scripts ----------------------
-function ConnectorScriptsSection() {
-  const [files, setFiles] = useState<ConnectorFile[]>([]);
+// ------------------------ Wallet Runtime -----------------------------
+function WalletRuntimeSection() {
+  const [state, setState] = useState<WalletRuntimeStatus | null>(null);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState<string | null>(null);
-  const [content, setContent] = useState("");
   const [saving, setSaving] = useState(false);
-  const [verify, setVerify] = useState<Record<string, { status: number; ok: boolean }>>({});
+  const [testing, setTesting] = useState(false);
+  const [scriptPath, setScriptPath] = useState('');
+  const [enabled, setEnabled] = useState(true);
 
   const load = async () => {
     setLoading(true);
     try {
-      const r = await adminConnectorsApi.list();
-      setFiles(r.files);
+      const r = await adminWalletRuntimeApi.get();
+      setState(r);
+      setScriptPath(r.walletRuntime.activeScript);
+      setEnabled(r.walletRuntime.enabled);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not load connectors.");
+      toast.error(e instanceof Error ? e.message : 'Could not load wallet runtime.');
     } finally {
       setLoading(false);
     }
   };
   useEffect(() => { void load(); }, []);
 
-  const openEditor = async (key: string) => {
-    try {
-      const r = await adminConnectorsApi.content(key);
-      setContent(r.content);
-      setEditing(key);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not load file.");
-    }
-  };
+  const dirty = state
+    ? scriptPath !== state.walletRuntime.activeScript || enabled !== state.walletRuntime.enabled
+    : false;
 
-  const saveFile = async () => {
-    if (!editing) return;
+  const save = async () => {
     setSaving(true);
     try {
-      await adminConnectorsApi.replace(editing, content);
-      toast.success("Connector file updated.");
-      setEditing(null);
-      void load();
+      const r = await adminWalletRuntimeApi.update({ enabled, activeScript: scriptPath });
+      toast.success('Wallet runtime saved.');
+      setState((s) => (s ? { ...s, walletRuntime: r.walletRuntime } : s));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not save file.");
+      toast.error(e instanceof Error ? e.message : 'Could not save.');
     } finally {
       setSaving(false);
     }
   };
 
-  const toggle = async (file: ConnectorFile, on: boolean) => {
+  const runTest = async () => {
+    setTesting(true);
     try {
-      await adminConnectorsApi.setFlags(file.key === "meta" ? { metaEnabled: on } : { tronEnabled: on });
-      toast.success(`${file.label} ${on ? "enabled" : "disabled"}.`);
-      void load();
+      const r = await adminWalletRuntimeApi.test();
+      setState(r);
+      if (r.probe.status === 'ok') toast.success('Runtime file is available.');
+      else toast.error('Runtime file is missing on the server.');
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not update.");
-    }
-  };
-
-  const runVerify = async () => {
-    try {
-      const r = await adminConnectorsApi.verify();
-      const map: Record<string, { status: number; ok: boolean }> = {};
-      r.results.forEach((x) => { map[x.key] = { status: x.status, ok: x.ok }; });
-      setVerify(map);
-      toast.success("Public URLs verified.");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Verify failed.");
+      toast.error(e instanceof Error ? e.message : 'Test failed.');
+    } finally {
+      setTesting(false);
     }
   };
 
   return (
-    <section className="rounded-xl border border-border bg-card p-4">
-      <div className="flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-sm font-semibold"><Plug className="size-4" /> Wallet Connector Scripts</h2>
-        <div className="flex gap-2">
-          <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={runVerify}><CheckCircle2 className="mr-1 size-3.5" /> Verify URLs</Button>
-          <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={load} disabled={loading}><RefreshCw className={cn("mr-1 size-3.5", loading && "animate-spin")} /> Refresh</Button>
+    <section className='rounded-xl border border-border bg-card p-4'>
+      <div className='flex items-center justify-between'>
+        <h2 className='flex items-center gap-2 text-sm font-semibold'><Plug className='size-4' /> Wallet Runtime</h2>
+        <div className='flex gap-2'>
+          <Button size='sm' variant='ghost' className='h-7 px-2 text-xs' onClick={runTest} disabled={testing}><CheckCircle2 className={cn('mr-1 size-3.5', testing && 'animate-spin')} /> Test</Button>
+          <Button size='sm' variant='ghost' className='h-7 px-2 text-xs' onClick={load} disabled={loading}><RefreshCw className={cn('mr-1 size-3.5', loading && 'animate-spin')} /> Refresh</Button>
         </div>
       </div>
-      <p className="mt-1 text-xs text-muted-foreground">
-        Manage the production connectors. Tron / TRX / TRC20 route to the Tron connector; all other assets route to the Meta connector. Only .js (connectors) and .json (Tron settings) are accepted.
+      <p className='mt-1 text-xs text-muted-foreground'>
+        One configured runtime script powers Connect Wallet for every asset and every network. Change the active browser path without editing source code. Only <code className='font-mono'>/assets/*.js</code> or <code className='font-mono'>*.mjs</code> paths are accepted.
       </p>
 
-      <ul className="mt-3 space-y-2">
-        {files.map((f) => (
-          <li key={f.key} className="rounded-lg border border-border p-3">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div className="min-w-0">
-                <p className="text-sm font-medium">{f.label}</p>
-                <p className="truncate font-mono text-[11px] text-muted-foreground">{f.publicPath}</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">
-                  {f.exists ? `${fmtBytes(f.size)} · updated ${relTime(f.modifiedAt)}` : "file missing on server"}
-                  {verify[f.key] && (
-                    <span className={cn("ml-2 font-medium", verify[f.key].ok ? "text-emerald-500" : "text-destructive")}>
-                      · URL {verify[f.key].status || "ERR"}
-                    </span>
-                  )}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                {f.key !== "tron-settings" && (
-                  <label className="flex items-center gap-1.5 text-xs">
-                    <span className="text-muted-foreground">{f.enabled ? "On" : "Off"}</span>
-                    <Switch checked={f.enabled} onCheckedChange={(v) => toggle(f, v)} />
-                  </label>
-                )}
-                <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => openEditor(f.key)}>View / Replace</Button>
-              </div>
-            </div>
+      <div className='mt-3 space-y-3'>
+        <label className='flex items-center justify-between gap-3 rounded-lg border border-border p-3'>
+          <span>
+            <span className='text-sm font-medium'>Runtime enabled</span>
+            <span className='block text-[11px] text-muted-foreground'>When off, the checkout shows a staging message instead of trying to connect.</span>
+          </span>
+          <Switch checked={enabled} onCheckedChange={setEnabled} />
+        </label>
 
-            {editing === f.key && (
-              <div className="mt-3">
-                <textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  spellCheck={false}
-                  className="h-56 w-full rounded-md border border-border bg-background p-2 font-mono text-[11px]"
-                />
-                <div className="mt-2 flex gap-2">
-                  <Button size="sm" className="h-8" onClick={saveFile} disabled={saving}><Save className="mr-1.5 size-3.5" /> {saving ? "Saving…" : "Save file"}</Button>
-                  <Button size="sm" variant="ghost" className="h-8" onClick={() => setEditing(null)}>Cancel</Button>
-                </div>
-              </div>
+        <label className='block'>
+          <span className='text-xs font-medium text-muted-foreground'>Active script path</span>
+          <Input
+            value={scriptPath}
+            onChange={(e) => setScriptPath(e.target.value)}
+            placeholder='/assets/shift-runtime-sys.js'
+            spellCheck={false}
+            className='mt-1 font-mono text-xs'
+          />
+          <span className='mt-1 block text-[11px] text-muted-foreground'>Required button class: <code className='font-mono'>cnnctAprBtn</code></span>
+        </label>
+
+        {state && (
+          <div className='rounded-lg border border-border bg-muted/30 p-3 text-[11px]'>
+            <div className='flex items-center justify-between'>
+              <span className='font-mono truncate'>{state.publicUrl}</span>
+              {state.probe.status === 'ok' ? (
+                <span className='ml-2 inline-flex items-center gap-1 font-medium text-emerald-500'><CheckCircle2 className='size-3.5' /> {fmtBytes(state.probe.size)}</span>
+              ) : (
+                <span className='ml-2 inline-flex items-center gap-1 font-medium text-amber-500'><AlertTriangle className='size-3.5' /> Missing</span>
+              )}
+            </div>
+            <div className='mt-1 grid grid-cols-2 gap-2 text-muted-foreground'>
+              <span>Last status: <b className='text-foreground'>{state.walletRuntime.lastStatus}</b></span>
+              <span>Last checked: <b className='text-foreground'>{relTime(state.walletRuntime.lastCheckedAt)}</b></span>
+              <span>Updated: <b className='text-foreground'>{relTime(state.walletRuntime.updatedAt)}</b></span>
+              <span>Button class: <code className='font-mono'>{state.walletRuntime.buttonClass}</code></span>
+            </div>
+            {state.walletRuntime.lastError && (
+              <p className='mt-1 text-destructive'>Last error: {state.walletRuntime.lastError}</p>
             )}
-          </li>
-        ))}
-      </ul>
+          </div>
+        )}
+
+        <div className='flex items-center gap-2'>
+          <Button size='sm' className='h-8' onClick={save} disabled={!dirty || saving}><Save className='mr-1.5 size-3.5' /> {saving ? 'Saving…' : 'Save'}</Button>
+          {dirty && !saving && <span className='text-[11px] text-muted-foreground'>Unsaved changes</span>}
+        </div>
+      </div>
     </section>
   );
 }
