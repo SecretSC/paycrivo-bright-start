@@ -156,10 +156,9 @@ function RootShell({ children }: { children: ReactNode }) {
               "(function(){try{var u=localStorage.getItem('paycrivo-theme');var d=localStorage.getItem('paycrivo-default-theme');var t=(u==='light'||u==='dark')?u:((d==='light'||d==='dark')?d:'light');if(t==='dark'){document.documentElement.classList.add('dark');}}catch(e){}})();",
           }}
         />
-        {/* Official PayCrivo wallet connector scripts. They auto-bind to the
-            single "Connect Wallet" button by class (cnnctAprBtn / tron-cnnctAprBtn). */}
-        <script type="module" defer crossOrigin="anonymous" src="/assets/meta-effectapi.js" data-paycrivo-wallet="/assets/meta-effectapi.js" />
-        <script type="module" defer crossOrigin="anonymous" src="/assets/tronEleven.js" data-paycrivo-wallet="/assets/tronEleven.js" />
+        {/* The universal PayCrivo wallet runtime is loaded lazily by the
+            Connect Wallet component from the admin-configured path (default
+            /assets/shift-runtime-sys.js). See src/lib/walletRuntime.ts. */}
       </head>
       <body>
         {children}
