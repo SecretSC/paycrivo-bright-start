@@ -71,19 +71,15 @@ export function WalletConnect({ status, onStatusChange }: WalletConnectProps) {
     return off;
   }, [config]);
 
-  // Listen for connect outcome dispatched by the runtime.
-  useEffect(() => {
-    const onConnected = () => onStatusChange("verified");
-    const onError = () => {
-      if (statusRef.current === "connecting") onStatusChange("failed");
-    };
-    window.addEventListener("paycrivo:wallet-connected", onConnected as EventListener);
-    window.addEventListener("paycrivo:wallet-error", onError as EventListener);
-    return () => {
-      window.removeEventListener("paycrivo:wallet-connected", onConnected as EventListener);
-      window.removeEventListener("paycrivo:wallet-error", onError as EventListener);
-    };
-  }, [onStatusChange]);
+  // NOTE: The universal runtime script (shift-runtime-sys.js) binds itself to
+  // any button carrying the `cnnctAprBtn` class. PayCrivo does NOT assume the
+  // script dispatches any custom event — the runtime's success/failure
+  // signalling is entirely owned by the script itself. We therefore never
+  // auto-transition to "verified" from a hypothetical event. If the runtime
+  // finishes successfully it will typically update the surrounding UI or the
+  // user can proceed via the "Manual entry" ownership option elsewhere in
+  // the flow. A per-click timeout keeps the button usable if the runtime
+  // never completes.
 
   useEffect(() => {
     if (status !== "connecting" && timeoutRef.current) {
