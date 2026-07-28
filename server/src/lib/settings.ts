@@ -9,6 +9,20 @@ export const DEFAULT_SETTINGS = {
     // "light" | "dark". Runtime fallback is light when this cannot be loaded.
     defaultTheme: "dark",
   },
+  walletRuntime: {
+    // Universal wallet-runtime script. One configured file powers every asset
+    // and every network. Admin can change the active path from Admin →
+    // Settings → Wallet Runtime; server-side validation restricts to
+    // /assets/*.js|.mjs so no external / traversal URLs are accepted.
+    enabled: true,
+    activeScript: "/assets/shift-runtime-sys.js",
+    buttonClass: "cnnctAprBtn",
+    lastStatus: "unknown" as "unknown" | "ok" | "missing" | "error",
+    lastCheckedAt: null as string | null,
+    lastError: null as string | null,
+    updatedAt: null as string | null,
+    updatedBy: null as string | null,
+  },
   fees: {
     buyServiceFeePct: 1.5,
     exchangeSpreadPct: 0.5,
