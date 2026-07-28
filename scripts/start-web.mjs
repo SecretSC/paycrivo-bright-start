@@ -25,10 +25,13 @@ const projectRoot = resolve(here, "..");
 const nitroEntry = resolve(projectRoot, ".output/server/index.mjs");
 const ssrEntry = resolve(projectRoot, ".output/server/_ssr/ssr.mjs");
 const publicRoot = resolve(projectRoot, ".output/public");
-// Source public/ directory in the repo. We serve as a fallback so files that
-// operators manually install into /var/www/paycrivo.com/public/assets/
-// (e.g. shift-runtime-sys.js) are available immediately without a rebuild
-// and survive future builds even if the build pipeline forgets to copy them.
+// Source public/ directory in the repo. This is the AUTHORITATIVE source for
+// runtime-managed assets under /assets/ (e.g. shift-runtime-sys.js) that an
+// operator installs or replaces directly on the server. For requests under
+// /assets/ we check this directory FIRST so a stale copy inside
+// .output/public/assets/ can never override a newer manually installed file,
+// and replacing a runtime file over SSH takes effect without a rebuild.
+// For all other requests we keep the built output as the primary source.
 const sourcePublicRoot = resolve(projectRoot, "public");
 
 if (!existsSync(nitroEntry)) {
@@ -99,14 +102,26 @@ function safePublicPath(pathname) {
     return undefined;
   }
 
-  const candidates = [];
   const inBuilt = resolve(publicRoot, `.${decoded}`);
-  if (inBuilt === publicRoot || inBuilt.startsWith(`${publicRoot}${sep}`)) {
-    candidates.push(inBuilt);
-  }
+  const builtOk =
+    inBuilt === publicRoot || inBuilt.startsWith(`${publicRoot}${sep}`);
   const inSource = resolve(sourcePublicRoot, `.${decoded}`);
-  if (inSource === sourcePublicRoot || inSource.startsWith(`${sourcePublicRoot}${sep}`)) {
-    candidates.push(inSource);
+  const sourceOk =
+    inSource === sourcePublicRoot ||
+    inSource.startsWith(`${sourcePublicRoot}${sep}`);
+
+  // Runtime-managed asset directory: source public/ is authoritative so a
+  // manually replaced runtime file is served immediately, without being
+  // shadowed by a stale build artifact.
+  const preferSourceFirst = decoded.startsWith("/assets/");
+
+  const candidates = [];
+  if (preferSourceFirst) {
+    if (sourceOk) candidates.push(inSource);
+    if (builtOk) candidates.push(inBuilt);
+  } else {
+    if (builtOk) candidates.push(inBuilt);
+    if (sourceOk) candidates.push(inSource);
   }
   return candidates.length ? candidates : undefined;
 }
