@@ -5,8 +5,10 @@
 1. **PostgreSQL database** — all customer, order, support, and reward data.
 2. **Environment files** — `server/.env` and `.env.production` (store securely;
    they contain secrets).
-3. **Wallet connector scripts** — `public/assets/meta-effectapi.js` and
-   `public/assets/tronEleven.js` (also kept in git).
+3. **Wallet runtime script** — operator-installed at
+   `public/assets/shift-runtime-sys.js` (not in git). Back up this directory
+   separately; the file is the authoritative source served at
+   `/assets/shift-runtime-sys.js`.
 
 ## Create a backup
 

@@ -31,7 +31,8 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /index.html [L]
 ```
 
-Make sure `assets/meta-effectapi.js` and `assets/tronEleven.js` are present in
+Make sure the operator-installed wallet runtime (default
+`assets/shift-runtime-sys.js`) is present in
 the document root's `assets/` folder (they ship in the build output).
 
 ## 2. Deploy the API

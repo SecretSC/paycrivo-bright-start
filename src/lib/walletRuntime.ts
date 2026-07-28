@@ -1,9 +1,7 @@
 // Universal PayCrivo wallet-runtime loader.
 //
-// The old system routed to two different connector scripts by asset/network
-// (tronEleven.js for Tron, meta-effectapi.js for everything else). That is
-// gone. Every asset on every network now uses the SAME configured runtime
-// JavaScript. The active path lives in backend settings and is served on
+// Every asset on every network uses the SAME configured runtime JavaScript.
+// The active path lives in backend settings and is served on
 // GET /api/settings/public so it can be changed from Admin without a build.
 //
 // Missing-file behaviour is graceful: we never mark the wallet as connected,

@@ -64,24 +64,31 @@ npm run build
 ok "Frontend SSR server built -> $SSR_ENTRY"
 ok "TanStack route service built -> $SSR_SERVICE"
 
-# ---- Preserve manually-installed runtime assets ----
-# Operators drop the universal wallet runtime (and any related admin-managed
-# JS/JSON) into $PROJECT_ROOT/public/assets/. Vite copies public/ into
-# .output/public/ at build time, so anything already committed to the repo is
-# fine. But files placed there manually AFTER a build must survive the next
-# build too. We mirror them into the built directory so both paths resolve,
-# and never overwrite existing built assets.
-step "Syncing manually-installed public/assets/ files into build output"
+# ---- Runtime asset directory (authoritative source) ----
+# The web launcher (scripts/start-web.mjs) treats
+# $PROJECT_ROOT/public/assets/ as the AUTHORITATIVE source for any request
+# under /assets/. It checks that directory FIRST and only falls back to
+# .output/public/assets/ for hashed bundle files that don't exist in source.
+#
+# Because of that, we do NOT copy or mirror files here. Copying would create
+# a second stale copy inside .output/ that a `cp -n` step could then refuse
+# to overwrite, leaving visitors on an outdated wallet runtime after an
+# operator replaces the source file over SSH. The correct workflow is:
+#
+#   1. Operator writes/replaces file at $PROJECT_ROOT/public/assets/<name>.js
+#   2. Web launcher serves it directly (no rebuild required)
+#   3. `systemctl restart paycrivo-web` only if the file was open at boot
+#
+# Here we just verify the directory exists and log what's present so any
+# missing runtime file is obvious in the deploy log.
+step "Verifying runtime asset directory"
 SRC_ASSETS="$PROJECT_ROOT/public/assets"
-DST_ASSETS="$PROJECT_ROOT/.output/public/assets"
 if [ -d "$SRC_ASSETS" ]; then
-  mkdir -p "$DST_ASSETS"
-  # -n = do not clobber existing files in the build output. Copies only what
-  # is missing (i.e. operator-installed files not tracked in git).
-  cp -rn "$SRC_ASSETS"/. "$DST_ASSETS"/ 2>/dev/null || true
-  ok "public/assets/ synchronized (existing built files preserved)"
+  ok "Runtime asset directory: $SRC_ASSETS"
+  ls -la "$SRC_ASSETS" | sed 's/^/    /' || true
 else
-  echo "    (no public/assets/ directory, skipping)"
+  mkdir -p "$SRC_ASSETS"
+  ok "Created empty runtime asset directory: $SRC_ASSETS"
 fi
 
 # ---- Backend build ----
