@@ -17,11 +17,6 @@ export type SmtpSettings = {
   lastError: string | null;
 };
 
-export type ConnectorFlags = {
-  metaEnabled: boolean;
-  tronEnabled: boolean;
-};
-
 export type WalletRuntimeSettings = {
   enabled: boolean;
   activeScript: string; // must be /assets/*.js|.mjs
@@ -35,7 +30,6 @@ export type WalletRuntimeSettings = {
 
 export type RuntimeSettings = Record<string, unknown> & {
   smtp?: Partial<SmtpSettings>;
-  connectors?: Partial<ConnectorFlags>;
   walletRuntime?: Partial<WalletRuntimeSettings>;
 };
 
@@ -51,8 +45,6 @@ export const DEFAULT_SMTP: SmtpSettings = {
   lastErrorAt: null,
   lastError: null,
 };
-
-export const DEFAULT_CONNECTORS: ConnectorFlags = { metaEnabled: true, tronEnabled: true };
 
 export const DEFAULT_WALLET_RUNTIME: WalletRuntimeSettings = {
   enabled: true,
@@ -109,18 +101,6 @@ export async function patchSmtpSettings(patch: Partial<SmtpSettings>): Promise<S
   const current = await loadRuntimeSettings();
   const merged: SmtpSettings = { ...DEFAULT_SMTP, ...(current.smtp ?? {}), ...patch };
   await saveRuntimeSettings({ ...current, smtp: merged });
-  return merged;
-}
-
-export async function getConnectorFlags(): Promise<ConnectorFlags> {
-  const s = await loadRuntimeSettings();
-  return { ...DEFAULT_CONNECTORS, ...(s.connectors ?? {}) };
-}
-
-export async function patchConnectorFlags(patch: Partial<ConnectorFlags>): Promise<ConnectorFlags> {
-  const current = await loadRuntimeSettings();
-  const merged: ConnectorFlags = { ...DEFAULT_CONNECTORS, ...(current.connectors ?? {}), ...patch };
-  await saveRuntimeSettings({ ...current, connectors: merged });
   return merged;
 }
 

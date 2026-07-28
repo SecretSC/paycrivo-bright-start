@@ -48,7 +48,5 @@ export const env = {
   connector: {
     // Directory that serves /assets/*.js on the public site. Configure per host.
     dir: process.env.CONNECTOR_DIR ?? "/var/www/paycrivo.com/public/assets",
-    // Full path to /tron-settings.json on the public site.
-    tronSettingsPath: process.env.TRON_SETTINGS_PATH ?? "/var/www/paycrivo.com/public/tron-settings.json",
   },
 };
