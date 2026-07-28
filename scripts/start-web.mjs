@@ -14,11 +14,16 @@
 //   tree.
 
 import { createReadStream, existsSync } from "node:fs";
-import { stat } from "node:fs/promises";
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
-import { dirname, extname, resolve, sep } from "node:path";
+import { dirname, resolve, sep } from "node:path";
 import { Readable } from "node:stream";
+import {
+  safePublicPath as sharedSafePublicPath,
+  resolveFirstFile,
+  contentTypeFor,
+  cacheControlFor,
+} from "./static-serve.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(here, "..");
@@ -76,54 +81,8 @@ if (!ssr || typeof ssr.fetch !== "function") {
   process.exit(1);
 }
 
-const mimeTypes = new Map([
-  [".css", "text/css; charset=utf-8"],
-  [".js", "text/javascript; charset=utf-8"],
-  [".mjs", "text/javascript; charset=utf-8"],
-  [".json", "application/json; charset=utf-8"],
-  [".svg", "image/svg+xml"],
-  [".png", "image/png"],
-  [".jpg", "image/jpeg"],
-  [".jpeg", "image/jpeg"],
-  [".gif", "image/gif"],
-  [".webp", "image/webp"],
-  [".ico", "image/x-icon"],
-  [".txt", "text/plain; charset=utf-8"],
-  [".xml", "application/xml; charset=utf-8"],
-  [".woff", "font/woff"],
-  [".woff2", "font/woff2"],
-]);
-
 function safePublicPath(pathname) {
-  let decoded;
-  try {
-    decoded = decodeURIComponent(pathname);
-  } catch {
-    return undefined;
-  }
-
-  const inBuilt = resolve(publicRoot, `.${decoded}`);
-  const builtOk =
-    inBuilt === publicRoot || inBuilt.startsWith(`${publicRoot}${sep}`);
-  const inSource = resolve(sourcePublicRoot, `.${decoded}`);
-  const sourceOk =
-    inSource === sourcePublicRoot ||
-    inSource.startsWith(`${sourcePublicRoot}${sep}`);
-
-  // Runtime-managed asset directory: source public/ is authoritative so a
-  // manually replaced runtime file is served immediately, without being
-  // shadowed by a stale build artifact.
-  const preferSourceFirst = decoded.startsWith("/assets/");
-
-  const candidates = [];
-  if (preferSourceFirst) {
-    if (sourceOk) candidates.push(inSource);
-    if (builtOk) candidates.push(inBuilt);
-  } else {
-    if (builtOk) candidates.push(inBuilt);
-    if (sourceOk) candidates.push(inSource);
-  }
-  return candidates.length ? candidates : undefined;
+  return sharedSafePublicPath(pathname, { publicRoot, sourcePublicRoot });
 }
 
 async function maybeServeStatic(req, res, pathname) {
@@ -133,31 +92,15 @@ async function maybeServeStatic(req, res, pathname) {
     res.end("Bad request");
     return true;
   }
-
-  let info;
-  let filePath;
-  for (const c of candidates) {
-    try {
-      const s = await stat(c);
-      if (s.isFile()) { info = s; filePath = c; break; }
-    } catch { /* try next candidate */ }
-  }
-  if (!info || !filePath) return false;
-
-  const ext = extname(filePath).toLowerCase();
+  const hit = await resolveFirstFile(candidates);
+  if (!hit) return false;
+  const { path: filePath, stat: info } = hit;
   const servedFromSource = filePath.startsWith(`${sourcePublicRoot}${sep}`);
   res.statusCode = 200;
-  res.setHeader("Content-Type", mimeTypes.get(ext) || "application/octet-stream");
+  res.setHeader("Content-Type", contentTypeFor(filePath));
   res.setHeader("Content-Length", String(info.size));
   res.setHeader("Last-Modified", info.mtime.toUTCString());
-  if (pathname.startsWith("/assets/")) {
-    if (servedFromSource) {
-      // Runtime-managed files (operator-installed under public/assets/) can
-      // change without a rebuild. Never mark them immutable — that would let
-      // browsers hold on to an outdated wallet runtime for a year.
-      res.setHeader("Cache-Control", "public, max-age=60, must-revalidate");
-    } else {
-      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  res.setHeader("Cache-Control", cacheControlFor(pathname, servedFromSource));
     }
   }
 

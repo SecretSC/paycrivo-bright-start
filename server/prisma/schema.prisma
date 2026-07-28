@@ -138,6 +138,19 @@ model Order {
   paymentStatus   String?  @default("awaiting_payment")
   status          String   @default("pending") // pending|processing|completed|failed|cancelled|manual_review
   metadataJson    Json?
+  // ---- Server-authoritative snapshot (never trust client) ----
+  idempotencyKey  String?
+  sessionKey      String?
+  quoteId         String?
+  priceUsd        Float?
+  priceFiat       Float?
+  fxRate          Float?
+  serviceFee      Float?
+  networkFee      Float?
+  paycrivoFee     Float?
+  totalFees       Float?
+  netAmount       Float?
+  priceStatus     String?  // live | estimate at order-creation time
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -318,4 +331,41 @@ model Settings {
   updatedAt   DateTime @updatedAt
 
   @@map("settings")
+}
+
+// ------------------------------ Quotes -------------------------------
+// Server-issued order quote snapshots. Frontend cannot invent totals —
+// it fetches a quoteId and references it at order creation, and the
+// server re-verifies expiry, ownership and consumed-status inside a
+// transaction before writing the order.
+model Quote {
+  id              String   @id
+  userId          String?
+  sessionKey      String
+  type            String   @default("buy")
+  fiat            String
+  asset           String
+  network         String
+  paymentMethod   String
+  spendAmount     Float
+  priceUsd        Float
+  priceFiat       Float
+  fxRate          Float
+  serviceFee      Float
+  networkFee      Float
+  paycrivoFee     Float
+  totalFees       Float
+  netAmount       Float
+  receiveAmount   Float
+  firstPurchase   Boolean  @default(true)
+  priceStatus     String
+  consumed        Boolean  @default(false)
+  consumedOrderId String?
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+
+  @@index([sessionKey])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("quotes")
 }
