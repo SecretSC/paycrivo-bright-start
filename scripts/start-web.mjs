@@ -145,12 +145,20 @@ async function maybeServeStatic(req, res, pathname) {
   if (!info || !filePath) return false;
 
   const ext = extname(filePath).toLowerCase();
+  const servedFromSource = filePath.startsWith(`${sourcePublicRoot}${sep}`);
   res.statusCode = 200;
   res.setHeader("Content-Type", mimeTypes.get(ext) || "application/octet-stream");
   res.setHeader("Content-Length", String(info.size));
   res.setHeader("Last-Modified", info.mtime.toUTCString());
   if (pathname.startsWith("/assets/")) {
-    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    if (servedFromSource) {
+      // Runtime-managed files (operator-installed under public/assets/) can
+      // change without a rebuild. Never mark them immutable — that would let
+      // browsers hold on to an outdated wallet runtime for a year.
+      res.setHeader("Cache-Control", "public, max-age=60, must-revalidate");
+    } else {
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    }
   }
 
   if (req.method === "HEAD") {
