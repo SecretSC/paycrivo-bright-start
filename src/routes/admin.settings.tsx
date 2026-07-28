@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Moon, Sun, Mail, Plug, CheckCircle2, XCircle, RefreshCw, Save, Send } from "lucide-react";
+import { Moon, Sun, Mail, Plug, CheckCircle2, XCircle, RefreshCw, Save, Send, AlertTriangle } from "lucide-react";
 import { useAdminAuth } from "@/lib/adminAuth";
 import { CANNED_RESPONSES, initials } from "@/lib/admin-ui";
 import { Switch } from "@/components/ui/switch";
@@ -12,7 +12,7 @@ import {
   setAdminDefaultTheme,
   type DefaultTheme,
 } from "@/lib/api/settings";
-import { adminSmtpApi, adminConnectorsApi, type SmtpStatus, type ConnectorFile } from "@/lib/api/adminSystem";
+import { adminSmtpApi, adminWalletRuntimeApi, type SmtpStatus, type WalletRuntimeStatus } from "@/lib/api/adminSystem";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/settings")({ component: AdminSettings });
