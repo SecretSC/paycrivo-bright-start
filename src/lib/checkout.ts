@@ -48,7 +48,16 @@ export function computeFees(
   const discount = 0;
   const totalFees = serviceFee + networkFee + paycrivoFee;
   const net = Math.max(safe - totalFees, 0);
-  const unitPrice = priceFiat && priceFiat > 0 ? priceFiat : asset.mockPriceUsd;
+  // If a live price argument is provided, honor it strictly. An explicit 0 or
+  // non-finite value means "no live price" and MUST yield receive=0 rather
+  // than silently falling back to the stale mock price (would mislead the
+  // customer). Only when priceFiat is omitted do we use the mock snapshot.
+  const unitPrice =
+    priceFiat === undefined
+      ? asset.mockPriceUsd
+      : Number.isFinite(priceFiat) && priceFiat > 0
+        ? priceFiat
+        : 0;
   const receive = unitPrice > 0 ? net / unitPrice : 0;
   return {
     amount: safe,
