@@ -81,7 +81,9 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
     spa: {
-      enabled: false,
+      enabled: true,
+      maskPath: "/",
+      prerender: { outputPath: "/", crawlLinks: false },
     },
     // Prerender disabled: the Cloudflare Workers preset does not emit
     // .output/server/server.js, so the crawler crashes with ERR_MODULE_NOT_FOUND.
