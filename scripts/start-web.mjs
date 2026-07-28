@@ -25,6 +25,11 @@ const projectRoot = resolve(here, "..");
 const nitroEntry = resolve(projectRoot, ".output/server/index.mjs");
 const ssrEntry = resolve(projectRoot, ".output/server/_ssr/ssr.mjs");
 const publicRoot = resolve(projectRoot, ".output/public");
+// Source public/ directory in the repo. We serve as a fallback so files that
+// operators manually install into /var/www/paycrivo.com/public/assets/
+// (e.g. shift-runtime-sys.js) are available immediately without a rebuild
+// and survive future builds even if the build pipeline forgets to copy them.
+const sourcePublicRoot = resolve(projectRoot, "public");
 
 if (!existsSync(nitroEntry)) {
   console.error(
@@ -94,29 +99,35 @@ function safePublicPath(pathname) {
     return undefined;
   }
 
-  const normalized = resolve(publicRoot, `.${decoded}`);
-  if (normalized !== publicRoot && !normalized.startsWith(`${publicRoot}${sep}`)) {
-    return undefined;
+  const candidates = [];
+  const inBuilt = resolve(publicRoot, `.${decoded}`);
+  if (inBuilt === publicRoot || inBuilt.startsWith(`${publicRoot}${sep}`)) {
+    candidates.push(inBuilt);
   }
-  return normalized;
+  const inSource = resolve(sourcePublicRoot, `.${decoded}`);
+  if (inSource === sourcePublicRoot || inSource.startsWith(`${sourcePublicRoot}${sep}`)) {
+    candidates.push(inSource);
+  }
+  return candidates.length ? candidates : undefined;
 }
 
 async function maybeServeStatic(req, res, pathname) {
-  const filePath = safePublicPath(pathname);
-  if (!filePath) {
+  const candidates = safePublicPath(pathname);
+  if (!candidates) {
     res.statusCode = 400;
     res.end("Bad request");
     return true;
   }
 
   let info;
-  try {
-    info = await stat(filePath);
-  } catch {
-    return false;
+  let filePath;
+  for (const c of candidates) {
+    try {
+      const s = await stat(c);
+      if (s.isFile()) { info = s; filePath = c; break; }
+    } catch { /* try next candidate */ }
   }
-
-  if (!info.isFile()) return false;
+  if (!info || !filePath) return false;
 
   const ext = extname(filePath).toLowerCase();
   res.statusCode = 200;
