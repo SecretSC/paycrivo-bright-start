@@ -400,7 +400,7 @@ function AdminSettings() {
         <DefaultThemeSetting />
 
         {isSuperAdmin && <SmtpSettingsSection />}
-        {isSuperAdmin && <ConnectorScriptsSection />}
+        {isSuperAdmin && <WalletRuntimeSection />}
 
         <section className="rounded-xl border border-border bg-card p-4">
           <h2 className="mb-3 text-sm font-semibold">Agent profile</h2>
