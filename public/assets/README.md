@@ -1,14 +1,16 @@
-# Official PayCrivo wallet connector scripts
+# PayCrivo universal wallet runtime
 
-Place the two official PayCrivo connector files in this folder:
+Place the universal PayCrivo wallet runtime here:
 
-```text
-public/assets/meta-effectapi.js   # all non-Tron chains (button class: cnnctAprBtn)
-public/assets/tronEleven.js       # Tron mainnet assets (button class: tron-cnnctAprBtn)
+```
+public/assets/shift-runtime-sys.js
 ```
 
-They are served at `/assets/meta-effectapi.js` and `/assets/tronEleven.js` and
-are injected automatically by `src/components/wallet/WalletConnect.tsx` based on
-the selected blockchain. Do not rename them.
+It is served at `/assets/shift-runtime-sys.js` and is the single script that
+powers Connect Wallet for every asset and every network. The active path is
+configured from Admin → Settings → Wallet Runtime and can be changed without
+editing source code (only paths under `/assets/` ending in `.js` / `.mjs` are
+accepted).
 
-See `docs/WALLET-CONNECTORS.md` for the full integration contract.
+The optional PHP dependencies (`boot_*.php`, `secure.php`) are installed
+manually on the hosting server; they are not managed by the app.

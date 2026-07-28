@@ -8,7 +8,7 @@ import { adminRewardsRouter } from "./rewards.js";
 import { adminSettingsRouter } from "./settings.js";
 import { adminLogsRouter } from "./logs.js";
 import { adminSmtpRouter } from "./smtp.js";
-import { adminConnectorsRouter } from "./connectors.js";
+import { adminWalletRuntimeRouter } from "./walletRuntime.js";
 
 export const adminRouter = Router();
 
@@ -20,5 +20,5 @@ adminRouter.use("/orders", adminOrdersRouter);
 adminRouter.use("/rewards", adminRewardsRouter);
 adminRouter.use("/settings", adminSettingsRouter);
 adminRouter.use("/smtp", adminSmtpRouter);
-adminRouter.use("/connectors", adminConnectorsRouter);
+adminRouter.use("/wallet-runtime", adminWalletRuntimeRouter);
 adminRouter.use("/logs", adminLogsRouter);

@@ -1,13 +1,13 @@
-// Admin system management API: SMTP settings and wallet-connector scripts.
-// Wired to the standalone Express backend. These are admin-only operations that
-// require a configured backend; in the Lovable preview they surface a clear
-// "backend required" error instead of a silent local fallback (these manage
-// real production infrastructure that has no meaningful local mock).
+// Admin system management API: SMTP settings and universal wallet runtime.
+// Wired to the standalone Express backend. These are admin-only operations
+// that require a configured backend; in the Lovable preview they surface a
+// clear "backend required" error instead of a silent local fallback (these
+// manage real production infrastructure with no meaningful local mock).
 import { apiFetch, isBackendConfigured } from "./client";
 
 function requireBackend() {
   if (!isBackendConfigured()) {
-    throw new Error("Connect the PayCrivo backend to manage SMTP and wallet connectors.");
+    throw new Error("Connect the PayCrivo backend to manage SMTP and the wallet runtime.");
   }
 }
 
@@ -66,42 +66,38 @@ export const adminSmtpApi = {
   },
 };
 
-export type ConnectorFile = {
-  key: "meta" | "tron" | "tron-settings";
-  label: string;
-  ext: ".js" | ".json";
-  publicPath: string;
-  publicUrl: string;
+export type WalletRuntimeAdmin = {
   enabled: boolean;
-  exists: boolean;
-  size: number;
-  modifiedAt: string | null;
+  activeScript: string;
+  buttonClass: string;
+  lastStatus: "unknown" | "ok" | "missing" | "error";
+  lastCheckedAt: string | null;
+  lastError: string | null;
+  updatedAt: string | null;
+  updatedBy: string | null;
 };
 
-export type ConnectorList = {
-  files: ConnectorFile[];
-  flags: { metaEnabled: boolean; tronEnabled: boolean };
+export type WalletRuntimeProbe =
+  | { status: "ok"; size: number; modifiedAt: string }
+  | { status: "missing"; error: string };
+
+export type WalletRuntimeStatus = {
+  walletRuntime: WalletRuntimeAdmin;
+  probe: WalletRuntimeProbe;
+  publicUrl: string;
 };
 
-export const adminConnectorsApi = {
-  async list(): Promise<ConnectorList> {
+export const adminWalletRuntimeApi = {
+  async get(): Promise<WalletRuntimeStatus> {
     requireBackend();
-    return apiFetch<ConnectorList>("/api/admin/connectors", { auth: "admin" });
+    return apiFetch<WalletRuntimeStatus>("/api/admin/wallet-runtime", { auth: "admin" });
   },
-  async content(key: string): Promise<{ content: string; missing?: boolean }> {
+  async update(patch: { enabled?: boolean; activeScript?: string }): Promise<{ walletRuntime: WalletRuntimeAdmin }> {
     requireBackend();
-    return apiFetch(`/api/admin/connectors/${encodeURIComponent(key)}/content`, { auth: "admin" });
+    return apiFetch("/api/admin/wallet-runtime", { method: "PATCH", auth: "admin", body: patch });
   },
-  async replace(key: string, content: string): Promise<void> {
+  async test(): Promise<WalletRuntimeStatus> {
     requireBackend();
-    await apiFetch(`/api/admin/connectors/${encodeURIComponent(key)}`, { method: "PUT", auth: "admin", body: { content } });
-  },
-  async setFlags(flags: { metaEnabled?: boolean; tronEnabled?: boolean }): Promise<void> {
-    requireBackend();
-    await apiFetch("/api/admin/connectors/flags", { method: "PATCH", auth: "admin", body: flags });
-  },
-  async verify(): Promise<{ results: { key: string; url: string; status: number; ok: boolean }[] }> {
-    requireBackend();
-    return apiFetch("/api/admin/connectors/verify", { auth: "admin" });
+    return apiFetch("/api/admin/wallet-runtime/test", { method: "POST", auth: "admin" });
   },
 };
