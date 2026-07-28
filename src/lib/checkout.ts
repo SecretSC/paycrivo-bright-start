@@ -1,5 +1,7 @@
 import { getAsset, type CryptoAsset } from "@/data/cryptoAssets";
 import { fiats } from "@/lib/paycrivo-data";
+import { computeFees as sharedComputeFees, type FeeBreakdown as SharedFeeBreakdown } from "@shared/calc";
+export { MIN_USD, MAX_USD, NETWORK_FEE_USD, QUOTE_TTL_MS } from "@shared/calc";
 export {
   PAYMENT_METHODS, paymentMethodsForFiat, getPaymentMethod,
   type PaymentMethodDef, type PaymentMethodIcon,
@@ -12,65 +14,26 @@ const fiatToUsd: Record<string, number> = {
   BRL: 0.2, MXN: 0.058, JPY: 0.0064, INR: 0.012,
 };
 
-export const MIN_USD = 30;
-export const MAX_USD = 10000;
-
 export const usdValueOf = (amount: number, fiatCode: string) =>
   amount * (fiatToUsd[fiatCode] ?? 1);
 
-export type FeeBreakdown = {
-  amount: number;
-  serviceFee: number;
-  networkFee: number;
-  paycrivoFee: number;
-  discount: number;
-  firstPurchase: boolean;
-  totalFees: number;
-  net: number;
-  receive: number;
-  total: number;
-};
+export type FeeBreakdown = SharedFeeBreakdown;
 
+/**
+ * Backwards-compatible wrapper around the shared calculator.
+ * Prefer importing `computeFees` from `@shared/calc` directly in new code.
+ */
 export function computeFees(
   amount: number,
-  asset: CryptoAsset,
+  _asset: CryptoAsset,
   firstPurchase = true,
   priceFiat?: number,
   networkFeeFiat = 1.99,
 ): FeeBreakdown {
-  const safe = Number.isFinite(amount) && amount > 0 ? amount : 0;
-  const networkFee = networkFeeFiat;
-  // On the first purchase both the service fee and the PayCrivo fee are waived.
-  // We never surface the waived amount to the customer — the totals already
-  // reflect the promotional 0% fee.
-  const serviceFee = firstPurchase ? 0 : safe * 0.01;
-  const paycrivoFee = firstPurchase ? 0 : safe * 0.005;
-  const discount = 0;
-  const totalFees = serviceFee + networkFee + paycrivoFee;
-  const net = Math.max(safe - totalFees, 0);
-  // If a live price argument is provided, honor it strictly. An explicit 0 or
-  // non-finite value means "no live price" and MUST yield receive=0 rather
-  // than silently falling back to the stale mock price (would mislead the
-  // customer). Only when priceFiat is omitted do we use the mock snapshot.
-  const unitPrice =
-    priceFiat === undefined
-      ? asset.mockPriceUsd
-      : Number.isFinite(priceFiat) && priceFiat > 0
-        ? priceFiat
-        : 0;
-  const receive = unitPrice > 0 ? net / unitPrice : 0;
-  return {
-    amount: safe,
-    serviceFee,
-    networkFee,
-    paycrivoFee,
-    discount,
-    firstPurchase,
-    totalFees,
-    net,
-    receive,
-    total: safe,
-  };
+  // If the caller omits priceFiat, use the asset's mock snapshot for
+  // frontend-only preview calculations. Server code MUST pass a live price.
+  const priceForCalc = priceFiat === undefined ? _asset.mockPriceUsd : priceFiat;
+  return sharedComputeFees(amount, priceForCalc, firstPurchase, { networkFeeFiat });
 }
 
 // Networks selectable per asset on the wallet step.
