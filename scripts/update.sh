@@ -64,6 +64,26 @@ npm run build
 ok "Frontend SSR server built -> $SSR_ENTRY"
 ok "TanStack route service built -> $SSR_SERVICE"
 
+# ---- Preserve manually-installed runtime assets ----
+# Operators drop the universal wallet runtime (and any related admin-managed
+# JS/JSON) into $PROJECT_ROOT/public/assets/. Vite copies public/ into
+# .output/public/ at build time, so anything already committed to the repo is
+# fine. But files placed there manually AFTER a build must survive the next
+# build too. We mirror them into the built directory so both paths resolve,
+# and never overwrite existing built assets.
+step "Syncing manually-installed public/assets/ files into build output"
+SRC_ASSETS="$PROJECT_ROOT/public/assets"
+DST_ASSETS="$PROJECT_ROOT/.output/public/assets"
+if [ -d "$SRC_ASSETS" ]; then
+  mkdir -p "$DST_ASSETS"
+  # -n = do not clobber existing files in the build output. Copies only what
+  # is missing (i.e. operator-installed files not tracked in git).
+  cp -rn "$SRC_ASSETS"/. "$DST_ASSETS"/ 2>/dev/null || true
+  ok "public/assets/ synchronized (existing built files preserved)"
+else
+  echo "    (no public/assets/ directory, skipping)"
+fi
+
 # ---- Backend build ----
 step "Building backend ($BACKEND_DIR)"
 [ -d "$BACKEND_DIR" ] || die "Backend folder not found: $BACKEND_DIR"
