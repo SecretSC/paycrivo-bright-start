@@ -40,7 +40,7 @@ export function WalletConnect({ status, onStatusChange }: WalletConnectProps) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [config, setConfig] = useState<WalletRuntimePublic | null>(null);
-  const [loadState, setLoadState] = useState<"idle" | "loading" | "ready" | "missing" | "disabled">("idle");
+  const [loadState, setLoadState] = useState<"idle" | "loading" | "ready" | "missing" | "disabled" | "unknown">("idle");
   const [loadError, setLoadError] = useState<string | null>(null);
 
   // Fetch the active runtime config once per session.
