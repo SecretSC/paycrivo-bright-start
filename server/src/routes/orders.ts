@@ -88,7 +88,7 @@ ordersRouter.post("/", optionalCustomer, validateBody(createSchema), async (req,
       }
       const created = await tx.order.create({
         data: {
-          reference: orderReference(quote.type),
+          reference: orderReference(quote.type as "buy" | "exchange"),
           type: quote.type,
           userId,
           sessionKey: data.sessionKey,
