@@ -30,7 +30,6 @@ import { Route as AccountIndexRouteImport } from './routes/account.index'
 import { Route as OrderOrderIdRouteImport } from './routes/order.$orderId'
 import { Route as ExchangeCheckoutRouteImport } from './routes/exchange.checkout'
 import { Route as AdminWalletsRouteImport } from './routes/admin.wallets'
-import { Route as AdminSmtpManagerRouteImport } from './routes/admin.smtp-manager'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminRewardsRouteImport } from './routes/admin.rewards'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
@@ -152,11 +151,6 @@ const AdminWalletsRoute = AdminWalletsRouteImport.update({
   path: '/wallets',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminSmtpManagerRoute = AdminSmtpManagerRouteImport.update({
-  id: '/smtp-manager',
-  path: '/smtp-manager',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -260,7 +254,6 @@ export interface FileRoutesByFullPath {
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/rewards': typeof AdminRewardsRoute
   '/admin/settings': typeof AdminSettingsRoute
-  '/admin/smtp-manager': typeof AdminSmtpManagerRoute
   '/admin/wallets': typeof AdminWalletsRoute
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
@@ -296,7 +289,6 @@ export interface FileRoutesByTo {
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/rewards': typeof AdminRewardsRoute
   '/admin/settings': typeof AdminSettingsRoute
-  '/admin/smtp-manager': typeof AdminSmtpManagerRoute
   '/admin/wallets': typeof AdminWalletsRoute
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
@@ -336,7 +328,6 @@ export interface FileRoutesById {
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/rewards': typeof AdminRewardsRoute
   '/admin/settings': typeof AdminSettingsRoute
-  '/admin/smtp-manager': typeof AdminSmtpManagerRoute
   '/admin/wallets': typeof AdminWalletsRoute
   '/exchange/checkout': typeof ExchangeCheckoutRoute
   '/order/$orderId': typeof OrderOrderIdRoute
@@ -377,7 +368,6 @@ export interface FileRouteTypes {
     | '/admin/orders'
     | '/admin/rewards'
     | '/admin/settings'
-    | '/admin/smtp-manager'
     | '/admin/wallets'
     | '/exchange/checkout'
     | '/order/$orderId'
@@ -413,7 +403,6 @@ export interface FileRouteTypes {
     | '/admin/orders'
     | '/admin/rewards'
     | '/admin/settings'
-    | '/admin/smtp-manager'
     | '/admin/wallets'
     | '/exchange/checkout'
     | '/order/$orderId'
@@ -452,7 +441,6 @@ export interface FileRouteTypes {
     | '/admin/orders'
     | '/admin/rewards'
     | '/admin/settings'
-    | '/admin/smtp-manager'
     | '/admin/wallets'
     | '/exchange/checkout'
     | '/order/$orderId'
@@ -636,13 +624,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminWalletsRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/smtp-manager': {
-      id: '/admin/smtp-manager'
-      path: '/smtp-manager'
-      fullPath: '/admin/smtp-manager'
-      preLoaderRoute: typeof AdminSmtpManagerRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/settings': {
       id: '/admin/settings'
       path: '/settings'
@@ -778,7 +759,6 @@ interface AdminRouteChildren {
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminRewardsRoute: typeof AdminRewardsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
-  AdminSmtpManagerRoute: typeof AdminSmtpManagerRoute
   AdminWalletsRoute: typeof AdminWalletsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -791,7 +771,6 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminOrdersRoute: AdminOrdersRoute,
   AdminRewardsRoute: AdminRewardsRoute,
   AdminSettingsRoute: AdminSettingsRoute,
-  AdminSmtpManagerRoute: AdminSmtpManagerRoute,
   AdminWalletsRoute: AdminWalletsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

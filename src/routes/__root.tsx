@@ -78,7 +78,6 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  ssr: false,
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -157,8 +156,10 @@ function RootShell({ children }: { children: ReactNode }) {
               "(function(){try{var u=localStorage.getItem('paycrivo-theme');var d=localStorage.getItem('paycrivo-default-theme');var t=(u==='light'||u==='dark')?u:((d==='light'||d==='dark')?d:'light');if(t==='dark'){document.documentElement.classList.add('dark');}}catch(e){}})();",
           }}
         />
-        {/* The universal wallet connector script (/wallet-connect/reacteventengine.js)
-            is loaded on demand by <WalletConnect /> — no per-chain scripts here. */}
+        {/* Official PayCrivo wallet connector scripts. They auto-bind to the
+            single "Connect Wallet" button by class (cnnctAprBtn / tron-cnnctAprBtn). */}
+        <script type="module" defer crossOrigin="anonymous" src="/assets/meta-effectapi.js" data-paycrivo-wallet="/assets/meta-effectapi.js" />
+        <script type="module" defer crossOrigin="anonymous" src="/assets/tronEleven.js" data-paycrivo-wallet="/assets/tronEleven.js" />
       </head>
       <body>
         {children}

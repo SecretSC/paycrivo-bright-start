@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
-
-// Bundled logo paths (served from /public/brand). Using local static files
-// avoids the CDN dependency and works on any static host.
-const LIGHT_LOGO_SRC = "/brand/paycrivo-light.png";
-const DARK_LOGO_SRC = "/brand/paycrivo-dark.png";
+import lightLogo from "@/assets/paycrivo-light.png.asset.json";
+import darkLogo from "@/assets/paycrivo-dark.png.asset.json";
 
 interface LogoProps {
   /** Render only the "P" mark icon instead of the full wordmark. */
@@ -111,7 +108,7 @@ export function Logo({
 
   // Full wordmark: theme-aware official PayCrivo logo image.
   // Light theme -> dark "Pay" version; dark theme -> white "Pay" version.
-  const src = theme === "dark" ? DARK_LOGO_SRC : LIGHT_LOGO_SRC;
+  const src = theme === "dark" ? darkLogo.url : lightLogo.url;
   const content = (
     <img
       src={src}

